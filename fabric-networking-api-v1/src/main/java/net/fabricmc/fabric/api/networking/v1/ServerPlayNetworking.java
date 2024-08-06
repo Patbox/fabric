@@ -314,6 +314,32 @@ public final class ServerPlayNetworking {
 		ServerNetworkingImpl.getAddon(listener).reconfigure();
 	}
 
+	/**
+	 * Gets the brand of the client player connected with.
+	 *
+	 * @param player the player
+	 * @return client's brand, which might be null if not sent.
+	 */
+	@Nullable
+	public static String getBrand(ServerPlayerEntity player) {
+		Objects.requireNonNull(player, "Server player entity cannot be null");
+
+		return getBrand(player.networkHandler);
+	}
+
+	/**
+	 * Gets the brand of the client player connected with.
+	 *
+	 * @param handler the network handler, representing the connection to the player/client
+	 * @return client's brand, which might be null if not sent.
+	 */
+	@Nullable
+	public static String getBrand(ServerPlayNetworkHandler handler) {
+		Objects.requireNonNull(handler, "Server play network handler cannot be null");
+
+		return ServerNetworkingImpl.getAddon(handler).getBrand();
+	}
+
 	private ServerPlayNetworking() {
 	}
 

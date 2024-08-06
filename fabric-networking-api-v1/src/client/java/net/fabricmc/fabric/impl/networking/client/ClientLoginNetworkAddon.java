@@ -103,6 +103,11 @@ public final class ClientLoginNetworkAddon extends AbstractNetworkAddon<ClientLo
 	}
 
 	@Override
+	public @Nullable String getBrand() {
+		return null;
+	}
+
+	@Override
 	protected void invokeDisconnectEvent() {
 		ClientLoginConnectionEvents.DISCONNECT.invoker().onLoginDisconnect(this.listener, this.client);
 	}

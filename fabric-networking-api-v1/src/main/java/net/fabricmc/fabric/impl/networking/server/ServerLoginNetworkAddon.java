@@ -197,6 +197,11 @@ public final class ServerLoginNetworkAddon extends AbstractNetworkAddon<ServerLo
 	}
 
 	@Override
+	public @Nullable String getBrand() {
+		return null;
+	}
+
+	@Override
 	protected void invokeDisconnectEvent() {
 		ServerLoginConnectionEvents.DISCONNECT.invoker().onLoginDisconnect(this.listener, this.server);
 	}
