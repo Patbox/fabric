@@ -36,7 +36,8 @@
   "custom": {
     "fabric-api:module-lifecycle": "stable",
     "loom:injected_interfaces": {
-      "net/minecraft/class_1856": ["net/fabricmc/fabric/api/recipe/v1/ingredient/FabricIngredient"]
+      "net/minecraft/class_1856": ["net/fabricmc/fabric/api/recipe/v1/ingredient/FabricIngredient"],
+      "net/minecraft/class_1863": ["net/fabricmc/fabric/api/recipe/v1/FabricServerRecipeManager"]
     }
   }
 }
