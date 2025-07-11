@@ -1,0 +1,11 @@
+version = getSubprojectVersion(project)
+
+loom {}
+
+moduleDependencies(project, [
+	':fabric-api-base',
+])
+
+testDependencies(project, [
+	':fabric-lifecycle-events-v1',
+])
