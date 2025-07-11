@@ -4,7 +4,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "NbtReadViewMixin",
-    "NbtWriteViewMixin"
+    "NbtWriteViewMixin",
+    "ReadViewMixin",
+    "WriteViewMixin"
   ],
   "injectors": {
     "defaultRequire": 1
