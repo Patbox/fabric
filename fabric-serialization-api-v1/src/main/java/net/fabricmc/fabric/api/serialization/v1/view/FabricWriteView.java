@@ -22,7 +22,7 @@ import net.fabricmc.fabric.impl.serialization.SpecialCodecs;
 
 /**
  * Fabric provided extension of WriteView.
- * 
+ *
  * <p>Note: This interface is automatically implemented on all items via Mixin and interface injection.
  */
 public interface FabricWriteView {

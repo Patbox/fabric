@@ -33,7 +33,7 @@ public record DelegateWriteView(WriteView view) implements WriteView {
 
 	@Override
 	public <T> void putNullable(String key, Codec<T> codec, @Nullable T value) {
-		view.put(key, codec, value);
+		view.putNullable(key, codec, value);
 	}
 
 	@Override

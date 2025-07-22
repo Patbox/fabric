@@ -26,13 +26,13 @@ import net.fabricmc.fabric.impl.serialization.SpecialCodecs;
 
 /**
  * Fabric provided extension of ReadView.
- * 
+ *
  * <p>Note: This interface is automatically implemented on all items via Mixin and interface injection.
  */
 public interface FabricReadView {
 	/**
 	 * Returns a collection of keys available in this {@link ReadView}.
-	 * 
+	 *
 	 * @return collection of keys or empty list if this {@link ReadView} is empty.
 	 */
 	default Collection<String> keys() {
@@ -42,7 +42,7 @@ public interface FabricReadView {
 
 	/**
 	 * Checks if this {@link ReadView} contains data under provided key.
-	 * 
+	 *
 	 * @param key key to check for
 	 * @return true, when this {@link ReadView} contains data under provided key, otherwise false
 	 */
@@ -52,7 +52,7 @@ public interface FabricReadView {
 
 	/**
 	 * Returns an long array present in this {@link ReadView} under provided key.
-	 * 
+	 *
 	 * @param key key to check for
 	 * @return long array wrapped in optional if long array is present, empty Optional otherwise
 	 */
@@ -62,7 +62,7 @@ public interface FabricReadView {
 
 	/**
 	 * Returns an byte array present in this {@link ReadView} under provided key.
-	 * 
+	 *
 	 * @param key key to check for
 	 * @return byte array wrapped in optional if byte array is present, empty Optional otherwise
 	 */
