@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.storage.WriteView;
 
 /**
- * A delegating WriteView, used to force usage of fallback implementation of FabricWriteView
+ * A delegating WriteView, used to force usage of fallback implementation of FabricWriteView.
  */
 public record DelegateWriteView(WriteView view) implements WriteView {
 	@Override

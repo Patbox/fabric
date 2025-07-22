@@ -25,7 +25,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.storage.ReadView;
 
 /**
- * A delegating ReadView, used to force usage of fallback implementation of FabricReadView
+ * A delegating ReadView, used to force usage of fallback implementation of FabricReadView.
  */
 public record DelegateReadView(ReadView view) implements ReadView {
 	@Override
