@@ -28,7 +28,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
-
 public interface SpecialCodecs {
 	Codec<long[]> LONG_ARRAY = Codec.LONG_STREAM.xmap(LongStream::toArray, LongStream::of);
 	Codec<byte[]> BYTE_ARRAY = Codec.BYTE_BUFFER.xmap((buf) -> {
