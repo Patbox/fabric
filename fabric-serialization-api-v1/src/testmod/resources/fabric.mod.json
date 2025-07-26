@@ -9,8 +9,6 @@
     "fabric-serialization-api-v1":"*"
   },
   "entrypoints": {
-    "main": [
-      "net.fabricmc.fabric.test.serialization.SerializationExtensionTest"
-    ]
+    "main": []
   }
 }

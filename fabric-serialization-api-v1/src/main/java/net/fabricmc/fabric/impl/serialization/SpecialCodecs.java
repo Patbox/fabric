@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
@@ -29,7 +28,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
-import net.fabricmc.fabric.api.util.TriState;
 
 public interface SpecialCodecs {
 	Codec<long[]> LONG_ARRAY = Codec.LONG_STREAM.xmap(LongStream::toArray, LongStream::of);
@@ -57,32 +55,6 @@ public interface SpecialCodecs {
 		@Override
 		public <T> Stream<T> keys(DynamicOps<T> ops) {
 			return Stream.empty();
-		}
-	};
-	Codec<TriState> TRI_STATE = new Codec<>() {
-		@Override
-		public <T> DataResult<Pair<TriState, T>> decode(DynamicOps<T> ops, T input) {
-			DataResult<String> string = ops.getStringValue(input);
-
-			if (string.error().isPresent()) {
-				return DataResult.error(string.error().orElseThrow().messageSupplier());
-			}
-
-			return switch (string.getOrThrow()) {
-				case "true" -> DataResult.success(new Pair<>(TriState.TRUE, input));
-				case "false" -> DataResult.success(new Pair<>(TriState.FALSE, input));
-				case "default" -> DataResult.success(new Pair<>(TriState.DEFAULT, input));
-				case null, default -> DataResult.error(() -> "Not a valid TriState value: " + string.getOrThrow());
-			};
-		}
-
-		@Override
-		public <T> DataResult<T> encode(TriState input, DynamicOps<T> ops, T prefix) {
-			return DataResult.success(ops.createString(switch (input) {
-			case TRUE -> "true";
-			case FALSE -> "false";
-			case DEFAULT -> "default";
-			}));
 		}
 	};
 
