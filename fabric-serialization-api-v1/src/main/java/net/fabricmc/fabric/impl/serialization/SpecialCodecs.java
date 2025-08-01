@@ -60,11 +60,6 @@ public interface SpecialCodecs {
 	static MapCodec<Boolean> contains(String key) {
 		return new MapCodec<>() {
 			@Override
-			public <T> Stream<T> keys(DynamicOps<T> ops) {
-				return Stream.of();
-			}
-
-			@Override
 			public <T> DataResult<Boolean> decode(DynamicOps<T> ops, MapLike<T> input) {
 				return DataResult.success(input.get(key) != null);
 			}
@@ -72,6 +67,11 @@ public interface SpecialCodecs {
 			@Override
 			public <T> RecordBuilder<T> encode(Boolean input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
 				return prefix;
+			}
+
+			@Override
+			public <T> Stream<T> keys(DynamicOps<T> ops) {
+				return Stream.empty();
 			}
 		};
 	}
