@@ -311,6 +311,8 @@ transitive-accessible method net/minecraft/enchantment/Enchantment createEnchant
 transitive-accessible method net/minecraft/enchantment/Enchantment createEnchantedEntityLootContext (Lnet/minecraft/server/world/ServerWorld;ILnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/loot/context/LootContext;
 transitive-accessible method net/minecraft/enchantment/Enchantment createHitBlockLootContext (Lnet/minecraft/server/world/ServerWorld;ILnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/block/BlockState;)Lnet/minecraft/loot/context/LootContext;
 transitive-accessible method net/minecraft/enchantment/Enchantment applyEffects (Ljava/util/List;Lnet/minecraft/loot/context/LootContext;Ljava/util/function/Consumer;)V
+transitive-accessible class net/minecraft/enchantment/EnchantmentHelper$Consumer
+transitive-accessible class net/minecraft/enchantment/EnchantmentHelper$ContextAwareConsumer
 
 # Protected static fields of RenderPhase
 transitive-accessible field net/minecraft/client/render/RenderPhase MIPMAP_BLOCK_ATLAS_TEXTURE Lnet/minecraft/client/render/RenderPhase$Texture;
