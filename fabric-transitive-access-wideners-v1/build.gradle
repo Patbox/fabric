@@ -236,6 +236,8 @@ def generateEnchantmentMethods(List<String> lines, FileSystem fs) {
 			}
 		}
 	}
+	lines.add("transitive-accessible class net/minecraft/enchantment/EnchantmentHelper\$Consumer")
+	lines.add("transitive-accessible class net/minecraft/enchantment/EnchantmentHelper\$ContextAwareConsumer")
 }
 
 ClassNode loadClass(Path path) {
