@@ -91,6 +91,7 @@ public final class StrippableBlockRegistry {
 		StrippingTransformer VANILLA = (strippedBlock, originalState) -> strippedBlock.getDefaultState().withIfExists(Properties.AXIS, originalState.get(Properties.AXIS, Direction.Axis.Y));
 		StrippingTransformer COPY = Block::getStateWithProperties;
 
+		@Nullable
 		BlockState getStrippedBlockState(Block strippedBlock, BlockState originalState);
 
 		static StrippingTransformer copyOf(Property<?>... properties) {
