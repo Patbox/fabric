@@ -80,13 +80,14 @@ public class CustomPayloadS2CPacketMixin implements SplittablePacket {
 
 	@Override
 	public void fabric_split(int id, NetworkState<?> state, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet, Consumer<Packet<?>> consumer) throws Exception {
-		int size = (state.id() == NetworkPhase.CONFIGURATION ? PayloadTypeRegistryImpl.CONFIGURATION_S2C : PayloadTypeRegistryImpl.PLAY_S2C).getSplittingThreshold(this.payload.getId());
+		PayloadTypeRegistryImpl<?> registry = state.id() == NetworkPhase.CONFIGURATION ? PayloadTypeRegistryImpl.CONFIGURATION_S2C : PayloadTypeRegistryImpl.PLAY_S2C;
+		int size = registry.getMaxPacketSize(this.payload.getId());
 
 		if (size == -1) {
 			consumer.accept((Packet<?>) this);
 			return;
 		}
 
-		FabricPacketSplitter.customFabricSplit(id, channelHandlerContext, encoder, packet, consumer, size);
+		FabricPacketSplitter.customFabricSplit(id, channelHandlerContext, encoder, packet, CustomPayloadS2CPacket::new, consumer, FabricPacketSplitter.SAFE_S2C_SPLIT_SIZE, size);
 	}
 }

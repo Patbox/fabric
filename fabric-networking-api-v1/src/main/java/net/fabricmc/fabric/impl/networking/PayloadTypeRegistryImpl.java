@@ -20,41 +20,34 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import io.netty.buffer.ByteBufUtil;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.minecraft.network.NetworkPhase;
 import net.minecraft.network.NetworkSide;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.encoding.VarInts;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
 
 public class PayloadTypeRegistryImpl<B extends PacketByteBuf> implements PayloadTypeRegistry<B> {
-	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_C2S = new PayloadTypeRegistryImpl<>("configuration_c2s", NetworkPhase.CONFIGURATION, NetworkSide.SERVERBOUND);
-	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_S2C = new PayloadTypeRegistryImpl<>("configuration_s2c", NetworkPhase.CONFIGURATION, NetworkSide.CLIENTBOUND);
-	public static final PayloadTypeRegistryImpl<RegistryByteBuf> PLAY_C2S = new PayloadTypeRegistryImpl<>("play_c2s", NetworkPhase.PLAY, NetworkSide.SERVERBOUND);
-	public static final PayloadTypeRegistryImpl<RegistryByteBuf> PLAY_S2C = new PayloadTypeRegistryImpl<>("play_s2c", NetworkPhase.PLAY, NetworkSide.CLIENTBOUND);
-
-	public static final Logger LOGGER = LoggerFactory.getLogger(FabricPacketsImpl.MOD_ID);
-
+	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_C2S = new PayloadTypeRegistryImpl<>(NetworkPhase.CONFIGURATION, NetworkSide.SERVERBOUND);
+	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_S2C = new PayloadTypeRegistryImpl<>(NetworkPhase.CONFIGURATION, NetworkSide.CLIENTBOUND);
+	public static final PayloadTypeRegistryImpl<RegistryByteBuf> PLAY_C2S = new PayloadTypeRegistryImpl<>(NetworkPhase.PLAY, NetworkSide.SERVERBOUND);
+	public static final PayloadTypeRegistryImpl<RegistryByteBuf> PLAY_S2C = new PayloadTypeRegistryImpl<>(NetworkPhase.PLAY, NetworkSide.CLIENTBOUND);
 	private final Map<Identifier, CustomPayload.Type<B, ? extends CustomPayload>> packetTypes = new HashMap<>();
-	private final Reference2IntMap<CustomPayload.Id<?>> packetSplitThreshold = new Reference2IntOpenHashMap<>();
+	private final Reference2IntMap<CustomPayload.Id<?>> maxPacketSize = new Reference2IntOpenHashMap<>();
 	private final NetworkPhase state;
 	private final NetworkSide side;
-	private final String name;
-
-	private PayloadTypeRegistryImpl(String name, NetworkPhase state, NetworkSide side) {
+	private PayloadTypeRegistryImpl(NetworkPhase state, NetworkSide side) {
 		this.state = state;
 		this.side = side;
-		this.name = name;
 	}
 
 	@Override
@@ -73,17 +66,10 @@ public class PayloadTypeRegistryImpl<B extends PacketByteBuf> implements Payload
 	}
 
 	@Override
-	public <T extends CustomPayload> CustomPayload.Type<? super B, T> registerSplittable(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec) {
-		return registerSplittable(id, codec, FabricPacketSplitter.SAFE_SPLIT_SIZE);
-	}
-
-	@Override
-	public <T extends CustomPayload> CustomPayload.Type<? super B, T> registerSplittable(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec, int splitThreshold) {
-		if (this.side == NetworkSide.CLIENTBOUND) {
-			packetSplitThreshold.put(id, splitThreshold);
-		} else {
-			LOGGER.warn("The " + this.name + " doesn't support packet splitting! Using registerSplittable will have no effect!");
-		}
+	public <T extends CustomPayload> CustomPayload.Type<? super B, T> registerLarge(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec, int maxPayloadSize) {
+		// Defines max packet size, increased by length of packet's Identifier to cover full size of CustomPayloadX2YPackets.
+		int identifierSize = ByteBufUtil.utf8MaxBytes(id.id().toString());
+		this.maxPacketSize.put(id, maxPayloadSize + VarInts.getSizeInBytes(identifierSize) + identifierSize);
 
 		return register(id, codec);
 	}
@@ -99,8 +85,8 @@ public class PayloadTypeRegistryImpl<B extends PacketByteBuf> implements Payload
 		return (CustomPayload.Type<B, T>) packetTypes.get(id.id());
 	}
 
-	public int getSplittingThreshold(CustomPayload.Id<?> id) {
-		return this.packetSplitThreshold.getOrDefault(id, -1);
+	public int getMaxPacketSize(CustomPayload.Id<?> id) {
+		return this.maxPacketSize.getOrDefault(id, -1);
 	}
 
 	public NetworkPhase getPhase() {

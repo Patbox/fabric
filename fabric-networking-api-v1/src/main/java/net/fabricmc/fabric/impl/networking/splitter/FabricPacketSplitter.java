@@ -18,21 +18,24 @@ package net.fabricmc.fabric.impl.networking.splitter;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
 import net.minecraft.network.handler.EncoderHandler;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.network.state.NetworkState;
 
 import net.fabricmc.fabric.mixin.networking.accessor.EncoderHandlerAccessor;
 
 public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
-	public static final int SAFE_SPLIT_SIZE = 1048576 - 2000;
+	public static final int SAFE_S2C_SPLIT_SIZE = 1048576 - 128;
+	public static final int SAFE_C2S_SPLIT_SIZE = 32767 - 128;
 	private final EncoderHandler<?> encoder;
 	private final NetworkState<?> state;
 
@@ -59,18 +62,29 @@ public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
 		}
 	}
 
-	public static void customFabricSplit(int id, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet, Consumer<Packet<?>> consumer, int chunkSize) throws Exception {
+	public static void customFabricSplit(int id, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet,
+										Function<CustomPayload, Packet<?>> packetConstructor, Consumer<Packet<?>> consumer, int maxChunkSize, int maxPacketSize) throws Exception {
 		ByteBuf buf = Unpooled.buffer();
 		((EncoderHandlerAccessor) encoder).fabric_encode(channelHandlerContext, packet, buf);
 
-		consumer.accept(new CustomPayloadS2CPacket(new FabricSplitStartPacketPayload(id)));
-		int part = 0;
-
-		while (buf.readableBytes() > chunkSize) {
-			consumer.accept(new CustomPayloadS2CPacket(new FabricSplitDataPacketPayload(id, part++, buf.readSlice(chunkSize))));
+		if (buf.readableBytes() < maxPacketSize) {
+			// Todo, add a fast bypass in case of packet fitting within the limit, so it doesn't get encoded twice for no reason.
+			consumer.accept(packet);
+			return;
 		}
 
-		consumer.accept(new CustomPayloadS2CPacket(new FabricSplitDataPacketPayload(id, part, buf.readSlice(buf.readableBytes()))));
-		consumer.accept(new CustomPayloadS2CPacket(new FabricSplitEndPacketPayload(id)));
+		if (buf.readableBytes() > maxPacketSize) {
+			throw new EncoderException("Packet '" + packet.getPacketType().id() + "' may not be larger than " + maxPacketSize + " bytes!");
+		}
+
+		consumer.accept(packetConstructor.apply(new FabricSplitStartPacketPayload(id)));
+		int part = 0;
+
+		while (buf.readableBytes() > maxChunkSize) {
+			consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(id, part++, buf.readSlice(maxChunkSize))));
+		}
+
+		consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(id, part, buf.readSlice(buf.readableBytes()))));
+		consumer.accept(packetConstructor.apply(new FabricSplitEndPacketPayload(id)));
 	}
 }

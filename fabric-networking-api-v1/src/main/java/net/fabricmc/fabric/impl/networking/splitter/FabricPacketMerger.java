@@ -79,6 +79,7 @@ public class FabricPacketMerger extends MessageToMessageDecoder<Packet<?>> {
 			this.byteBuf = Unpooled.buffer();
 		}
 
+		// Todo: Implement max size validation (might require format change)
 		boolean add(ChannelHandlerContext channelHandlerContext, Packet<?> packet, List<Object> objects) throws Exception {
 			if (!(packet instanceof CustomPayloadS2CPacket customPayloadS2CPacket) || !(customPayloadS2CPacket.payload() instanceof FabricSplitPacketPayload payload)) {
 				throw new DecoderException("Expected CustomPayloadS2CPacket of type FabricSplitPacketPayload, but received something else!");

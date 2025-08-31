@@ -23,10 +23,10 @@ import net.minecraft.network.encoding.VarInts;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import net.fabricmc.fabric.impl.networking.FabricPacketsImpl;
+import net.fabricmc.fabric.impl.networking.NetworkingImpl;
 
 public record FabricSplitDataPacketPayload(int splitId, int part, ByteBuf byteBuf) implements FabricSplitPacketPayload {
-	public static final Id<FabricSplitDataPacketPayload> ID = new Id<>(Identifier.of(FabricPacketsImpl.MOD_ID, "split/data"));
+	public static final Id<FabricSplitDataPacketPayload> ID = new Id<>(Identifier.of(NetworkingImpl.MOD_ID, "split/data"));
 	public static final PacketCodec<ByteBuf, FabricSplitDataPacketPayload> CODEC = PacketCodec.ofStatic(FabricSplitDataPacketPayload::write, FabricSplitDataPacketPayload::read);
 
 	private static FabricSplitDataPacketPayload read(ByteBuf buf) {
