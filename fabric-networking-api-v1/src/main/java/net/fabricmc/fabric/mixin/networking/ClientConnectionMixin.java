@@ -21,13 +21,24 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+
+import net.fabricmc.fabric.impl.networking.splitter.FabricPacketMerger;
+
+import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
+
+import net.minecraft.network.handler.DecoderHandler;
+import net.minecraft.network.handler.EncoderHandler;
+import net.minecraft.network.handler.NetworkStateTransitions;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.network.ClientConnection;
@@ -81,6 +92,30 @@ abstract class ClientConnectionMixin implements ChannelInfoHolder {
 		if (packetListener instanceof NetworkHandlerExtensions extension) {
 			extension.getAddon().handleDisconnect();
 		}
+	}
+
+	@ModifyArg(method = "transitionInbound", at = @At(value = "INVOKE", target = "Lio/netty/channel/Channel;writeAndFlush(Ljava/lang/Object;)Lio/netty/channel/ChannelFuture;"))
+	private Object injectFabricPacketSlitterHandlerInbound(Object transitioner, @Local(argsOnly = true) NetworkState<?> state) {
+		if (state.side() != NetworkSide.CLIENTBOUND || (state.id() != NetworkPhase.CONFIGURATION && state.id() != NetworkPhase.PLAY)) {
+			return transitioner;
+		}
+
+		return ((NetworkStateTransitions.DecoderTransitioner) transitioner).andThen((context) -> {
+			FabricPacketMerger merger = new FabricPacketMerger(context.pipeline().get(DecoderHandler.class));
+			context.pipeline().addAfter("decoder", "fabric:merger", merger);
+		});
+	}
+
+	@ModifyArg(method = "transitionOutbound", at = @At(value = "INVOKE", target = "Lio/netty/channel/Channel;writeAndFlush(Ljava/lang/Object;)Lio/netty/channel/ChannelFuture;"))
+	private Object injectFabricPacketSlitterHandlerOutbound(Object transitioner, @Local(argsOnly = true) NetworkState<?> state) {
+		if (state.side() != NetworkSide.CLIENTBOUND || (state.id() != NetworkPhase.CONFIGURATION && state.id() != NetworkPhase.PLAY)) {
+			return transitioner;
+		}
+
+		return ((NetworkStateTransitions.EncoderTransitioner) transitioner).andThen((context) -> {
+			FabricPacketSplitter splitter = new FabricPacketSplitter(state, context.pipeline().get(EncoderHandler.class));
+			context.pipeline().addAfter("encoder", "fabric:splitter", splitter);
+		});
 	}
 
 	@Override

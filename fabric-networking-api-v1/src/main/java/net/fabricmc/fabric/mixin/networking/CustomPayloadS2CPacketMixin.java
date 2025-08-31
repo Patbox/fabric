@@ -17,10 +17,25 @@
 package net.fabricmc.fabric.mixin.networking;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+
+import io.netty.channel.ChannelHandlerContext;
+
+import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
+import net.fabricmc.fabric.impl.networking.splitter.SplittablePacket;
+
+import net.minecraft.network.NetworkPhase;
+import net.minecraft.network.handler.EncoderHandler;
+import net.minecraft.network.packet.Packet;
+
+import net.minecraft.network.state.NetworkState;
+
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.minecraft.network.PacketByteBuf;
@@ -33,7 +48,11 @@ import net.fabricmc.fabric.impl.networking.FabricCustomPayloadPacketCodec;
 import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
 
 @Mixin(CustomPayloadS2CPacket.class)
-public class CustomPayloadS2CPacketMixin {
+public class CustomPayloadS2CPacketMixin implements SplittablePacket {
+	@Shadow
+	@Final
+	private CustomPayload payload;
+
 	@WrapOperation(
 			method = "<clinit>",
 			at = @At(
@@ -62,5 +81,18 @@ public class CustomPayloadS2CPacketMixin {
 		FabricCustomPayloadPacketCodec<PacketByteBuf> fabricCodec = (FabricCustomPayloadPacketCodec<PacketByteBuf>) codec;
 		fabricCodec.fabric_setPacketCodecProvider((packetByteBuf, identifier) -> PayloadTypeRegistryImpl.CONFIGURATION_S2C.get(identifier));
 		return codec;
+	}
+
+	@Override
+	public void fabric_split(int id, NetworkState<?> state, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet, Consumer<Packet<?>> consumer) throws Exception {
+		var size = (state.id() == NetworkPhase.CONFIGURATION ? PayloadTypeRegistryImpl.CONFIGURATION_S2C :  PayloadTypeRegistryImpl.PLAY_S2C).getSplittingThreshold(this.payload.getId());
+
+		if (size == -1) {
+			consumer.accept((Packet<?>) this);
+			return;
+		}
+
+		FabricPacketSplitter.customFabricSplit(id, channelHandlerContext, encoder, packet, consumer, size);
+		//FabricPacketSplitter.customFabricSplit(channelHandlerContext, encoder, packet, consumer, 100);
 	}
 }

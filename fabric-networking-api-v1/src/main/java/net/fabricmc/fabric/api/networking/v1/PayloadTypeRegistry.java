@@ -44,6 +44,39 @@ public interface PayloadTypeRegistry<B extends PacketByteBuf> {
 	<T extends CustomPayload> CustomPayload.Type<? super B, T> register(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec);
 
 	/**
+	 * Registers a splittable custom payload type.
+	 *
+	 * <p>This must be done on both the sending and receiving side, usually during mod initialization
+	 * and <strong>before registering a packet handler</strong>.
+	 *
+	 * <p>Payload types registered with this method will be split into multiple packets,
+	 * if it ends up exceeding vanilla size limit.
+	 *
+	 * @param id    the id of the payload type
+	 * @param codec the codec for the payload type
+	 * @param <T>   the payload type
+	 * @return the registered payload type
+	 */
+	<T extends CustomPayload> CustomPayload.Type<? super B, T> registerSplittable(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec);
+
+	/**
+	 * Registers a splittable custom payload type.
+	 *
+	 * <p>This must be done on both the sending and receiving side, usually during mod initialization
+	 * and <strong>before registering a packet handler</strong>.
+	 *
+	 * <p>Payload types registered with this method will be split into multiple packets,
+	 * if it ends up exceeding provided size limit.
+	 *
+	 * @param id             the id of the payload type
+	 * @param codec          the codec for the payload type
+	 * @param <T>            the payload type
+	 * @param splitThreshold the maximum size of payload before splitting
+	 * @return the registered payload type
+	 */
+	<T extends CustomPayload> CustomPayload.Type<? super B, T> registerSplittable(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec, int splitThreshold);
+
+	/**
 	 * @return the {@link PayloadTypeRegistry} instance for the client to server configuration channel.
 	 */
 	static PayloadTypeRegistry<PacketByteBuf> configurationC2S() {
