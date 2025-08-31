@@ -16,14 +16,13 @@
 
 package net.fabricmc.fabric.impl.networking;
 
-import net.fabricmc.fabric.impl.networking.splitter.FabricSplitDataPacketPayload;
-import net.fabricmc.fabric.impl.networking.splitter.FabricSplitEndPacketPayload;
-import net.fabricmc.fabric.impl.networking.splitter.FabricSplitStartPacketPayload;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.impl.networking.splitter.FabricSplitDataPacketPayload;
+import net.fabricmc.fabric.impl.networking.splitter.FabricSplitEndPacketPayload;
+import net.fabricmc.fabric.impl.networking.splitter.FabricSplitStartPacketPayload;
 
 public final class FabricPacketsImpl {
 	public static final String MOD_ID = "fabric-networking-api-v1";

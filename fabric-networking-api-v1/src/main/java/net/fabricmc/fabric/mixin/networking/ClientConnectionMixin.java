@@ -24,15 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.llamalad7.mixinextras.sugar.Local;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-
-import net.fabricmc.fabric.impl.networking.splitter.FabricPacketMerger;
-
-import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
-
-import net.minecraft.network.handler.DecoderHandler;
-import net.minecraft.network.handler.EncoderHandler;
-import net.minecraft.network.handler.NetworkStateTransitions;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -44,6 +35,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.NetworkPhase;
 import net.minecraft.network.NetworkSide;
+import net.minecraft.network.handler.DecoderHandler;
+import net.minecraft.network.handler.EncoderHandler;
+import net.minecraft.network.handler.NetworkStateTransitions;
 import net.minecraft.network.listener.PacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.state.NetworkState;
@@ -52,6 +46,8 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.impl.networking.ChannelInfoHolder;
 import net.fabricmc.fabric.impl.networking.NetworkHandlerExtensions;
 import net.fabricmc.fabric.impl.networking.PacketCallbackListener;
+import net.fabricmc.fabric.impl.networking.splitter.FabricPacketMerger;
+import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
 
 @Mixin(ClientConnection.class)
 abstract class ClientConnectionMixin implements ChannelInfoHolder {
