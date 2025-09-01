@@ -19,15 +19,14 @@ package net.fabricmc.fabric.impl.networking.splitter;
 import io.netty.buffer.ByteBuf;
 
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.impl.networking.NetworkingImpl;
 
-public record FabricSplitEndPacketPayload(int splitId) implements FabricSplitPacketPayload {
+public record FabricSplitEndPacketPayload() implements CustomPayload {
 	public static final Id<FabricSplitEndPacketPayload> ID = new Id<>(Identifier.of(NetworkingImpl.MOD_ID, "split/end"));
-	public static final PacketCodec<ByteBuf, FabricSplitEndPacketPayload> CODEC = PacketCodecs.VAR_INT.xmap(FabricSplitEndPacketPayload::new, FabricSplitEndPacketPayload::splitId);
+	public static final PacketCodec<ByteBuf, FabricSplitEndPacketPayload> CODEC = PacketCodec.unit(new FabricSplitEndPacketPayload());
 
 	@Override
 	public Id<? extends CustomPayload> getId() {

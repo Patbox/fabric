@@ -25,19 +25,17 @@ import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.impl.networking.NetworkingImpl;
 
-public record FabricSplitDataPacketPayload(int splitId, int part, ByteBuf byteBuf) implements FabricSplitPacketPayload {
+public record FabricSplitDataPacketPayload(int part, ByteBuf byteBuf) implements CustomPayload {
 	public static final Id<FabricSplitDataPacketPayload> ID = new Id<>(Identifier.of(NetworkingImpl.MOD_ID, "split/data"));
 	public static final PacketCodec<ByteBuf, FabricSplitDataPacketPayload> CODEC = PacketCodec.ofStatic(FabricSplitDataPacketPayload::write, FabricSplitDataPacketPayload::read);
 
 	private static FabricSplitDataPacketPayload read(ByteBuf buf) {
-		int id = VarInts.read(buf);
 		int part = VarInts.read(buf);
 		int size = VarInts.read(buf);
-		return new FabricSplitDataPacketPayload(id, part, buf.readBytes(size));
+		return new FabricSplitDataPacketPayload(part, buf.readBytes(size));
 	}
 
 	private static void write(ByteBuf buf, FabricSplitDataPacketPayload payload) {
-		VarInts.write(buf, payload.splitId());
 		VarInts.write(buf, payload.part());
 		VarInts.write(buf, payload.byteBuf().readableBytes());
 		buf.writeBytes(payload.byteBuf());

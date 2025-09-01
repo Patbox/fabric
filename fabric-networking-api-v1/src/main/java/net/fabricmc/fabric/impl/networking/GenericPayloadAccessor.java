@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.impl.networking.splitter;
+package net.fabricmc.fabric.impl.networking;
 
 import net.minecraft.network.packet.CustomPayload;
 
-public interface FabricSplitPacketPayload extends CustomPayload {
-	int splitId();
+public interface GenericPayloadAccessor {
+	CustomPayload fabric_payload();
 }

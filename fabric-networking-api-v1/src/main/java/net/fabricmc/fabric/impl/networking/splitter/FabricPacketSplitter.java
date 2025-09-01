@@ -29,30 +29,25 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import net.minecraft.network.handler.EncoderHandler;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.state.NetworkState;
+import net.minecraft.util.Identifier;
 
+import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
 import net.fabricmc.fabric.mixin.networking.accessor.EncoderHandlerAccessor;
 
 public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
-	public static final int SAFE_S2C_SPLIT_SIZE = 1048576 - 128;
-	public static final int SAFE_C2S_SPLIT_SIZE = 32767 - 128;
+	public static final int SAFE_S2C_SPLIT_SIZE = 1048576 - 32;
+	public static final int SAFE_C2S_SPLIT_SIZE = 32767 - 32;
 	private final EncoderHandler<?> encoder;
-	private final NetworkState<?> state;
+	private final PayloadTypeRegistryImpl<?> payloadTypeRegistry;
 
-	private int splitId = 0;
-
-	public FabricPacketSplitter(NetworkState<?> state, EncoderHandler<?> encoderHandler) {
-		this.state = state;
+	public FabricPacketSplitter(EncoderHandler<?> encoderHandler, PayloadTypeRegistryImpl<?> payloadTypeRegistry) {
 		this.encoder = encoderHandler;
+		this.payloadTypeRegistry = payloadTypeRegistry;
 	}
 
 	protected void encode(ChannelHandlerContext channelHandlerContext, Packet<?> packet, List<Object> list) throws Exception {
 		if (packet instanceof SplittablePacket splittablePacket) {
-			splittablePacket.fabric_split(this.splitId++, this.state, channelHandlerContext, this.encoder, packet, list::add);
-
-			if (this.splitId > 1024) {
-				this.splitId = 0;
-			}
+			splittablePacket.fabric_split(this.payloadTypeRegistry, channelHandlerContext, this.encoder, packet, list::add);
 		} else {
 			list.add(packet);
 		}
@@ -62,29 +57,29 @@ public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
 		}
 	}
 
-	public static void customFabricSplit(int id, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet,
-										Function<CustomPayload, Packet<?>> packetConstructor, Consumer<Packet<?>> consumer, int maxChunkSize, int maxPacketSize) throws Exception {
+	public static void genericPacketSlitter(Identifier packetId, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet,
+											Function<CustomPayload, Packet<?>> packetConstructor, Consumer<Packet<?>> consumer, int maxChunkSize, int maxPacketSize) throws Exception {
 		ByteBuf buf = Unpooled.buffer();
 		((EncoderHandlerAccessor) encoder).fabric_encode(channelHandlerContext, packet, buf);
 
-		if (buf.readableBytes() < maxPacketSize) {
+		if (buf.readableBytes() < maxChunkSize) {
 			// Todo, add a fast bypass in case of packet fitting within the limit, so it doesn't get encoded twice for no reason.
 			consumer.accept(packet);
 			return;
 		}
 
 		if (buf.readableBytes() > maxPacketSize) {
-			throw new EncoderException("Packet '" + packet.getPacketType().id() + "' may not be larger than " + maxPacketSize + " bytes!");
+			throw new EncoderException("Packet '" + packetId + "' may not be larger than " + maxPacketSize + " bytes!");
 		}
 
-		consumer.accept(packetConstructor.apply(new FabricSplitStartPacketPayload(id)));
+		consumer.accept(packetConstructor.apply(new FabricSplitStartPacketPayload(packetId, buf.readableBytes())));
 		int part = 0;
 
 		while (buf.readableBytes() > maxChunkSize) {
-			consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(id, part++, buf.readSlice(maxChunkSize))));
+			consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(part++, buf.readSlice(maxChunkSize))));
 		}
 
-		consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(id, part, buf.readSlice(buf.readableBytes()))));
-		consumer.accept(packetConstructor.apply(new FabricSplitEndPacketPayload(id)));
+		consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(part, buf.readSlice(buf.readableBytes()))));
+		consumer.accept(packetConstructor.apply(new FabricSplitEndPacketPayload()));
 	}
 }

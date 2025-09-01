@@ -25,9 +25,12 @@ import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.impl.networking.NetworkingImpl;
 
-public record FabricSplitStartPacketPayload(int splitId) implements CustomPayload {
+public record FabricSplitStartPacketPayload(Identifier packetId, int size) implements CustomPayload {
 	public static final Id<FabricSplitStartPacketPayload> ID = new Id<>(Identifier.of(NetworkingImpl.MOD_ID, "split/start"));
-	public static final PacketCodec<ByteBuf, FabricSplitStartPacketPayload> CODEC = PacketCodecs.VAR_INT.xmap(FabricSplitStartPacketPayload::new, FabricSplitStartPacketPayload::splitId);
+	public static final PacketCodec<ByteBuf, FabricSplitStartPacketPayload> CODEC = PacketCodec.tuple(
+			Identifier.PACKET_CODEC, FabricSplitStartPacketPayload::packetId,
+			PacketCodecs.VAR_INT, FabricSplitStartPacketPayload::size,
+			FabricSplitStartPacketPayload::new);
 
 	@Override
 	public Id<? extends CustomPayload> getId() {

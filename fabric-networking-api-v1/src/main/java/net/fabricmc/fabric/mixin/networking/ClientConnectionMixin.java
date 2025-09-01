@@ -46,6 +46,7 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.impl.networking.ChannelInfoHolder;
 import net.fabricmc.fabric.impl.networking.NetworkHandlerExtensions;
 import net.fabricmc.fabric.impl.networking.PacketCallbackListener;
+import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
 import net.fabricmc.fabric.impl.networking.splitter.FabricPacketMerger;
 import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
 
@@ -92,24 +93,28 @@ abstract class ClientConnectionMixin implements ChannelInfoHolder {
 
 	@ModifyArg(method = "transitionInbound", at = @At(value = "INVOKE", target = "Lio/netty/channel/Channel;writeAndFlush(Ljava/lang/Object;)Lio/netty/channel/ChannelFuture;"))
 	private Object injectFabricPacketSlitterHandlerInbound(Object transitioner, @Local(argsOnly = true) NetworkState<?> state) {
-		if (state.side() != NetworkSide.CLIENTBOUND || (state.id() != NetworkPhase.CONFIGURATION && state.id() != NetworkPhase.PLAY)) {
+		PayloadTypeRegistryImpl<?> payloadTypeRegistry = PayloadTypeRegistryImpl.get(state);
+
+		if (payloadTypeRegistry == null) {
 			return transitioner;
 		}
 
 		return ((NetworkStateTransitions.DecoderTransitioner) transitioner).andThen((context) -> {
-			FabricPacketMerger merger = new FabricPacketMerger(context.pipeline().get(DecoderHandler.class));
+			FabricPacketMerger merger = new FabricPacketMerger(context.pipeline().get(DecoderHandler.class), payloadTypeRegistry);
 			context.pipeline().addAfter("decoder", "fabric:merger", merger);
 		});
 	}
 
 	@ModifyArg(method = "transitionOutbound", at = @At(value = "INVOKE", target = "Lio/netty/channel/Channel;writeAndFlush(Ljava/lang/Object;)Lio/netty/channel/ChannelFuture;"))
 	private Object injectFabricPacketSlitterHandlerOutbound(Object transitioner, @Local(argsOnly = true) NetworkState<?> state) {
-		if (state.side() != NetworkSide.CLIENTBOUND || (state.id() != NetworkPhase.CONFIGURATION && state.id() != NetworkPhase.PLAY)) {
+		PayloadTypeRegistryImpl<?> payloadTypeRegistry = PayloadTypeRegistryImpl.get(state);
+
+		if (payloadTypeRegistry == null) {
 			return transitioner;
 		}
 
 		return ((NetworkStateTransitions.EncoderTransitioner) transitioner).andThen((context) -> {
-			FabricPacketSplitter splitter = new FabricPacketSplitter(state, context.pipeline().get(EncoderHandler.class));
+			FabricPacketSplitter splitter = new FabricPacketSplitter(context.pipeline().get(EncoderHandler.class), payloadTypeRegistry);
 			context.pipeline().addAfter("encoder", "fabric:splitter", splitter);
 		});
 	}

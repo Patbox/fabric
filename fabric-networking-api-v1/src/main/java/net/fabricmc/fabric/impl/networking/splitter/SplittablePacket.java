@@ -22,8 +22,9 @@ import io.netty.channel.ChannelHandlerContext;
 
 import net.minecraft.network.handler.EncoderHandler;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.state.NetworkState;
+
+import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
 
 public interface SplittablePacket {
-	void fabric_split(int id, NetworkState<?> state, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet, Consumer<Packet<?>> consumer) throws Exception;
+	void fabric_split(PayloadTypeRegistryImpl<?> payloadTypeRegistry, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet, Consumer<Packet<?>> consumer) throws Exception;
 }
