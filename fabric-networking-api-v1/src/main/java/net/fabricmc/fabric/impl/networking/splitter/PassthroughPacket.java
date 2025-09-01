@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.test.networking.client.splitter;
+package net.fabricmc.fabric.impl.networking.splitter;
 
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.test.networking.splitter.NetworkingSplitterTest;
+import io.netty.buffer.ByteBuf;
 
-public class NetworkingSplitterClientTest implements ClientModInitializer {
+import net.minecraft.network.listener.PacketListener;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.PacketType;
+
+public record PassthroughPacket(ByteBuf buf) implements Packet<PacketListener> {
 	@Override
-	public void onInitializeClient() {
-		ClientPlayNetworking.registerGlobalReceiver(NetworkingSplitterTest.LargePayload.ID, (payload, context) -> {
-			NetworkingSplitterTest.validateLargePacketData(payload.index(), payload.data(), "client");
-			context.responseSender().sendPacket(payload);
-		});
+	public PacketType<? extends Packet<PacketListener>> getPacketType() {
+		throw new UnsupportedOperationException("This is not a real packet!");
+	}
+
+	@Override
+	public void apply(PacketListener listener) {
+		throw new UnsupportedOperationException("This is not a real packet!");
 	}
 }

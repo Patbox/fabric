@@ -63,8 +63,7 @@ public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
 		((EncoderHandlerAccessor) encoder).fabric_encode(channelHandlerContext, packet, buf);
 
 		if (buf.readableBytes() < maxChunkSize) {
-			// Todo, add a fast bypass in case of packet fitting within the limit, so it doesn't get encoded twice for no reason.
-			consumer.accept(packet);
+			consumer.accept(new PassthroughPacket(buf));
 			return;
 		}
 

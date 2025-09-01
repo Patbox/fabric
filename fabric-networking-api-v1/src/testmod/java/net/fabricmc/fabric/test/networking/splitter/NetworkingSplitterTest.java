@@ -39,49 +39,55 @@ public class NetworkingSplitterTest implements ModInitializer {
 	private static final int DATA_SIZE = 20 * 1024 * 1024;
 
 	// 20 MB of random data source
-	private static final int[] RANDOM_DATA = IntStream.generate(Random.create(24533)::nextInt).limit(DATA_SIZE / 4).toArray();
+	private static final int[][] RANDOM_DATA = {
+			IntStream.generate(Random.create(24534)::nextInt).limit(20).toArray(),
+			IntStream.generate(Random.create(24533)::nextInt).limit(DATA_SIZE / 4).toArray()
+	};
 
 	@Override
 	public void onInitialize() {
 		// Register the payload on both sides for play and configuration
-		PayloadTypeRegistry.playS2C().registerLarge(LargePayload.ID, LargePayload.CODEC, DATA_SIZE + 8);
-		PayloadTypeRegistry.playC2S().registerLarge(LargePayload.ID, LargePayload.CODEC, DATA_SIZE + 8);
+		PayloadTypeRegistry.playS2C().registerLarge(LargePayload.ID, LargePayload.CODEC, DATA_SIZE + 14);
+		PayloadTypeRegistry.playC2S().registerLarge(LargePayload.ID, LargePayload.CODEC, DATA_SIZE + 14);
 
 		// When the client joins, send a packet expecting it to be validated and echoed back
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sender.sendPacket(new LargePayload(RANDOM_DATA)));
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sender.sendPacket(new LargePayload(0, RANDOM_DATA[0])));
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sender.sendPacket(new LargePayload(1, RANDOM_DATA[1])));
 
 		// Validate received packet
 		ServerPlayNetworking.registerGlobalReceiver(LargePayload.ID, (payload, context) -> {
-			validateLargePacketData(payload.data(), "server");
+			validateLargePacketData(payload.index(), payload.data(), "server");
 		});
 	}
 
-	public static void validateLargePacketData(int[] data, String side) {
-		if (Arrays.equals(RANDOM_DATA, data)) {
-			NetworkingTestmods.LOGGER.info("Successfully received large data packet on " + side);
+	public static void validateLargePacketData(int index, int[] data, String side) {
+		if (Arrays.equals(RANDOM_DATA[index], data)) {
+			NetworkingTestmods.LOGGER.info("Successfully received large packet [" + index + "] on " + side);
 			return;
 		}
 
-		throw new IllegalStateException("Received large packet data doesn't match sent one on the " + side + " side!");
+		throw new IllegalStateException("Received large packet [" + index + "] doesn't match sent one on the " + side + " side!");
 	}
 
 	// A payload registered on both sides
 	// This tests that the server can send a large packet to the client, and then receive a response from the client
-	public record LargePayload(int[] data) implements CustomPayload {
+	public record LargePayload(int index, int[] data) implements CustomPayload {
 		public static final Id<LargePayload> ID = new Id<>(NetworkingTestmods.id("large_packet"));
 		public static final PacketCodec<PacketByteBuf, LargePayload> CODEC = PacketCodec.of(LargePayload::write, LargePayload::read);
 
 		private static LargePayload read(PacketByteBuf buf) {
+			int index = buf.readVarInt();
 			var data = new int[buf.readVarInt()];
 
 			for (int i = 0; i < data.length; i++) {
 				data[i] = buf.readInt();
 			}
 
-			return new LargePayload(data);
+			return new LargePayload(index, data);
 		}
 
 		private void write(PacketByteBuf buf) {
+			buf.writeVarInt(this.index);
 			buf.writeVarInt(this.data.length);
 
 			for (int i = 0; i < this.data.length; i++) {

@@ -9,6 +9,7 @@
     "CustomPayloadPacketCodecMixin",
     "CustomPayloadS2CPacketMixin",
     "DebugConfigCommandMixin",
+    "EncoderHandlerMixin",
     "EntityTrackerEntryMixin",
     "LoginQueryRequestS2CPacketMixin",
     "LoginQueryResponseC2SPacketMixin",
