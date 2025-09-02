@@ -36,6 +36,7 @@ import net.minecraft.network.state.NetworkState;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
 
 public class PayloadTypeRegistryImpl<B extends PacketByteBuf> implements PayloadTypeRegistry<B> {
 	public static final PayloadTypeRegistryImpl<PacketByteBuf> CONFIGURATION_C2S = new PayloadTypeRegistryImpl<>(NetworkPhase.CONFIGURATION, NetworkSide.SERVERBOUND);
@@ -46,9 +47,12 @@ public class PayloadTypeRegistryImpl<B extends PacketByteBuf> implements Payload
 	private final Object2IntMap<Identifier> maxPacketSize = new Object2IntOpenHashMap<>();
 	private final NetworkPhase state;
 	private final NetworkSide side;
+	private final int minimalSplittableSize;
+
 	private PayloadTypeRegistryImpl(NetworkPhase state, NetworkSide side) {
 		this.state = state;
 		this.side = side;
+		this.minimalSplittableSize = side == NetworkSide.CLIENTBOUND ? FabricPacketSplitter.SAFE_S2C_SPLIT_SIZE : FabricPacketSplitter.SAFE_C2S_SPLIT_SIZE;
 	}
 
 	@Nullable
@@ -77,11 +81,26 @@ public class PayloadTypeRegistryImpl<B extends PacketByteBuf> implements Payload
 
 	@Override
 	public <T extends CustomPayload> CustomPayload.Type<? super B, T> registerLarge(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec, int maxPayloadSize) {
+		if (maxPayloadSize < 0) {
+			throw new IllegalArgumentException("Provided maxPayloadSize needs to be positive!");
+		}
+
+		CustomPayload.Type<? super B, T> type = register(id, codec);
 		// Defines max packet size, increased by length of packet's Identifier to cover full size of CustomPayloadX2YPackets.
 		int identifierSize = ByteBufUtil.utf8MaxBytes(id.id().toString());
-		this.maxPacketSize.put(id.id(), maxPayloadSize + VarInts.getSizeInBytes(identifierSize) + identifierSize + 5 * 2);
+		int maxPacketSize = maxPayloadSize + VarInts.getSizeInBytes(identifierSize) + identifierSize + 5 * 2;
 
-		return register(id, codec);
+		// Prevent overflow
+		if (maxPacketSize < 0) {
+			maxPacketSize = Integer.MAX_VALUE;
+		}
+
+		// No need to enable splitting, if packet's max size is smaller than chunk
+		if (maxPacketSize > this.minimalSplittableSize) {
+			this.maxPacketSize.put(id.id(), maxPacketSize);
+		}
+
+		return type;
 	}
 
 	@Nullable
