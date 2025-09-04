@@ -29,14 +29,17 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import net.minecraft.network.handler.EncoderHandler;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
 import net.fabricmc.fabric.mixin.networking.accessor.EncoderHandlerAccessor;
 
 public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
-	public static final int SAFE_S2C_SPLIT_SIZE = 1048576 - 32;
-	public static final int SAFE_C2S_SPLIT_SIZE = 32767 - 32;
+	private static final int DATA_HEADER_SIZE = 10;
+	public static final int SAFE_S2C_SPLIT_SIZE = CustomPayloadS2CPacket.MAX_PAYLOAD_SIZE - DATA_HEADER_SIZE;
+	public static final int SAFE_C2S_SPLIT_SIZE = CustomPayloadC2SPacket.MAX_PAYLOAD_SIZE - DATA_HEADER_SIZE;
 	private final EncoderHandler<?> encoder;
 	private final PayloadTypeRegistryImpl<?> payloadTypeRegistry;
 
