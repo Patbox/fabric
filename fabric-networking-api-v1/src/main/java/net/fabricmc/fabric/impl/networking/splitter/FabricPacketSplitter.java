@@ -37,9 +37,8 @@ import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
 import net.fabricmc.fabric.mixin.networking.accessor.EncoderHandlerAccessor;
 
 public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
-	private static final int DATA_HEADER_SIZE = 10;
-	public static final int SAFE_S2C_SPLIT_SIZE = CustomPayloadS2CPacket.MAX_PAYLOAD_SIZE - DATA_HEADER_SIZE;
-	public static final int SAFE_C2S_SPLIT_SIZE = CustomPayloadC2SPacket.MAX_PAYLOAD_SIZE - DATA_HEADER_SIZE;
+	public static final int SAFE_S2C_SPLIT_SIZE = CustomPayloadS2CPacket.MAX_PAYLOAD_SIZE - FabricSplitDataPacketPayload.DATA_HEADER_SIZE;
+	public static final int SAFE_C2S_SPLIT_SIZE = CustomPayloadC2SPacket.MAX_PAYLOAD_SIZE - FabricSplitDataPacketPayload.DATA_HEADER_SIZE;
 	private final EncoderHandler<?> encoder;
 	private final PayloadTypeRegistryImpl<?> payloadTypeRegistry;
 
@@ -81,7 +80,11 @@ public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
 			consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(part++, buf.readSlice(maxChunkSize))));
 		}
 
-		consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(part, buf.readSlice(buf.readableBytes()))));
+		// Handle leftover bytes, assuming there are any.
+		if (buf.readableBytes() > 0) {
+			consumer.accept(packetConstructor.apply(new FabricSplitDataPacketPayload(part, buf.readSlice(buf.readableBytes()))));
+		}
+
 		consumer.accept(packetConstructor.apply(new FabricSplitEndPacketPayload()));
 	}
 }

@@ -28,6 +28,8 @@ import net.fabricmc.fabric.impl.networking.NetworkingImpl;
 public record FabricSplitDataPacketPayload(int part, ByteBuf byteBuf) implements CustomPayload {
 	public static final Id<FabricSplitDataPacketPayload> ID = new Id<>(Identifier.of(NetworkingImpl.MOD_ID, "split/data"));
 	public static final PacketCodec<ByteBuf, FabricSplitDataPacketPayload> CODEC = PacketCodec.ofStatic(FabricSplitDataPacketPayload::write, FabricSplitDataPacketPayload::read);
+	// Size of this packet's header (2 varints, one being part, second split buffer's size).
+	public static final int DATA_HEADER_SIZE = VarInts.MAX_BYTES * 2;
 
 	private static FabricSplitDataPacketPayload read(ByteBuf buf) {
 		int part = VarInts.read(buf);

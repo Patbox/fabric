@@ -18,14 +18,25 @@ package net.fabricmc.fabric.impl.networking.splitter;
 
 import io.netty.buffer.ByteBuf;
 
+import net.minecraft.network.NetworkSide;
+import net.minecraft.network.handler.EncoderHandler;
 import net.minecraft.network.listener.PacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.PacketType;
+import net.minecraft.util.Identifier;
 
+import net.fabricmc.fabric.impl.networking.NetworkingImpl;
+
+/**
+ * A fake packet implementation used to pass already encoded data from {@link FabricPacketSplitter} to {@link EncoderHandler}.
+ * Allows to avoid requiring to serialize the packet twice.
+ */
 public record PassthroughPacket(ByteBuf buf) implements Packet<PacketListener> {
+	private static final PacketType<? extends Packet<PacketListener>> FAKE_TYPE = new PacketType<>(NetworkSide.SERVERBOUND, Identifier.of(NetworkingImpl.MOD_ID, "passthrough"));
+
 	@Override
 	public PacketType<? extends Packet<PacketListener>> getPacketType() {
-		throw new UnsupportedOperationException("This is not a real packet!");
+		return FAKE_TYPE;
 	}
 
 	@Override

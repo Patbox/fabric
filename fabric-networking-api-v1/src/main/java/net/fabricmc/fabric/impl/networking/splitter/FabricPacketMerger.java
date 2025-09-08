@@ -103,7 +103,7 @@ public class FabricPacketMerger extends MessageToMessageDecoder<Packet<?>> {
 		boolean add(ChannelHandlerContext channelHandlerContext, CustomPayload payload, List<Object> objects) throws Exception {
 			if (payload instanceof FabricSplitDataPacketPayload dataPacketPayload) {
 				if (this.part != dataPacketPayload.part()) {
-					throw new DecoderException("Received wrong part of 'fabric:split/data'! Expected " + this.part + " received " + dataPacketPayload.part() + "!");
+					throw new DecoderException("Received wrong part of '" + FabricSplitDataPacketPayload.ID.id() + "'! Expected " + this.part + " received " + dataPacketPayload.part() + "!");
 				}
 
 				int newSize = this.byteBuf.readableBytes() + dataPacketPayload.byteBuf().readableBytes();
@@ -120,7 +120,7 @@ public class FabricPacketMerger extends MessageToMessageDecoder<Packet<?>> {
 				this.decoderHandler.fabric_decode(channelHandlerContext, byteBuf, objects);
 				return true;
 			} else {
-				throw new DecoderException("Expected 'fabric:split/data' or 'fabric:split/end' payload packets, but received '" + payload.getId().id() + "'!");
+				throw new DecoderException("Expected '" + FabricSplitDataPacketPayload.ID.id() + "' or '" + FabricSplitEndPacketPayload.ID.id() +"' payload packets, but received '" + payload.getId().id() + "'!");
 			}
 		}
 	}
