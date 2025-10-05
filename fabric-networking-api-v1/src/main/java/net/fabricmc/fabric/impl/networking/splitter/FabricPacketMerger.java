@@ -25,6 +25,7 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.network.encoding.VarInts;
 import net.minecraft.network.handler.DecoderHandler;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.Packet;
@@ -55,20 +56,34 @@ public class FabricPacketMerger extends MessageToMessageDecoder<Packet<?>> {
 				throw new DecoderException("Received '" + packet.getPacketType().id() + "' packet, while expecting 'minecraft:custom_payload'!");
 			}
 
-			if (this.packetMerger.add(channelHandlerContext, payload, list)) {
+			if (!(payload instanceof FabricSplitPacketPayload splitPacketPayload)) {
+				throw new DecoderException("Expected '" + FabricSplitPacketPayload.ID.id() +"' payload packet, but received '" + payload.getId().id() + "'!");
+			}
+
+			if (this.packetMerger.add(channelHandlerContext, splitPacketPayload, list)) {
 				this.packetMerger = null;
 			}
-		} else if (packet instanceof GenericPayloadAccessor accessor && accessor.fabric_payload() instanceof FabricSplitStartPacketPayload payload) {
+		} else if (packet instanceof GenericPayloadAccessor accessor && accessor.fabric_payload() instanceof FabricSplitPacketPayload payload) {
 			ensureNotTransitioning(packet);
-			int maxSize = payloadTypeRegistry.getMaxPacketSize(payload.packetId());
+			ByteBuf buf = payload.byteBuf();
+			int readerIndex = buf.readerIndex();
+
+			// Skips packet id, as it's not needed
+			VarInts.read(buf);
+			Identifier payloadId = Identifier.PACKET_CODEC.decode(payload.byteBuf());
+
+			buf.readerIndex(readerIndex);
+			int maxSize = payloadTypeRegistry.getMaxPacketSize(payloadId);
 
 			if (maxSize == -1) {
-				throw new DecoderException("Received '" + payload.packetId() + "' packet doesn't support splitting, but received split start!");
-			} else if (maxSize < payload.size()) {
-				throw new DecoderException("Received '" + payload.packetId() + "' packet is larger than max allowed size! Got " + payload.size() + " bytes, expected " + maxSize + " bytes!");
+				throw new DecoderException("Received '" + payloadId + "' packet doesn't support splitting, but received split data!");
 			}
 
-			this.packetMerger = new Merger(this.decoderHandler, payload.packetId(), payload.size());
+			this.packetMerger = new Merger(this.decoderHandler, payloadId, maxSize);
+
+			if (this.packetMerger.add(channelHandlerContext, payload, list)) {
+				throw new DecoderException("Received '" + payloadId + "' as a split packet, but it wasn't actually split!");
+			}
 		} else {
 			list.add(packet);
 
@@ -87,41 +102,32 @@ public class FabricPacketMerger extends MessageToMessageDecoder<Packet<?>> {
 	private static class Merger {
 		private final DecoderHandlerAccessor decoderHandler;
 		private final Identifier packetId;
-		private int part = 0;
-
-		private final int expectedSize;
+		private final int maxSize;
 
 		private final ByteBuf byteBuf;
 
-		Merger(DecoderHandler<?> decoderHandler, Identifier identifier, int expectedSize) {
+		Merger(DecoderHandler<?> decoderHandler, Identifier identifier, int maxSize) {
 			this.decoderHandler = (DecoderHandlerAccessor) decoderHandler;
 			this.packetId = identifier;
-			this.byteBuf = Unpooled.buffer(expectedSize);
-			this.expectedSize = expectedSize;
+			this.byteBuf = Unpooled.buffer();
+			this.maxSize = maxSize;
 		}
 
-		boolean add(ChannelHandlerContext channelHandlerContext, CustomPayload payload, List<Object> objects) throws Exception {
-			if (payload instanceof FabricSplitDataPacketPayload dataPacketPayload) {
-				if (this.part != dataPacketPayload.part()) {
-					throw new DecoderException("Received wrong part of '" + FabricSplitDataPacketPayload.ID.id() + "'! Expected " + this.part + " received " + dataPacketPayload.part() + "!");
-				}
+		boolean add(ChannelHandlerContext channelHandlerContext, FabricSplitPacketPayload payload, List<Object> objects) throws Exception {
+			int newSize = this.byteBuf.readableBytes() + payload.byteBuf().readableBytes();
 
-				int newSize = this.byteBuf.readableBytes() + dataPacketPayload.byteBuf().readableBytes();
+			if (this.maxSize < newSize) {
+				throw new DecoderException("Received too much data for packet '" + this.packetId + "'! Expected up to " + this.maxSize + " bytes, received " + newSize + " bytes!");
+			}
 
-				if (this.expectedSize < newSize) {
-					throw new DecoderException("Received too much data for packet '" + this.packetId + "'! Expected " + this.expectedSize + " bytes received " + newSize + " bytes!");
-				}
+			this.byteBuf.writeBytes(payload.byteBuf());
 
-				this.part++;
-
-				this.byteBuf.writeBytes(dataPacketPayload.byteBuf());
-				return false;
-			} else if (payload instanceof FabricSplitEndPacketPayload) {
+			if (payload.finished()) {
 				this.decoderHandler.fabric_decode(channelHandlerContext, byteBuf, objects);
 				return true;
-			} else {
-				throw new DecoderException("Expected '" + FabricSplitDataPacketPayload.ID.id() + "' or '" + FabricSplitEndPacketPayload.ID.id() +"' payload packets, but received '" + payload.getId().id() + "'!");
 			}
+
+			return false;
 		}
 	}
 }

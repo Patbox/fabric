@@ -25,9 +25,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.impl.networking.splitter.FabricSplitDataPacketPayload;
-import net.fabricmc.fabric.impl.networking.splitter.FabricSplitEndPacketPayload;
-import net.fabricmc.fabric.impl.networking.splitter.FabricSplitStartPacketPayload;
+import net.fabricmc.fabric.impl.networking.splitter.FabricSplitPacketPayload;
 
 public final class NetworkingImpl {
 	public static final String MOD_ID = "fabric-networking-api-v1";
@@ -58,10 +56,8 @@ public final class NetworkingImpl {
 		PayloadTypeRegistry.playC2S().register(RegistrationPayload.REGISTER, RegistrationPayload.REGISTER_CODEC);
 		PayloadTypeRegistry.playC2S().register(RegistrationPayload.UNREGISTER, RegistrationPayload.UNREGISTER_CODEC);
 
-		// Fabric Packet Splitter packets
-		registerGeneric(FabricSplitStartPacketPayload.ID, FabricSplitStartPacketPayload.CODEC);
-		registerGeneric(FabricSplitEndPacketPayload.ID, FabricSplitEndPacketPayload.CODEC);
-		registerGeneric(FabricSplitDataPacketPayload.ID, FabricSplitDataPacketPayload.CODEC);
+		// Fabric Packet Splitter packet
+		registerGeneric(FabricSplitPacketPayload.ID, FabricSplitPacketPayload.CODEC);
 	}
 
 	private static <T extends CustomPayload> void registerGeneric(CustomPayload.Id<T> id, PacketCodec<? super PacketByteBuf, T> codec) {

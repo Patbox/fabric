@@ -22,11 +22,19 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import net.fabricmc.fabric.impl.networking.NetworkingImpl;
+public record FabricSplitPacketPayload(boolean finished, ByteBuf byteBuf) implements CustomPayload {
+	public static final Id<FabricSplitPacketPayload> ID = new Id<>(Identifier.of("fabric", "split"));
+	public static final PacketCodec<ByteBuf, FabricSplitPacketPayload> CODEC = PacketCodec.ofStatic(FabricSplitPacketPayload::write, FabricSplitPacketPayload::read);
+	public static final int DATA_HEADER_SIZE = 1;
 
-public record FabricSplitEndPacketPayload() implements CustomPayload {
-	public static final Id<FabricSplitEndPacketPayload> ID = new Id<>(Identifier.of(NetworkingImpl.MOD_ID, "split/end"));
-	public static final PacketCodec<ByteBuf, FabricSplitEndPacketPayload> CODEC = PacketCodec.unit(new FabricSplitEndPacketPayload());
+	private static FabricSplitPacketPayload read(ByteBuf buf) {
+		return new FabricSplitPacketPayload(buf.readBoolean(), buf.readBytes(buf.readableBytes()));
+	}
+
+	private static void write(ByteBuf buf, FabricSplitPacketPayload payload) {
+		buf.writeBoolean(payload.finished());
+		buf.writeBytes(payload.byteBuf());
+	}
 
 	@Override
 	public Id<? extends CustomPayload> getId() {
