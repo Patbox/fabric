@@ -47,6 +47,7 @@ import net.fabricmc.fabric.impl.networking.ChannelInfoHolder;
 import net.fabricmc.fabric.impl.networking.NetworkHandlerExtensions;
 import net.fabricmc.fabric.impl.networking.PacketCallbackListener;
 import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
+import net.fabricmc.fabric.impl.networking.VanillaPacketTypes;
 import net.fabricmc.fabric.impl.networking.splitter.FabricPacketMerger;
 import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
 
@@ -100,7 +101,7 @@ abstract class ClientConnectionMixin implements ChannelInfoHolder {
 		}
 
 		return ((NetworkStateTransitions.DecoderTransitioner) transitioner).andThen((context) -> {
-			FabricPacketMerger merger = new FabricPacketMerger(context.pipeline().get(DecoderHandler.class), payloadTypeRegistry);
+			FabricPacketMerger merger = new FabricPacketMerger(context.pipeline().get(DecoderHandler.class), payloadTypeRegistry, VanillaPacketTypes.get(state));
 			context.pipeline().addAfter("decoder", "fabric:merger", merger);
 		});
 	}

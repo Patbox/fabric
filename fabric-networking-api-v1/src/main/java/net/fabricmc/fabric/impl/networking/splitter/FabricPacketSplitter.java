@@ -26,6 +26,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
+import net.minecraft.network.encoding.VarInts;
 import net.minecraft.network.handler.EncoderHandler;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.Packet;
@@ -37,8 +38,8 @@ import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
 import net.fabricmc.fabric.mixin.networking.accessor.EncoderHandlerAccessor;
 
 public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
-	public static final int SAFE_S2C_SPLIT_SIZE = CustomPayloadS2CPacket.MAX_PAYLOAD_SIZE - FabricSplitPacketPayload.DATA_HEADER_SIZE;
-	public static final int SAFE_C2S_SPLIT_SIZE = CustomPayloadC2SPacket.MAX_PAYLOAD_SIZE - FabricSplitPacketPayload.DATA_HEADER_SIZE;
+	public static final int SAFE_S2C_SPLIT_SIZE = CustomPayloadS2CPacket.MAX_PAYLOAD_SIZE;
+	public static final int SAFE_C2S_SPLIT_SIZE = CustomPayloadC2SPacket.MAX_PAYLOAD_SIZE;
 	private final EncoderHandler<?> encoder;
 	private final PayloadTypeRegistryImpl<?> payloadTypeRegistry;
 
@@ -73,12 +74,20 @@ public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
 			throw new EncoderException("Packet '" + packetId + "' may not be larger than " + maxPacketSize + " bytes!");
 		}
 
+		// First packet split with added packet size
+		ByteBuf firstSplit = Unpooled.buffer(maxChunkSize);
+		VarInts.write(firstSplit, buf.readableBytes());
+		// First slice needs to be slightly smaller to accommodate the size prefix
+		firstSplit.writeBytes(buf.readSlice(maxChunkSize - VarInts.getSizeInBytes(buf.readableBytes())));
+
+		consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(firstSplit)));
+
 		while (buf.readableBytes() > maxChunkSize) {
-			consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(false, buf.readSlice(maxChunkSize))));
+			consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(buf.readSlice(maxChunkSize))));
 		}
 
 		// Handle leftover bytes. Since above check doesn't check for equality, this packet will always be sent.
-		// In least-optimal scenario this packet will only transmit 1 byte, through still acting as an end marker.
-		consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(true, buf.readSlice(buf.readableBytes()))));
+		// In least-optimal scenario this packet will only transmit 1 byte.
+		consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(buf.readSlice(buf.readableBytes()))));
 	}
 }
