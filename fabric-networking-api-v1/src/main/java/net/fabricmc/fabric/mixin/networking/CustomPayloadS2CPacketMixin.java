@@ -86,7 +86,7 @@ public class CustomPayloadS2CPacketMixin implements SplittablePacket, GenericPay
 			return;
 		}
 
-		FabricPacketSplitter.payloadPacketSlitter(this.payload.getId().id(), channelHandlerContext, encoder, packet, CustomPayloadS2CPacket::new, consumer, FabricPacketSplitter.SAFE_S2C_SPLIT_SIZE, size);
+		FabricPacketSplitter.genericPacketSplitter(this.payload.getId().id(), channelHandlerContext, encoder, packet, CustomPayloadS2CPacket::new, consumer, FabricPacketSplitter.SAFE_S2C_SPLIT_SIZE, size);
 	}
 
 	@Override
