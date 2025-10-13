@@ -17,7 +17,6 @@
 package net.fabricmc.fabric.impl.recipe.sync;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
