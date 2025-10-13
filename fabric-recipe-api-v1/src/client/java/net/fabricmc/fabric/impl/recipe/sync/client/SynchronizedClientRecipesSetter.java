@@ -16,8 +16,8 @@
 
 package net.fabricmc.fabric.impl.recipe.sync.client;
 
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedClientRecipes;
+import net.fabricmc.fabric.api.recipe.v1.sync.SynchronizedRecipes;
 
 public interface SynchronizedClientRecipesSetter {
-	void fabric_setSynchronizedClientRecipes(SynchronizedClientRecipes recipes);
+	void fabric_setSynchronizedClientRecipes(SynchronizedRecipes recipes);
 }

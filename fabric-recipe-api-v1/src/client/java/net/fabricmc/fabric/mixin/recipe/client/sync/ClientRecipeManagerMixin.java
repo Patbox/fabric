@@ -21,23 +21,23 @@ import org.spongepowered.asm.mixin.Unique;
 
 import net.minecraft.client.recipebook.ClientRecipeManager;
 
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedClientRecipes;
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedRecipeProvider;
-import net.fabricmc.fabric.impl.recipe.sync.client.SynchronizedClientRecipesImpl;
+import net.fabricmc.fabric.api.recipe.v1.FabricRecipeManager;
+import net.fabricmc.fabric.api.recipe.v1.sync.SynchronizedRecipes;
+import net.fabricmc.fabric.impl.recipe.sync.SynchronizedRecipesImpl;
 import net.fabricmc.fabric.impl.recipe.sync.client.SynchronizedClientRecipesSetter;
 
 @Mixin(ClientRecipeManager.class)
-public class ClientRecipeManagerMixin implements SynchronizedRecipeProvider, SynchronizedClientRecipesSetter {
+public class ClientRecipeManagerMixin implements FabricRecipeManager, SynchronizedClientRecipesSetter {
 	@Unique
-	private SynchronizedClientRecipes synchronizedClientRecipes = SynchronizedClientRecipesImpl.EMPTY;
+	private SynchronizedRecipes synchronizedClientRecipes = SynchronizedRecipesImpl.EMPTY;
 
 	@Override
-	public SynchronizedClientRecipes getSynchronizedRecipes() {
+	public SynchronizedRecipes getSynchronizedRecipes() {
 		return this.synchronizedClientRecipes;
 	}
 
 	@Override
-	public void fabric_setSynchronizedClientRecipes(SynchronizedClientRecipes recipes) {
+	public void fabric_setSynchronizedClientRecipes(SynchronizedRecipes recipes) {
 		this.synchronizedClientRecipes = recipes;
 	}
 }

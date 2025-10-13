@@ -26,9 +26,10 @@ import net.minecraft.recipe.RecipeEntry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.recipe.v1.sync.ClientRecipeSynchronizedEvent;
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedClientRecipes;
+import net.fabricmc.fabric.api.recipe.v1.sync.SynchronizedRecipes;
 import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncFinishedPayloadS2C;
 import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncPayloadS2C;
+import net.fabricmc.fabric.impl.recipe.sync.SynchronizedRecipesImpl;
 
 public class RecipeSyncImplClient implements ClientModInitializer {
 	@Nullable
@@ -49,7 +50,7 @@ public class RecipeSyncImplClient implements ClientModInitializer {
 	}
 
 	private static void onRecipeSyncFinishedPacket(RecipeSyncFinishedPayloadS2C payload, ClientPlayNetworking.Context context) {
-		SynchronizedClientRecipes recipes = collectedRecipes != null ? SynchronizedClientRecipesImpl.of(collectedRecipes) : SynchronizedClientRecipesImpl.EMPTY;
+		SynchronizedRecipes recipes = collectedRecipes != null ? SynchronizedRecipesImpl.of(collectedRecipes) : SynchronizedRecipesImpl.EMPTY;
 		collectedRecipes = null;
 
 		context.client().execute(() -> {

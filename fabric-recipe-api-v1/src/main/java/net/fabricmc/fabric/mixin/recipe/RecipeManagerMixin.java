@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.mixin.recipe.client.sync;
+package net.fabricmc.fabric.mixin.recipe;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.recipe.RecipeManager;
 
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedClientRecipes;
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedRecipeProvider;
+import net.fabricmc.fabric.api.recipe.v1.FabricRecipeManager;
 
-@Mixin(ClientWorld.class)
-public abstract class ClientWorldMixin implements SynchronizedRecipeProvider {
-	@Shadow
-	public abstract RecipeManager getRecipeManager();
-
-	@Override
-	public SynchronizedClientRecipes getSynchronizedRecipes() {
-		return ((SynchronizedRecipeProvider) this.getRecipeManager()).getSynchronizedRecipes();
-	}
+@Mixin(RecipeManager.class)
+public interface RecipeManagerMixin extends FabricRecipeManager {
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.api.client.recipe.v1.sync;
+package net.fabricmc.fabric.api.recipe.v1.sync;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -23,9 +23,6 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.recipebook.ClientRecipeManager;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.RecipeType;
@@ -33,18 +30,16 @@ import net.minecraft.recipe.input.RecipeInput;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 
-import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
-
 /**
  * This class provides access to synchronized recipes on the client.
  *
  * <p>You can access SynchronizedClientRecipes by calling getSynchronizedRecipes
- * method on {@link ClientRecipeManager}, {@link ClientPlayNetworkHandler} or {@link ClientWorld}
+ * method on {@link net.minecraft.recipe.RecipeManager}
  *
  * <p>See {@link RecipeSynchronization}.
  */
 @ApiStatus.NonExtendable
-public interface SynchronizedClientRecipes {
+public interface SynchronizedRecipes {
 	/**
 	 * Creates a stream of all recipe entries of the given {@code type} that match the
 	 * given {@code input} and {@code world}.
@@ -80,4 +75,6 @@ public interface SynchronizedClientRecipes {
 		//noinspection unchecked
 		return recipeEntry != null && recipeEntry.value().getType().equals(type) ? (RecipeEntry<T>) recipeEntry : null;
 	}
+
+	Collection<RecipeEntry<?>> recipes();
 }

@@ -28,7 +28,7 @@ import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncImpl;
  *
  * <p>This api allows to enable Fabric's recipe sync for select RecipeSerializers, which can be
  * then used on the client.
- * See {@link net.fabricmc.fabric.api.client.recipe.sync.SynchronizedClientRecipes}
+ * See {@link SynchronizedRecipes}
  */
 public final class RecipeSynchronization {
 	private RecipeSynchronization() {

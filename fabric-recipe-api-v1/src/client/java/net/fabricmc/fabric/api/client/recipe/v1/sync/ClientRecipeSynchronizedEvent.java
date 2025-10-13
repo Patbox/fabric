@@ -20,6 +20,7 @@ import net.minecraft.client.MinecraftClient;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.fabricmc.fabric.api.recipe.v1.sync.SynchronizedRecipes;
 
 /**
  * This event gets invoked when client receives all synchronized recipes.
@@ -34,5 +35,5 @@ public interface ClientRecipeSynchronizedEvent {
 				}
 			}));
 
-	void onRecipesSynchronized(MinecraftClient client, SynchronizedClientRecipes recipes);
+	void onRecipesSynchronized(MinecraftClient client, SynchronizedRecipes recipes);
 }

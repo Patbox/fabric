@@ -26,12 +26,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.recipebook.ClientRecipeManager;
 
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedClientRecipes;
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedRecipeProvider;
 import net.fabricmc.fabric.impl.recipe.sync.client.SynchronizedClientRecipesSetter;
 
 @Mixin(ClientPlayNetworkHandler.class)
-public class ClientPlayNetworkHandlerMixin implements SynchronizedRecipeProvider {
+public class ClientPlayNetworkHandlerMixin {
 	@Shadow
 	private ClientRecipeManager recipeManager;
 
@@ -43,10 +41,5 @@ public class ClientPlayNetworkHandlerMixin implements SynchronizedRecipeProvider
 	private void copyPreviousRecipes(ClientPlayNetworkHandler instance, ClientRecipeManager value, Operation<Void> original) {
 		((SynchronizedClientRecipesSetter) value).fabric_setSynchronizedClientRecipes(this.recipeManager.getSynchronizedRecipes());
 		original.call(instance, value);
-	}
-
-	@Override
-	public SynchronizedClientRecipes getSynchronizedRecipes() {
-		return this.recipeManager.getSynchronizedRecipes();
 	}
 }

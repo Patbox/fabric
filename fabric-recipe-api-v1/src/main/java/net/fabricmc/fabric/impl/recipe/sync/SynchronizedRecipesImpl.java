@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.impl.recipe.sync.client;
+package net.fabricmc.fabric.impl.recipe.sync;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -30,32 +31,37 @@ import net.minecraft.recipe.input.RecipeInput;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 
-import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedClientRecipes;
+import net.fabricmc.fabric.api.recipe.v1.sync.SynchronizedRecipes;
 
-public record SynchronizedClientRecipesImpl(PreparedRecipes recipes) implements SynchronizedClientRecipes {
-	public static final SynchronizedClientRecipesImpl EMPTY = new SynchronizedClientRecipesImpl(PreparedRecipes.EMPTY);
+public record SynchronizedRecipesImpl(PreparedRecipes preparedRecipes) implements SynchronizedRecipes {
+	public static final SynchronizedRecipesImpl EMPTY = new SynchronizedRecipesImpl(PreparedRecipes.EMPTY);
 
-	public static SynchronizedClientRecipesImpl of(Iterable<RecipeEntry<?>> recipes) {
-		return new SynchronizedClientRecipesImpl(PreparedRecipes.of(recipes));
+	public static SynchronizedRecipesImpl of(Iterable<RecipeEntry<?>> recipes) {
+		return new SynchronizedRecipesImpl(PreparedRecipes.of(recipes));
 	}
 
 	@Override
 	public <I extends RecipeInput, T extends Recipe<I>> Stream<RecipeEntry<T>> getAllMatches(RecipeType<T> type, I input, World world) {
-		return this.recipes.find(type, input, world);
+		return this.preparedRecipes.find(type, input, world);
 	}
 
 	@Override
 	public <I extends RecipeInput, T extends Recipe<I>> Collection<RecipeEntry<T>> getAllOfType(RecipeType<T> type) {
-		return this.recipes.getAll(type);
+		return this.preparedRecipes.getAll(type);
 	}
 
 	@Override
 	public <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeEntry<T>> getFirstMatch(RecipeType<T> type, I input, World world) {
-		return this.recipes.find(type, input, world).findFirst();
+		return this.preparedRecipes.find(type, input, world).findFirst();
 	}
 
 	@Override
 	public @Nullable RecipeEntry<?> get(RegistryKey<Recipe<?>> key) {
-		return this.recipes.get(key);
+		return this.preparedRecipes.get(key);
+	}
+
+	@Override
+	public Collection<RecipeEntry<?>> recipes() {
+		return this.preparedRecipes.recipes();
 	}
 }

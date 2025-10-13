@@ -6,7 +6,6 @@
     "sync.ClientConfigurationNetworkHandlerMixin",
     "sync.ClientPlayNetworkHandlerMixin",
     "sync.ClientRecipeManagerMixin",
-    "sync.ClientWorldMixin"
   ],
   "injectors": {
     "defaultRequire": 1

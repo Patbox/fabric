@@ -44,9 +44,7 @@
     "loom:injected_interfaces": {
       "net/minecraft/class_1856": ["net/fabricmc/fabric/api/recipe/v1/ingredient/FabricIngredient"],
       "net/minecraft/class_1863": ["net/fabricmc/fabric/api/recipe/v1/FabricServerRecipeManager"],
-      "net/minecraft/class_10333": ["net/fabricmc/fabric/api/client/recipe/v1/sync/SynchronizedRecipeProvider"],
-      "net/minecraft/class_634": ["net/fabricmc/fabric/api/client/recipe/v1/sync/SynchronizedRecipeProvider"],
-      "net/minecraft/class_638": ["net/fabricmc/fabric/api/client/recipe/v1/sync/SynchronizedRecipeProvider"]
+      "net/minecraft/class_10286": ["net/fabricmc/fabric/api/recipe/v1/FabricRecipeManager"]
     }
   }
 }
