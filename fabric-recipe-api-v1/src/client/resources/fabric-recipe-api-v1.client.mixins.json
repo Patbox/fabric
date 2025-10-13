@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "net.fabricmc.fabric.mixin.recipe.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "sync.ClientConfigurationNetworkHandlerMixin",
+    "sync.ClientPlayNetworkHandlerMixin",
+    "sync.ClientRecipeManagerMixin",
+    "sync.ClientWorldMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

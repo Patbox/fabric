@@ -1,0 +1,60 @@
+/*
+ * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.fabricmc.fabric.impl.recipe.sync.client;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.recipe.RecipeEntry;
+
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.recipe.v1.sync.ClientRecipeSynchronizedEvent;
+import net.fabricmc.fabric.api.client.recipe.v1.sync.SynchronizedClientRecipes;
+import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncFinishedPayloadS2C;
+import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncPayloadS2C;
+
+public class RecipeSyncImplClient implements ClientModInitializer {
+	@Nullable
+	private static List<RecipeEntry<?>> collectedRecipes = null;
+
+	@Override
+	public void onInitializeClient() {
+		ClientPlayNetworking.registerGlobalReceiver(RecipeSyncPayloadS2C.ID, RecipeSyncImplClient::onRecipeSyncPacket);
+		ClientPlayNetworking.registerGlobalReceiver(RecipeSyncFinishedPayloadS2C.ID, RecipeSyncImplClient::onRecipeSyncFinishedPacket);
+	}
+
+	private static void onRecipeSyncPacket(RecipeSyncPayloadS2C payload, ClientPlayNetworking.Context context) {
+		if (collectedRecipes == null) {
+			collectedRecipes = new ArrayList<>();
+		}
+
+		collectedRecipes.addAll(payload.recipes());
+	}
+
+	private static void onRecipeSyncFinishedPacket(RecipeSyncFinishedPayloadS2C payload, ClientPlayNetworking.Context context) {
+		SynchronizedClientRecipes recipes = collectedRecipes != null ? SynchronizedClientRecipesImpl.of(collectedRecipes) : SynchronizedClientRecipesImpl.EMPTY;
+		collectedRecipes = null;
+
+		context.client().execute(() -> {
+			((SynchronizedClientRecipesSetter) context.client().getNetworkHandler().getRecipeManager()).fabric_setSynchronizedClientRecipes(recipes);
+			ClientRecipeSynchronizedEvent.EVENT.invoker().onRecipesSynchronized(context.client(), recipes);
+		});
+	}
+}

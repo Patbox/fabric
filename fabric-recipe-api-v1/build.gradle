@@ -10,4 +10,5 @@ moduleDependencies(project, [
 
 testDependencies(project, [
 	':fabric-lifecycle-events-v1',
+	':fabric-registry-sync-v0',
 ])

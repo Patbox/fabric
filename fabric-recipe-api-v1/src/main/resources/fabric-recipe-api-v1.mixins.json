@@ -7,7 +7,12 @@
     "ingredient.ClientConnectionMixin",
     "ingredient.EncoderHandlerMixin",
     "ingredient.IngredientMixin",
-    "ingredient.ShapelessRecipeMixin"
+    "ingredient.ShapelessRecipeMixin",
+    "sync.ClientConnectionMixin",
+    "sync.PlayerManagerMixin",
+    "sync.PreparedRecipesMixin",
+    "sync.ServerCommonNetworkHandlerAccessor",
+    "sync.ServerRecipeManagerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
