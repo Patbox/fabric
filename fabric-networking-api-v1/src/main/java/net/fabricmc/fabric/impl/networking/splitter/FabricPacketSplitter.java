@@ -77,17 +77,14 @@ public class FabricPacketSplitter extends MessageToMessageEncoder<Packet<?>> {
 		// First packet split with added packet size
 		ByteBuf firstSplit = Unpooled.buffer(maxChunkSize);
 		VarInts.write(firstSplit, buf.readableBytes());
-		// First slice needs to be slightly smaller to accommodate the size prefix
-		firstSplit.writeBytes(buf.readSlice(maxChunkSize - VarInts.getSizeInBytes(buf.readableBytes())));
+		// First slice needs to be slightly smaller to accommodate the header (by the already written data amount)
+		firstSplit.writeBytes(buf.readSlice(maxChunkSize - firstSplit.readableBytes()));
 
 		consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(firstSplit)));
 
-		while (buf.readableBytes() > maxChunkSize) {
-			consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(buf.readSlice(maxChunkSize))));
+		// Remaining packets, as needed to send everything
+		while (buf.isReadable()) {
+			consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(buf.readSlice(Math.min(buf.readableBytes(), maxChunkSize)))));
 		}
-
-		// Handle leftover bytes. Since above check doesn't check for equality, this packet will always be sent.
-		// In least-optimal scenario this packet will only transmit 1 byte.
-		consumer.accept(packetConstructor.apply(new FabricSplitPacketPayload(buf.readSlice(buf.readableBytes()))));
 	}
 }
