@@ -17,13 +17,17 @@
 package net.fabricmc.fabric.impl.recipe.sync.client;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.recipe.RecipeEntry;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.recipe.v1.sync.ClientRecipeSynchronizedEvent;
 import net.fabricmc.fabric.api.recipe.v1.sync.SynchronizedRecipes;
@@ -39,6 +43,7 @@ public class RecipeSyncImplClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		ClientPlayNetworking.registerGlobalReceiver(RecipeSyncPayloadS2C.ID, RecipeSyncImplClient::onRecipeSyncPacket);
 		ClientPlayNetworking.registerGlobalReceiver(RecipeSyncFinishedPayloadS2C.ID, RecipeSyncImplClient::onRecipeSyncFinishedPacket);
+		ClientPlayConnectionEvents.DISCONNECT.register(RecipeSyncImplClient::onDisconnect);
 	}
 
 	private static void onRecipeSyncPacket(RecipeSyncPayloadS2C payload, ClientPlayNetworking.Context context) {
@@ -50,12 +55,24 @@ public class RecipeSyncImplClient implements ClientModInitializer {
 	}
 
 	private static void onRecipeSyncFinishedPacket(RecipeSyncFinishedPayloadS2C payload, ClientPlayNetworking.Context context) {
-		SynchronizedRecipes recipes = collectedRecipes != null ? SynchronizedRecipesImpl.of(collectedRecipes) : SynchronizedRecipesImpl.EMPTY;
-		collectedRecipes = null;
+		SynchronizedRecipes recipes;
+
+		if (collectedRecipes != null) {
+			// Sort values by id to match ordering with server ones.
+			collectedRecipes.sort(Comparator.comparing(entry -> entry.id().getValue()));
+			recipes = SynchronizedRecipesImpl.of(collectedRecipes);
+			collectedRecipes = null;
+		} else {
+			recipes = SynchronizedRecipesImpl.EMPTY;
+		}
 
 		context.client().execute(() -> {
-			((SynchronizedClientRecipesSetter) context.client().getNetworkHandler().getRecipeManager()).fabric_setSynchronizedClientRecipes(recipes);
+			((SynchronizedClientRecipesSetter) context.player().networkHandler.getRecipeManager()).fabric_setSynchronizedClientRecipes(recipes);
 			ClientRecipeSynchronizedEvent.EVENT.invoker().onRecipesSynchronized(context.client(), recipes);
 		});
+	}
+
+	private static void onDisconnect(ClientPlayNetworkHandler handler, MinecraftClient client) {
+		collectedRecipes = null;
 	}
 }
