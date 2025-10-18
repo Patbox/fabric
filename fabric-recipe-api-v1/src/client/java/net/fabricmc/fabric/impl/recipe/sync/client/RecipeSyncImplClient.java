@@ -31,37 +31,27 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.recipe.v1.sync.ClientRecipeSynchronizedEvent;
 import net.fabricmc.fabric.api.recipe.v1.sync.SynchronizedRecipes;
-import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncFinishedPayloadS2C;
 import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncPayloadS2C;
 import net.fabricmc.fabric.impl.recipe.sync.SynchronizedRecipesImpl;
 
 public class RecipeSyncImplClient implements ClientModInitializer {
-	@Nullable
-	private static List<RecipeEntry<?>> collectedRecipes = null;
-
 	@Override
 	public void onInitializeClient() {
 		ClientPlayNetworking.registerGlobalReceiver(RecipeSyncPayloadS2C.ID, RecipeSyncImplClient::onRecipeSyncPacket);
-		ClientPlayNetworking.registerGlobalReceiver(RecipeSyncFinishedPayloadS2C.ID, RecipeSyncImplClient::onRecipeSyncFinishedPacket);
-		ClientPlayConnectionEvents.DISCONNECT.register(RecipeSyncImplClient::onDisconnect);
 	}
 
 	private static void onRecipeSyncPacket(RecipeSyncPayloadS2C payload, ClientPlayNetworking.Context context) {
-		if (collectedRecipes == null) {
-			collectedRecipes = new ArrayList<>();
-		}
-
-		collectedRecipes.addAll(payload.recipes());
-	}
-
-	private static void onRecipeSyncFinishedPacket(RecipeSyncFinishedPayloadS2C payload, ClientPlayNetworking.Context context) {
 		SynchronizedRecipes recipes;
 
-		if (collectedRecipes != null) {
+		if (!payload.entries().isEmpty()) {
+			var collectedRecipes = new ArrayList<RecipeEntry<?>>();
+			for (RecipeSyncPayloadS2C.Entry entry : payload.entries()) {
+				collectedRecipes.addAll(entry.recipes());
+			}
+
 			// Sort values by id to match ordering with server ones.
 			collectedRecipes.sort(Comparator.comparing(entry -> entry.id().getValue()));
 			recipes = SynchronizedRecipesImpl.of(collectedRecipes);
-			collectedRecipes = null;
 		} else {
 			recipes = SynchronizedRecipesImpl.EMPTY;
 		}
@@ -70,9 +60,5 @@ public class RecipeSyncImplClient implements ClientModInitializer {
 			((SynchronizedClientRecipesSetter) context.player().networkHandler.getRecipeManager()).fabric_setSynchronizedClientRecipes(recipes);
 			ClientRecipeSynchronizedEvent.EVENT.invoker().onRecipesSynchronized(context.client(), recipes);
 		});
-	}
-
-	private static void onDisconnect(ClientPlayNetworkHandler handler, MinecraftClient client) {
-		collectedRecipes = null;
 	}
 }

@@ -16,6 +16,7 @@
 
 package net.fabricmc.fabric.impl.recipe.sync;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +43,8 @@ public class RecipeSyncImpl implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		PayloadTypeRegistry.configurationC2S().register(RecipeSyncRequestPayloadC2S.ID, RecipeSyncRequestPayloadC2S.CODEC);
-		PayloadTypeRegistry.playS2C().register(RecipeSyncPayloadS2C.ID, RecipeSyncPayloadS2C.CODEC);
-		PayloadTypeRegistry.playS2C().register(RecipeSyncFinishedPayloadS2C.ID, RecipeSyncFinishedPayloadS2C.CODEC);
+		// Recipe packet might contain a lot of data depending on mods, so it's best to increase it's max size to 50 MB.
+		PayloadTypeRegistry.playS2C().registerLarge(RecipeSyncPayloadS2C.ID, RecipeSyncPayloadS2C.CODEC, 50 * 1024 * 1024);
 
 		ServerConfigurationNetworking.registerGlobalReceiver(RecipeSyncRequestPayloadC2S.ID, RecipeSyncImpl::onRecipeSyncRequest);
 	}
@@ -68,15 +69,17 @@ public class RecipeSyncImpl implements ModInitializer {
 
 		SyncedSerializerAwarePreparedRecipe accessor = (SyncedSerializerAwarePreparedRecipe) ((ServerRecipeManagerAccessor) server.getRecipeManager()).getPreparedRecipes();
 
+		var list = new ArrayList<RecipeSyncPayloadS2C.Entry>();
+
 		for (RecipeSerializer<?> serializer : serializers) {
 			List<RecipeEntry<?>> recipes = accessor.fabric_getRecipesBySyncedSerializer(serializer);
 
 			if (recipes != null) {
-				ServerPlayNetworking.send(player, new RecipeSyncPayloadS2C(serializer, recipes));
+				list.add(new RecipeSyncPayloadS2C.Entry(serializer, recipes));
 			}
 		}
 
-		ServerPlayNetworking.send(player, new RecipeSyncFinishedPayloadS2C());
+		ServerPlayNetworking.send(player, new RecipeSyncPayloadS2C(list));
 	}
 
 	public static void addSynchronizedSerializer(RecipeSerializer<?> serializer) {

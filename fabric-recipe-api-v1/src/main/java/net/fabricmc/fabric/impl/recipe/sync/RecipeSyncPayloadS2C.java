@@ -21,6 +21,7 @@ import java.util.List;
 
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.handler.PacketDecoderException;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.recipe.Recipe;
@@ -31,51 +32,55 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
-public record RecipeSyncPayloadS2C(RecipeSerializer<?> serializer, List<RecipeEntry<?>> recipes) implements CustomPayload {
-	public static final PacketCodec<RegistryByteBuf, RecipeSyncPayloadS2C> CODEC = PacketCodec.of(
-			RecipeSyncPayloadS2C::write,
-			RecipeSyncPayloadS2C::read
-	);
-
-	private static RecipeSyncPayloadS2C read(RegistryByteBuf buf) {
-		Identifier recipeSerializerId = buf.readIdentifier();
-		RecipeSerializer<?> recipeSerializer = Registries.RECIPE_SERIALIZER.get(recipeSerializerId);
-
-		if (recipeSerializer == null || !RecipeSyncImpl.isSynced(recipeSerializer)) {
-			throw new PacketDecoderException("Tried syncing unsupported packet serializer '" + recipeSerializerId + "'!");
-		}
-
-		int count = buf.readVarInt();
-		var list = new ArrayList<RecipeEntry<?>>();
-
-		for (int i = 0; i < count; i++) {
-			RegistryKey<Recipe<?>> id = buf.readRegistryKey(RegistryKeys.RECIPE);
-			//noinspection deprecation
-			Recipe<?> recipe = recipeSerializer.packetCodec().decode(buf);
-			list.add(new RecipeEntry<>(id, recipe));
-		}
-
-		return new RecipeSyncPayloadS2C(recipeSerializer, list);
-	}
-
-	private void write(RegistryByteBuf buf) {
-		buf.writeIdentifier(Registries.RECIPE_SERIALIZER.getId(this.serializer));
-
-		buf.writeVarInt(this.recipes.size());
-
-		//noinspection unchecked
-		PacketCodec<RegistryByteBuf, Recipe<?>> serializer = ((PacketCodec<RegistryByteBuf, Recipe<?>>) this.serializer.packetCodec());
-
-		for (RecipeEntry<?> recipe : this.recipes) {
-			buf.writeRegistryKey(recipe.id());
-			serializer.encode(buf, recipe.value());
-		}
-	}
+public record RecipeSyncPayloadS2C(List<Entry> entries) implements CustomPayload {
+	public static final PacketCodec<RegistryByteBuf, RecipeSyncPayloadS2C> CODEC = Entry.CODEC.collect(PacketCodecs.toList()).xmap(RecipeSyncPayloadS2C::new, RecipeSyncPayloadS2C::entries);
 
 	public static final Id<RecipeSyncPayloadS2C> ID = new Id<>(Identifier.of("fabric", "recipe_sync"));
 
 	@Override
 	public Id<? extends CustomPayload> getId() {
 		return ID;
+	}
+
+	public record Entry(RecipeSerializer<?> serializer, List<RecipeEntry<?>> recipes) {
+		public static final PacketCodec<RegistryByteBuf, Entry> CODEC = PacketCodec.of(
+				Entry::write,
+				Entry::read
+		);
+
+		private static Entry read(RegistryByteBuf buf) {
+			Identifier recipeSerializerId = buf.readIdentifier();
+			RecipeSerializer<?> recipeSerializer = Registries.RECIPE_SERIALIZER.get(recipeSerializerId);
+
+			if (recipeSerializer == null || !RecipeSyncImpl.isSynced(recipeSerializer)) {
+				throw new PacketDecoderException("Tried syncing unsupported packet serializer '" + recipeSerializerId + "'!");
+			}
+
+			int count = buf.readVarInt();
+			var list = new ArrayList<RecipeEntry<?>>();
+
+			for (int i = 0; i < count; i++) {
+				RegistryKey<Recipe<?>> id = buf.readRegistryKey(RegistryKeys.RECIPE);
+				//noinspection deprecation
+				Recipe<?> recipe = recipeSerializer.packetCodec().decode(buf);
+				list.add(new RecipeEntry<>(id, recipe));
+			}
+
+			return new Entry(recipeSerializer, list);
+		}
+
+		private void write(RegistryByteBuf buf) {
+			buf.writeIdentifier(Registries.RECIPE_SERIALIZER.getId(this.serializer));
+
+			buf.writeVarInt(this.recipes.size());
+
+			//noinspection unchecked,deprecation
+			PacketCodec<RegistryByteBuf, Recipe<?>> serializer = ((PacketCodec<RegistryByteBuf, Recipe<?>>) this.serializer.packetCodec());
+
+			for (RecipeEntry<?> recipe : this.recipes) {
+				buf.writeRegistryKey(recipe.id());
+				serializer.encode(buf, recipe.value());
+			}
+		}
 	}
 }
