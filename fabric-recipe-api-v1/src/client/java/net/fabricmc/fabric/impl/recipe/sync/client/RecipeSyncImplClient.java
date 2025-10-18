@@ -18,16 +18,10 @@ package net.fabricmc.fabric.impl.recipe.sync.client;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 
-import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.recipe.RecipeEntry;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.recipe.v1.sync.ClientRecipeSynchronizedEvent;
 import net.fabricmc.fabric.api.recipe.v1.sync.SynchronizedRecipes;
@@ -45,6 +39,7 @@ public class RecipeSyncImplClient implements ClientModInitializer {
 
 		if (!payload.entries().isEmpty()) {
 			var collectedRecipes = new ArrayList<RecipeEntry<?>>();
+
 			for (RecipeSyncPayloadS2C.Entry entry : payload.entries()) {
 				collectedRecipes.addAll(entry.recipes());
 			}
