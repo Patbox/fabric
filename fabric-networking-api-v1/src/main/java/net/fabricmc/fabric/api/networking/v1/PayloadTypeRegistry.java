@@ -44,6 +44,23 @@ public interface PayloadTypeRegistry<B extends PacketByteBuf> {
 	<T extends CustomPayload> CustomPayload.Type<? super B, T> register(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec);
 
 	/**
+	 * Registers a large custom payload type.
+	 *
+	 * <p>This must be done on both the sending and receiving side, usually during mod initialization
+	 * and <strong>before registering a packet handler</strong>.
+	 *
+	 * <p>Payload types registered with this method will be split into multiple packets,
+	 * allowing to send packets larger than vanilla limited size.
+	 *
+	 * @param id            the id of the payload type
+	 * @param codec         the codec for the payload type
+	 * @param <T>           the payload type
+	 * @param maxPacketSize the maximum size of payload packet
+	 * @return the registered payload type
+	 */
+	<T extends CustomPayload> CustomPayload.Type<? super B, T> registerLarge(CustomPayload.Id<T> id, PacketCodec<? super B, T> codec, int maxPacketSize);
+
+	/**
 	 * @return the {@link PayloadTypeRegistry} instance for the client to server configuration channel.
 	 */
 	static PayloadTypeRegistry<PacketByteBuf> configurationC2S() {

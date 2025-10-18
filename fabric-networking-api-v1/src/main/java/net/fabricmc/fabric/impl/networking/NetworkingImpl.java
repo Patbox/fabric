@@ -19,9 +19,13 @@ package net.fabricmc.fabric.impl.networking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.impl.networking.splitter.FabricSplitPacketPayload;
 
 public final class NetworkingImpl {
 	public static final String MOD_ID = "fabric-networking-api-v1";
@@ -42,6 +46,7 @@ public final class NetworkingImpl {
 	}
 
 	public static void init() {
+		// Legacy register / unregister packets
 		PayloadTypeRegistry.configurationS2C().register(RegistrationPayload.REGISTER, RegistrationPayload.REGISTER_CODEC);
 		PayloadTypeRegistry.configurationS2C().register(RegistrationPayload.UNREGISTER, RegistrationPayload.UNREGISTER_CODEC);
 		PayloadTypeRegistry.configurationC2S().register(RegistrationPayload.REGISTER, RegistrationPayload.REGISTER_CODEC);
@@ -50,5 +55,15 @@ public final class NetworkingImpl {
 		PayloadTypeRegistry.playS2C().register(RegistrationPayload.UNREGISTER, RegistrationPayload.UNREGISTER_CODEC);
 		PayloadTypeRegistry.playC2S().register(RegistrationPayload.REGISTER, RegistrationPayload.REGISTER_CODEC);
 		PayloadTypeRegistry.playC2S().register(RegistrationPayload.UNREGISTER, RegistrationPayload.UNREGISTER_CODEC);
+
+		// Fabric Packet Splitter packet
+		registerGeneric(FabricSplitPacketPayload.ID, FabricSplitPacketPayload.CODEC);
+	}
+
+	private static <T extends CustomPayload> void registerGeneric(CustomPayload.Id<T> id, PacketCodec<? super PacketByteBuf, T> codec) {
+		PayloadTypeRegistry.configurationS2C().register(id, codec);
+		PayloadTypeRegistry.configurationC2S().register(id, codec);
+		PayloadTypeRegistry.playS2C().register(id, codec);
+		PayloadTypeRegistry.playC2S().register(id, codec);
 	}
 }

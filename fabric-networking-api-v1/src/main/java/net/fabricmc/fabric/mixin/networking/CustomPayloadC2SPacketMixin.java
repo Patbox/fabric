@@ -17,23 +17,36 @@
 package net.fabricmc.fabric.mixin.networking;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import io.netty.channel.ChannelHandlerContext;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.handler.EncoderHandler;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 
 import net.fabricmc.fabric.impl.networking.FabricCustomPayloadPacketCodec;
+import net.fabricmc.fabric.impl.networking.GenericPayloadAccessor;
 import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
+import net.fabricmc.fabric.impl.networking.splitter.FabricPacketSplitter;
+import net.fabricmc.fabric.impl.networking.splitter.SplittablePacket;
 
 @Mixin(CustomPayloadC2SPacket.class)
-public class CustomPayloadC2SPacketMixin {
+public class CustomPayloadC2SPacketMixin implements SplittablePacket, GenericPayloadAccessor {
+	@Shadow
+	@Final
+	private CustomPayload payload;
+
 	@WrapOperation(
 			method = "<clinit>",
 			at = @At(
@@ -53,5 +66,22 @@ public class CustomPayloadC2SPacketMixin {
 			return PayloadTypeRegistryImpl.CONFIGURATION_C2S.get(identifier);
 		});
 		return codec;
+	}
+
+	@Override
+	public void fabric_split(PayloadTypeRegistryImpl<?> payloadTypeRegistry, ChannelHandlerContext channelHandlerContext, EncoderHandler<?> encoder, Packet<?> packet, Consumer<Packet<?>> consumer) throws Exception {
+		int size = payloadTypeRegistry.getMaxPacketSize(this.payload.getId().id());
+
+		if (size == -1) {
+			consumer.accept((Packet<?>) this);
+			return;
+		}
+
+		FabricPacketSplitter.genericPacketSplitter(this.payload.getId().id(), channelHandlerContext, encoder, packet, CustomPayloadC2SPacket::new, consumer, FabricPacketSplitter.SAFE_C2S_SPLIT_SIZE, size);
+	}
+
+	@Override
+	public CustomPayload fabric_payload() {
+		return this.payload;
 	}
 }

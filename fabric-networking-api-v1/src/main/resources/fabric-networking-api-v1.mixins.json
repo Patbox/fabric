@@ -4,26 +4,29 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BundlePacketMixin",
-    "PacketCodecDispatcherMixin",
     "ClientConnectionMixin",
     "CommandManagerMixin",
     "CustomPayloadC2SPacketMixin",
-    "CustomPayloadS2CPacketMixin",
     "CustomPayloadPacketCodecMixin",
+    "CustomPayloadS2CPacketMixin",
     "DebugConfigCommandMixin",
+    "EncoderHandlerMixin",
     "EntityTrackerEntryMixin",
     "LoginQueryRequestS2CPacketMixin",
     "LoginQueryResponseC2SPacketMixin",
+    "PacketCodecDispatcherMixin",
     "PlayerManagerMixin",
     "RegistryByteBufMixin",
     "ServerCommonNetworkHandlerMixin",
     "ServerConfigurationNetworkHandlerMixin",
     "ServerLoginNetworkHandlerMixin",
     "ServerPlayNetworkHandlerMixin",
+    "accessor.DecoderHandlerAccessor",
+    "accessor.EncoderHandlerAccessor",
     "accessor.EntityTrackerAccessor",
+    "accessor.ServerChunkLoadingManagerAccessor",
     "accessor.ServerCommonNetworkHandlerAccessor",
-    "accessor.ServerLoginNetworkHandlerAccessor",
-    "accessor.ServerChunkLoadingManagerAccessor"
+    "accessor.ServerLoginNetworkHandlerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
