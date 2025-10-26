@@ -26,11 +26,12 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.registry.Registries;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -38,18 +39,24 @@ import net.fabricmc.fabric.mixin.recipe.sync.ServerCommonNetworkHandlerAccessor;
 import net.fabricmc.fabric.mixin.recipe.sync.ServerRecipeManagerAccessor;
 
 public class RecipeSyncImpl implements ModInitializer {
+	// Recipe packet might contain a lot of data depending on mods, so it's best to increase it's max size to 64 MB.
+	private static final int RECIPE_PAYLOAD_MAX_SIZE = 64 * 1024 * 1024;
 	private static final Set<RecipeSerializer<?>> SYNCED_SERIALIZERS = new ReferenceOpenHashSet<>();
+
+	public static final Identifier RECIPE_SYNC_EVENT_PHASE = Identifier.of("fabric", "recipe_sync");
 
 	@Override
 	public void onInitialize() {
-		PayloadTypeRegistry.configurationC2S().register(RecipeSyncRequestPayloadC2S.ID, RecipeSyncRequestPayloadC2S.CODEC);
-		// Recipe packet might contain a lot of data depending on mods, so it's best to increase it's max size to 50 MB.
-		PayloadTypeRegistry.playS2C().registerLarge(RecipeSyncPayloadS2C.ID, RecipeSyncPayloadS2C.CODEC, 50 * 1024 * 1024);
+		PayloadTypeRegistry.configurationC2S().register(SupportedRecipeSerializersPayloadC2S.ID, SupportedRecipeSerializersPayloadC2S.CODEC);
+		PayloadTypeRegistry.playS2C().registerLarge(RecipeSyncPayloadS2C.ID, RecipeSyncPayloadS2C.CODEC, RECIPE_PAYLOAD_MAX_SIZE);
 
-		ServerConfigurationNetworking.registerGlobalReceiver(RecipeSyncRequestPayloadC2S.ID, RecipeSyncImpl::onRecipeSyncRequest);
+		ServerConfigurationNetworking.registerGlobalReceiver(SupportedRecipeSerializersPayloadC2S.ID, RecipeSyncImpl::onRecipeSyncRequest);
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(Event.DEFAULT_PHASE, RECIPE_SYNC_EVENT_PHASE);
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(RECIPE_SYNC_EVENT_PHASE, RecipeSyncImpl::sendRecipes);
 	}
 
-	private static void onRecipeSyncRequest(RecipeSyncRequestPayloadC2S payload, ServerConfigurationNetworking.Context context) {
+	private static void onRecipeSyncRequest(SupportedRecipeSerializersPayloadC2S payload, ServerConfigurationNetworking.Context context) {
 		var set = new ReferenceOpenHashSet<RecipeSerializer<?>>();
 
 		for (Identifier identifier : payload.synchronizedSerializers()) {
@@ -60,14 +67,14 @@ public class RecipeSyncImpl implements ModInitializer {
 				.fabric_setSyncedRecipeSerializers(set);
 	}
 
-	public static void sendRecipes(MinecraftServer server, ServerPlayerEntity player) {
+	private static void sendRecipes(ServerPlayerEntity player, boolean exist) {
 		if (!ServerPlayNetworking.canSend(player, RecipeSyncPayloadS2C.ID)) {
 			return;
 		}
 
 		Set<RecipeSerializer<?>> serializers = ((SyncedSerializerAwareClientConnection) ((ServerCommonNetworkHandlerAccessor) player.networkHandler).getConnection()).fabric_getSyncedRecipeSerializers();
 
-		SyncedSerializerAwarePreparedRecipe accessor = (SyncedSerializerAwarePreparedRecipe) ((ServerRecipeManagerAccessor) server.getRecipeManager()).getPreparedRecipes();
+		SyncedSerializerAwarePreparedRecipe accessor = (SyncedSerializerAwarePreparedRecipe) ((ServerRecipeManagerAccessor) player.getEntityWorld().getRecipeManager()).getPreparedRecipes();
 
 		var list = new ArrayList<RecipeSyncPayloadS2C.Entry>();
 

@@ -51,9 +51,7 @@ public class RecipeSyncImplClient implements ClientModInitializer {
 			recipes = SynchronizedRecipesImpl.EMPTY;
 		}
 
-		context.client().execute(() -> {
-			((SynchronizedClientRecipesSetter) context.player().networkHandler.getRecipeManager()).fabric_setSynchronizedClientRecipes(recipes);
-			ClientRecipeSynchronizedEvent.EVENT.invoker().onRecipesSynchronized(context.client(), recipes);
-		});
+		((SynchronizedClientRecipesSetter) context.player().networkHandler.getRecipeManager()).fabric_setSynchronizedClientRecipes(recipes);
+		ClientRecipeSynchronizedEvent.EVENT.invoker().onRecipesSynchronized(context.client(), recipes);
 	}
 }

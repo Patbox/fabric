@@ -31,20 +31,22 @@ import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
 import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncImpl;
-import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncRequestPayloadC2S;
+import net.fabricmc.fabric.impl.recipe.sync.SupportedRecipeSerializersPayloadC2S;
 
 @Mixin(ClientConfigurationNetworkHandler.class)
 public class ClientConfigurationNetworkHandlerMixin {
 	@Inject(method = "onSelectKnownPacks", at = @At("TAIL"))
 	private void sendSupportedRecipeSerializers(SelectKnownPacksS2CPacket packet, CallbackInfo ci) {
-		if (ClientConfigurationNetworking.canSend(RecipeSyncRequestPayloadC2S.ID)) {
-			var ids = new HashSet<Identifier>();
-
-			for (RecipeSerializer<?> serializer : RecipeSyncImpl.getSyncedSerializers()) {
-				ids.add(Registries.RECIPE_SERIALIZER.getId(serializer));
-			}
-
-			ClientConfigurationNetworking.send(new RecipeSyncRequestPayloadC2S(ids));
+		if (!ClientConfigurationNetworking.canSend(SupportedRecipeSerializersPayloadC2S.ID)) {
+			return;
 		}
+
+		var ids = new HashSet<Identifier>();
+
+		for (RecipeSerializer<?> serializer : RecipeSyncImpl.getSyncedSerializers()) {
+			ids.add(Registries.RECIPE_SERIALIZER.getId(serializer));
+		}
+
+		ClientConfigurationNetworking.send(new SupportedRecipeSerializersPayloadC2S(ids));
 	}
 }

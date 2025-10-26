@@ -29,15 +29,15 @@ import net.fabricmc.fabric.impl.recipe.sync.SyncedSerializerAwareClientConnectio
 @Mixin(ClientConnection.class)
 public abstract class ClientConnectionMixin implements SyncedSerializerAwareClientConnection {
 	@Unique
-	private Set<RecipeSerializer<?>> fabric_syncedRecipeSerializers = Set.of();
+	private Set<RecipeSerializer<?>> syncedRecipeSerializers = Set.of();
 
 	@Override
 	public void fabric_setSyncedRecipeSerializers(Set<RecipeSerializer<?>> syncedRecipeSerializers) {
-		fabric_syncedRecipeSerializers = syncedRecipeSerializers;
+		this.syncedRecipeSerializers = syncedRecipeSerializers;
 	}
 
 	@Override
 	public Set<RecipeSerializer<?>> fabric_getSyncedRecipeSerializers() {
-		return fabric_syncedRecipeSerializers;
+		return syncedRecipeSerializers;
 	}
 }

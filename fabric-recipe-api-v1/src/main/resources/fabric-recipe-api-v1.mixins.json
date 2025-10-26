@@ -10,7 +10,6 @@
     "ingredient.IngredientMixin",
     "ingredient.ShapelessRecipeMixin",
     "sync.ClientConnectionMixin",
-    "sync.PlayerManagerMixin",
     "sync.PreparedRecipesMixin",
     "sync.ServerCommonNetworkHandlerAccessor",
     "sync.ServerRecipeManagerAccessor"

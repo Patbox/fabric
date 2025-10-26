@@ -19,7 +19,10 @@ package net.fabricmc.fabric.api.recipe.v1.sync;
 import java.util.Objects;
 
 import net.minecraft.recipe.RecipeSerializer;
+import net.minecraft.util.Identifier;
 
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncImpl;
 
 /**
@@ -31,6 +34,12 @@ import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncImpl;
  * See {@link SynchronizedRecipes}
  */
 public final class RecipeSynchronization {
+	/**
+	 * Event phase used for sending recipes to the client. It runs after default event phase {@link Event#DEFAULT_PHASE}.
+	 * It's defined for {@link ServerLifecycleEvents#SYNC_DATA_PACK_CONTENTS} event.
+	 */
+	public static final Identifier RECIPE_SYNC_EVENT_PHASE = RecipeSyncImpl.RECIPE_SYNC_EVENT_PHASE;
+
 	private RecipeSynchronization() {
 	}
 
@@ -40,6 +49,8 @@ public final class RecipeSynchronization {
 	 * <p>This method should be only used to mark recipe serializers as synchronized only
 	 * if they are provided by your own mod or are vanilla ones.
 	 * Blindly adding unchecked recipe serializers might cause bugs and crashes.
+	 *
+	 * <p>This methods should be called in mod initializer on both client and server
 	 *
 	 * @param serializer recipe serializer used by synchronized recipes.
 	 */

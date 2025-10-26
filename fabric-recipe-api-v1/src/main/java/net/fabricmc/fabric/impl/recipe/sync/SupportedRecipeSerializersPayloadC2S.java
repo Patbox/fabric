@@ -25,12 +25,12 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-public record RecipeSyncRequestPayloadC2S(Set<Identifier> synchronizedSerializers) implements CustomPayload {
-	public static final PacketCodec<PacketByteBuf, RecipeSyncRequestPayloadC2S> CODEC = PacketCodec.tuple(
-			PacketCodecs.collection(HashSet::new, Identifier.PACKET_CODEC), RecipeSyncRequestPayloadC2S::synchronizedSerializers,
-			RecipeSyncRequestPayloadC2S::new
+public record SupportedRecipeSerializersPayloadC2S(Set<Identifier> synchronizedSerializers) implements CustomPayload {
+	public static final PacketCodec<PacketByteBuf, SupportedRecipeSerializersPayloadC2S> CODEC = PacketCodec.tuple(
+			PacketCodecs.collection(HashSet::new, Identifier.PACKET_CODEC), SupportedRecipeSerializersPayloadC2S::synchronizedSerializers,
+			SupportedRecipeSerializersPayloadC2S::new
 	);
-	public static final Id<RecipeSyncRequestPayloadC2S> ID = new Id<>(Identifier.of("fabric", "recipe_sync_request"));
+	public static final Id<SupportedRecipeSerializersPayloadC2S> ID = new Id<>(Identifier.of("fabric", "recipe_sync/supported_serializers"));
 
 	@Override
 	public Id<? extends CustomPayload> getId() {

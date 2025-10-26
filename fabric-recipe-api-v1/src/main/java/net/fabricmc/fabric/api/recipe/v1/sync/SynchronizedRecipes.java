@@ -55,20 +55,44 @@ public interface SynchronizedRecipes {
 	 */
 	<I extends RecipeInput, T extends Recipe<I>> Collection<RecipeEntry<T>> getAllOfType(RecipeType<T> type);
 
+	/**
+	 * Finds a first recipe entry (or @{code recipe}, if it matches and isn't null) of the given {@code type} that matches the
+	 * given {@code input} and {@code world}.
+	 *
+	 * @return the optional containing matching recipe entry or empty
+	 */
 	default <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeEntry<T>> getFirstMatch(RecipeType<T> type, I input, World world, @Nullable RegistryKey<Recipe<?>> recipe) {
 		RecipeEntry<T> recipeEntry = recipe != null ? this.get(type, recipe) : null;
 		return this.getFirstMatch(type, input, world, recipeEntry);
 	}
 
+	/**
+	 * Finds a first recipe entry (or @{code recipe}, if it matches and isn't null) of the given {@code type} that matches the
+	 * given {@code input} and {@code world}.
+	 *
+	 * @return the optional containing matching recipe entry or empty
+	 */
 	default <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeEntry<T>> getFirstMatch(RecipeType<T> type, I input, World world, @Nullable RecipeEntry<T> recipe) {
 		return recipe != null && recipe.value().matches(input, world) ? Optional.of(recipe) : this.getFirstMatch(type, input, world);
 	}
 
+	/**
+	 * Finds a first recipe entry of the given {@code type} that matches the
+	 * given {@code input} and {@code world}.
+	 *
+	 * @return the optional containing matching recipe entry or empty
+	 */
 	<I extends RecipeInput, T extends Recipe<I>> Optional<RecipeEntry<T>> getFirstMatch(RecipeType<T> type, I input, World world);
 
+	/**
+	 * @return recipe with matching {@code key} or null if not present
+	 */
 	@Nullable
 	RecipeEntry<?> get(RegistryKey<Recipe<?>> key);
 
+	/**
+	 * @return recipe with matching {@code key} of type {@code type} or null if not present
+	 */
 	@Nullable
 	default <T extends Recipe<?>> RecipeEntry<T> get(RecipeType<T> type, RegistryKey<Recipe<?>> key) {
 		RecipeEntry<?> recipeEntry = this.get(key);
@@ -76,5 +100,8 @@ public interface SynchronizedRecipes {
 		return recipeEntry != null && recipeEntry.value().getType().equals(type) ? (RecipeEntry<T>) recipeEntry : null;
 	}
 
+	/**
+	 * @return collection of all synchronized recipe types
+	 */
 	Collection<RecipeEntry<?>> recipes();
 }
