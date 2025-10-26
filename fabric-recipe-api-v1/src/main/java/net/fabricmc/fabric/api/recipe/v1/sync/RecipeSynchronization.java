@@ -50,7 +50,7 @@ public final class RecipeSynchronization {
 	 * if they are provided by your own mod or are vanilla ones.
 	 * Blindly adding unchecked recipe serializers might cause bugs and crashes.
 	 *
-	 * <p>This methods should be called in mod initializer on both client and server
+	 * <p>This method should be called in mod initializer on both client and server
 	 *
 	 * @param serializer recipe serializer used by synchronized recipes.
 	 */
