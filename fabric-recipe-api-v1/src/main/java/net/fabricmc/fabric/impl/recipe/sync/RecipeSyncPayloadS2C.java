@@ -32,6 +32,9 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
+/**
+ * Main packet used to send recipes to the client.
+ */
 public record RecipeSyncPayloadS2C(List<Entry> entries) implements CustomPayload {
 	public static final PacketCodec<RegistryByteBuf, RecipeSyncPayloadS2C> CODEC = Entry.CODEC.collect(PacketCodecs.toList()).xmap(RecipeSyncPayloadS2C::new, RecipeSyncPayloadS2C::entries);
 
