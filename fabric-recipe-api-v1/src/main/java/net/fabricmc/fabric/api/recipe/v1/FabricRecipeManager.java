@@ -26,7 +26,7 @@ import net.fabricmc.fabric.impl.recipe.sync.SynchronizedRecipesImpl;
  */
 public interface FabricRecipeManager {
 	default SynchronizedRecipes getSynchronizedRecipes() {
-		// Fallback implementation in ase someone implements RecipeManager interface on custom class.
+		// Fallback implementation in case someone implements RecipeManager interface on a custom class.
 		return SynchronizedRecipesImpl.EMPTY;
 	}
 }
