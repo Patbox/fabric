@@ -47,6 +47,11 @@ public class ClientConfigurationNetworkHandlerMixin {
 			ids.add(Registries.RECIPE_SERIALIZER.getId(serializer));
 		}
 
+		// No need to send empty requests, it's the default state anyway.
+		if (ids.isEmpty()) {
+			return;
+		}
+
 		ClientConfigurationNetworking.send(new SupportedRecipeSerializersPayloadC2S(ids));
 	}
 }

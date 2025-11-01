@@ -81,9 +81,13 @@ public class RecipeSyncImpl implements ModInitializer {
 		for (RecipeSerializer<?> serializer : serializers) {
 			List<RecipeEntry<?>> recipes = accessor.fabric_getRecipesBySyncedSerializer(serializer);
 
-			if (recipes != null) {
+			if (recipes != null && !recipes.isEmpty()) {
 				list.add(new RecipeSyncPayloadS2C.Entry(serializer, recipes));
 			}
+		}
+
+		if (list.isEmpty()) {
+			return;
 		}
 
 		ServerPlayNetworking.send(player, new RecipeSyncPayloadS2C(list));

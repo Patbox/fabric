@@ -29,7 +29,7 @@ import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncImpl;
  * Since Minecraft 1.21.2, vanilla no longer syncs all recipes to the client automatically,
  * opting into sending only required recipe book data.
  *
- * <p>This api can be used to enable Fabric's recipe sync for select RecipeSerializers, 
+ * <p>This api can be used to enable Fabric's recipe sync for select RecipeSerializers,
  * which will synchronize recipes to the client.
  * See {@link SynchronizedRecipes}
  */
@@ -44,13 +44,13 @@ public final class RecipeSynchronization {
 	}
 
 	/**
-	 * Enables synchronization of recipes to the client, for recipes that can be handled by 
+	 * Enables synchronization of recipes to the client, for recipes that can be handled by
 	 * the provided RecipeSerializer.
 	 *
 	 * <p>Only add recipe serializers that are provided by your own mod or vanilla.
 	 * Blindly adding unchecked recipe serializers might cause bugs and crashes.
 	 *
-	 * <p>This method should be called in the mod initializer of both the client and the server.
+	 * <p>This method should be called in the main mod initializer on both the client and the server.
 	 *
 	 * @param serializer the recipe serializer used to synchronize recipes to the client.
 	 */
