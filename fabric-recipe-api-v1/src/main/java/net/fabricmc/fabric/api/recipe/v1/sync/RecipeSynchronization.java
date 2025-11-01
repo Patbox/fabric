@@ -29,13 +29,13 @@ import net.fabricmc.fabric.impl.recipe.sync.RecipeSyncImpl;
  * Since Minecraft 1.21.2, vanilla no longer syncs all recipes to the client automatically,
  * opting into sending only required recipe book data.
  *
- * <p>This api allows to enable Fabric's recipe sync for select RecipeSerializers, which can be
- * then used on the client.
+ * <p>This api can be used to enable Fabric's recipe sync for select RecipeSerializers, 
+ * which will synchronize recipes to the client.
  * See {@link SynchronizedRecipes}
  */
 public final class RecipeSynchronization {
 	/**
-	 * Event phase used for sending recipes to the client. It runs after default event phase {@link Event#DEFAULT_PHASE}.
+	 * Event phase used for sending recipes to the client. It runs after the default event phase {@link Event#DEFAULT_PHASE}.
 	 * It's defined for {@link ServerLifecycleEvents#SYNC_DATA_PACK_CONTENTS} event.
 	 */
 	public static final Identifier RECIPE_SYNC_EVENT_PHASE = RecipeSyncImpl.RECIPE_SYNC_EVENT_PHASE;
@@ -44,15 +44,15 @@ public final class RecipeSynchronization {
 	}
 
 	/**
-	 * Enables synchronization for all recipes using provided RecipeSerializer.
+	 * Enables synchronization of recipes to the client, for recipes that can be handled by 
+	 * the provided RecipeSerializer.
 	 *
-	 * <p>This method should be only used to mark recipe serializers as synchronized only
-	 * if they are provided by your own mod or are vanilla ones.
+	 * <p>Only add recipe serializers that are provided by your own mod or vanilla.
 	 * Blindly adding unchecked recipe serializers might cause bugs and crashes.
 	 *
-	 * <p>This method should be called in mod initializer on both client and server
+	 * <p>This method should be called in the mod initializer of both the client and the server.
 	 *
-	 * @param serializer recipe serializer used by synchronized recipes.
+	 * @param serializer the recipe serializer used to synchronize recipes to the client.
 	 */
 	public static void synchronizeRecipeSerializer(RecipeSerializer<?> serializer) {
 		Objects.requireNonNull(serializer, "serializer can't be null!");
