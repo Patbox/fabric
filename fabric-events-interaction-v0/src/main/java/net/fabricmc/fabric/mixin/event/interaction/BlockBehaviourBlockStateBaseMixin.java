@@ -34,7 +34,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.fabricmc.fabric.api.event.player.BlockUseEvents;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
-public abstract class BlockStateBaseMixin {
+public abstract class BlockBehaviourBlockStateBaseMixin {
 	@Shadow
 	protected abstract BlockState asState();
 
