@@ -110,7 +110,7 @@ public interface FabricBlock {
 	 * Fabric-provided extensions for {@link BlockBehaviour.Properties}.
 	 * This interface is automatically implemented on all block properties via Mixin and interface injection.
 	 */
-	interface Properties {
+	interface FabricProperties {
 		/**
 		 * Return the id of block that was defined by {@link BlockBehaviour.Properties#setId}.
 		 *
