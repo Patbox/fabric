@@ -14,39 +14,25 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.mixin.item;
+package net.fabricmc.fabric.mixin.block;
 
 import org.jspecify.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.resources.DependantName;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 
-import net.fabricmc.fabric.api.item.v1.FabricItem;
+import net.fabricmc.fabric.api.block.v1.FabricBlock;
 
-@Mixin(Item.Properties.class)
-public class ItemPropertiesMixin implements FabricItem.Properties {
-	@Final
+@Mixin(BlockBehaviour.Properties.class)
+public class BlockBehaviourPropertiesMixin implements FabricBlock.Properties {
 	@Shadow
-	@Mutable
-	private DependantName<Item, Identifier> model;
-
-	@Shadow
-	private @Nullable ResourceKey<Item> id;
+	private @Nullable ResourceKey<Block> id;
 
 	@Override
-	public Item.Properties modelId(Identifier modelId) {
-		this.model = DependantName.fixed(modelId);
-		return FabricItem.Properties.super.modelId(modelId);
-	}
-
-	@Override
-	public @Nullable ResourceKey<Item> getId() {
+	public @Nullable ResourceKey<Block> getId() {
 		return this.id;
 	}
 }
