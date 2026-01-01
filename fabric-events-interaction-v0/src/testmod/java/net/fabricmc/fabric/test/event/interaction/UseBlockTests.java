@@ -28,7 +28,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SnowLayerBlock;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.player.BlockUseEvents;
+import net.fabricmc.fabric.api.event.player.BlockEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 
 public class UseBlockTests implements ModInitializer {
@@ -62,19 +62,19 @@ public class UseBlockTests implements ModInitializer {
 			return InteractionResult.PASS;
 		});
 
-		BlockUseEvents.USE_WITHOUT_ITEM.register((blockState, level, blockPos, player, blockHitResult) -> {
-			LOGGER.info("BlockUseEvents.USE_WITHOUT_ITEM: (client-side = %s)".formatted(level.isClientSide()));
+		BlockEvents.USE_WITHOUT_ITEM.register((blockState, level, blockPos, player, blockHitResult) -> {
+			LOGGER.info("BlockEvents.USE_WITHOUT_ITEM: (client-side = %s)".formatted(level.isClientSide()));
 
 			return null;
 		});
 
-		BlockUseEvents.USE_ITEM_ON.register((itemStack, blockState, level, blockPos, player, interactionHand, blockHitResult) -> {
-			LOGGER.info("BlockUseEvents.USE_ITEM_ON: (client-side = %s)".formatted(level.isClientSide()));
+		BlockEvents.USE_ITEM_ON.register((itemStack, blockState, level, blockPos, player, interactionHand, blockHitResult) -> {
+			LOGGER.info("BlockEvents.USE_ITEM_ON: (client-side = %s)".formatted(level.isClientSide()));
 
 			return null;
 		});
 
-		BlockUseEvents.USE_WITHOUT_ITEM.register((blockState, level, blockPos, player, blockHitResult) -> {
+		BlockEvents.USE_WITHOUT_ITEM.register((blockState, level, blockPos, player, blockHitResult) -> {
 			if (blockState.is(Blocks.NOTE_BLOCK) && player.hasEffect(MobEffects.BAD_OMEN)) {
 				return InteractionResult.FAIL;
 			}
@@ -82,7 +82,7 @@ public class UseBlockTests implements ModInitializer {
 			return null;
 		});
 
-		BlockUseEvents.USE_ITEM_ON.register((itemStack, blockState, level, blockPos, player, interactionHand, blockHitResult) -> {
+		BlockEvents.USE_ITEM_ON.register((itemStack, blockState, level, blockPos, player, interactionHand, blockHitResult) -> {
 			if (blockState.is(Blocks.SNOW) && itemStack.is(ItemTags.SHOVELS)) {
 				if (!level.isClientSide()) {
 					int layer = blockState.getValue(SnowLayerBlock.LAYERS) - 1;

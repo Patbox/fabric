@@ -33,7 +33,7 @@ import net.fabricmc.fabric.api.event.EventFactory;
 /**
  * Contains events triggered by players interact with blocks.
  */
-public interface BlockUseEvents {
+public interface BlockEvents {
 	/**
 	 * Callback that runs when {@link BlockState#useItemOn(ItemStack, Level, Player, InteractionHand, BlockHitResult)} is called.
 	 */

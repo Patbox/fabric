@@ -32,7 +32,7 @@ import net.fabricmc.fabric.api.event.EventFactory;
 /**
  * Contains events triggered by players interact with item.
  */
-public interface ItemUseEvents {
+public interface ItemEvents {
 	/**
 	 * Callback that runs when {@link Item#useOn(UseOnContext)} is called within {@link ItemStack#useOn(UseOnContext)}.
 	 */

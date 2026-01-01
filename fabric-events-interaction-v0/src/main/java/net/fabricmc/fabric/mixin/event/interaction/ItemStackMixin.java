@@ -29,13 +29,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
-import net.fabricmc.fabric.api.event.player.ItemUseEvents;
+import net.fabricmc.fabric.api.event.player.ItemEvents;
 
 @Mixin(ItemStack.class)
 public class ItemStackMixin {
 	@WrapOperation(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/Item;use(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"))
 	private InteractionResult handleUseEvent(Item instance, Level level, Player player, InteractionHand interactionHand, Operation<InteractionResult> original) {
-		InteractionResult result = ItemUseEvents.USE.invoker().use(level, player, interactionHand);
+		InteractionResult result = ItemEvents.USE.invoker().use(level, player, interactionHand);
 
 		if (result != null) {
 			return result;
@@ -46,7 +46,7 @@ public class ItemStackMixin {
 
 	@WrapOperation(method = "useOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/Item;useOn(Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;"))
 	private InteractionResult handleUseOnEvent(Item instance, UseOnContext useOnContext, Operation<InteractionResult> original) {
-		InteractionResult result = ItemUseEvents.USE_ON.invoker().useOn(useOnContext);
+		InteractionResult result = ItemEvents.USE_ON.invoker().useOn(useOnContext);
 
 		if (result != null) {
 			return result;

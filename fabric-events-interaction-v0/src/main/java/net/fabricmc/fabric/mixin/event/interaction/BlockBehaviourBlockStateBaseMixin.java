@@ -31,7 +31,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import net.fabricmc.fabric.api.event.player.BlockUseEvents;
+import net.fabricmc.fabric.api.event.player.BlockEvents;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
 public abstract class BlockBehaviourBlockStateBaseMixin {
@@ -40,7 +40,7 @@ public abstract class BlockBehaviourBlockStateBaseMixin {
 
 	@Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
 	private void callUseItemOnEvent(ItemStack itemStack, Level level, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
-		InteractionResult result = BlockUseEvents.USE_ITEM_ON.invoker().useItemOn(itemStack, this.asState(), level, blockHitResult.getBlockPos(), player, interactionHand, blockHitResult);
+		InteractionResult result = BlockEvents.USE_ITEM_ON.invoker().useItemOn(itemStack, this.asState(), level, blockHitResult.getBlockPos(), player, interactionHand, blockHitResult);
 
 		if (result != null) {
 			cir.setReturnValue(result);
@@ -49,7 +49,7 @@ public abstract class BlockBehaviourBlockStateBaseMixin {
 
 	@Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
 	private void callUseWithoutItemEvent(Level level, Player player, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
-		InteractionResult result = BlockUseEvents.USE_WITHOUT_ITEM.invoker().useWithoutItem(this.asState(), level, blockHitResult.getBlockPos(), player, blockHitResult);
+		InteractionResult result = BlockEvents.USE_WITHOUT_ITEM.invoker().useWithoutItem(this.asState(), level, blockHitResult.getBlockPos(), player, blockHitResult);
 
 		if (result != null) {
 			cir.setReturnValue(result);

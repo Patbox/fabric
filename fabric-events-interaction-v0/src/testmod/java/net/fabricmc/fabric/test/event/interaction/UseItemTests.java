@@ -28,7 +28,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.player.ItemUseEvents;
+import net.fabricmc.fabric.api.event.player.ItemEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 
 public class UseItemTests implements ModInitializer {
@@ -61,17 +61,17 @@ public class UseItemTests implements ModInitializer {
 			return InteractionResult.PASS;
 		});
 
-		ItemUseEvents.USE_ON.register((useOnContext) -> {
-			LOGGER.info("ItemUseEvents.USE_ON: (client-side = %s)".formatted(useOnContext.getLevel().isClientSide()));
+		ItemEvents.USE_ON.register((useOnContext) -> {
+			LOGGER.info("ItemEvents.USE_ON: (client-side = %s)".formatted(useOnContext.getLevel().isClientSide()));
 			return null;
 		});
 
-		ItemUseEvents.USE.register((level, player, interactionHand) -> {
-			LOGGER.info("ItemUseEvents.USE: (client-side = %s)".formatted(level.isClientSide()));
+		ItemEvents.USE.register((level, player, interactionHand) -> {
+			LOGGER.info("ItemEvents.USE: (client-side = %s)".formatted(level.isClientSide()));
 			return null;
 		});
 
-		ItemUseEvents.USE.register((level, player, interactionHand) -> {
+		ItemEvents.USE.register((level, player, interactionHand) -> {
 			ItemStack stack = player.getItemInHand(interactionHand);
 
 			if (stack.is(Items.FIRE_CHARGE)) {
@@ -84,7 +84,7 @@ public class UseItemTests implements ModInitializer {
 			return null;
 		});
 
-		ItemUseEvents.USE_ON.register((useOnContext) -> {
+		ItemEvents.USE_ON.register((useOnContext) -> {
 			ItemStack stack = useOnContext.getItemInHand();
 
 			if (stack.is(Items.BLAZE_POWDER)) {
