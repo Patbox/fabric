@@ -126,7 +126,7 @@ abstract class ConnectionMixin implements ChannelInfoHolder, PacketContextProvid
 
 	@ModifyArg(method = "setupOutboundProtocol", at = @At(value = "INVOKE", target = "Lio/netty/channel/Channel;writeAndFlush(Ljava/lang/Object;)Lio/netty/channel/ChannelFuture;"))
 	private Object injectFabricPacketSlitterHandlerOutbound(Object transitioner, @Local(argsOnly = true) ProtocolInfo<?> protocolInfo) {
-		transitioner = ((UnconfiguredPipelineHandler.InboundConfigurationTask) transitioner).andThen((context) -> {
+		transitioner = ((UnconfiguredPipelineHandler.OutboundConfigurationTask) transitioner).andThen((context) -> {
 			if (context.pipeline().get("encoder") instanceof PacketContextSetter setter) {
 				setter.fabric_setPacketContext(this.packetContext);
 			}

@@ -27,5 +27,7 @@ import net.minecraft.network.Connection;
  */
 @ApiStatus.NonExtendable
 public interface PacketContextProvider {
-	PacketContext getPacketContext();
+	default PacketContext getPacketContext() {
+		throw new UnsupportedOperationException("Implemented via mixin");
+	}
 }
