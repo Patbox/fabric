@@ -42,7 +42,6 @@ import net.minecraft.network.ProtocolInfo;
 import net.minecraft.network.UnconfiguredPipelineHandler;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.network.protocol.login.ClientLoginPacketListener;
 import net.minecraft.resources.Identifier;
 
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
