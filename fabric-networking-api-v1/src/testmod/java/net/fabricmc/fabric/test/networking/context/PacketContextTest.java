@@ -62,7 +62,7 @@ public class PacketContextTest implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register((listener, sender, server) -> {
 			String stringValue = listener.getPacketContext().orElseThrow(STRING_KEY);
 
-			listener.player.sendSystemMessage(Component.literal("PacketContext: " + stringValue));
+			LOGGER.info("PacketContext value: {}", stringValue);
 			sender.sendPacket(new ContextCheckPacket("Server Play"));
 		});
 	}
