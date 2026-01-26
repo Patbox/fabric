@@ -18,7 +18,8 @@ package net.fabricmc.fabric.impl.networking.context;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.jspecify.annotations.Nullable;
 
@@ -28,40 +29,37 @@ import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 
 public final class PacketContextImpl implements PacketContext {
 	public static final ScopedValue<PacketContext> VALUE = ScopedValue.newInstance();
+	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 	private final Connection connection;
-	private volatile Map<Key<?>, Object> contextMap = Map.of();
+	private final Map<Key<?>, Object> contextMap = new IdentityHashMap<>();
 
 	public PacketContextImpl(Connection connection) {
 		this.connection = connection;
 	}
 
 	@Override
-	public @Nullable <T> T getValue(Key<T> key) {
-		//noinspection unchecked
-		return (T) this.contextMap.get(key);
-	}
+	public @Nullable <T> T get(Key<T> key) {
+		this.lock.readLock().lock();
 
-	@Override
-	public <T> void setValue(Key<T> key, T value) {
-		// Values can be set/read from multiple threads, so making it safe is kinda needed.
-		// Also setting values should be way less common than reading them, so keeping that fast,
-		// While putting synchronization + new map for when new values are set.
-		// When more values at the same time, the updateValues method should be used.
-		synchronized (this) {
-			var map = new IdentityHashMap<>(contextMap);
-			map.put(key, value);
-			this.contextMap = map;
+		try {
+			//noinspection unchecked
+			return (T) this.contextMap.get(key);
+		} finally {
+			this.lock.readLock().unlock();
 		}
 	}
 
 	@Override
-	public void updateValues(Consumer<ContextUpdater> updater) {
-		// Same as with setValue
-		synchronized (this) {
-			var map = new IdentityHashMap<>(contextMap);
-			updater.accept(map::put);
-			this.contextMap = map;
+	public <T> void set(Key<T> key, T value) {
+		this.lock.writeLock().lock();
+
+		if (value == null) {
+			this.contextMap.remove(key);
+		} else {
+			this.contextMap.put(key, value);
 		}
+
+		this.lock.writeLock().unlock();
 	}
 
 	@Override

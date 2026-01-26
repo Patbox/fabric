@@ -62,9 +62,6 @@ abstract class ConnectionMixin implements ChannelInfoHolder, PacketContextProvid
 	@Shadow
 	private PacketListener packetListener;
 
-	@Shadow
-	public abstract void initiateServerboundPlayConnection(String hostName, int port, ClientLoginPacketListener listener);
-
 	@Unique
 	private Map<ConnectionProtocol, Collection<Identifier>> playChannels;
 

@@ -17,7 +17,6 @@
 package net.fabricmc.fabric.api.networking.v1.context;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -41,7 +40,7 @@ public interface PacketContext {
 	 * @return stored value or null if not set.
 	 */
 	@Nullable
-	<T> T getValue(Key<T> key);
+	<T> T get(Key<T> key);
 
 	/**
 	 * Returns currently stored value.
@@ -52,7 +51,19 @@ public interface PacketContext {
 	 * @throws NullPointerException if not set
 	 */
 	default <T> T orElseThrow(Key<T> key) {
-		return Objects.requireNonNull(getValue(key), () -> "Packet Context is missing the '" + key.key + "' value!");
+		return Objects.requireNonNull(get(key), () -> "Packet Context is missing the '" + key.key + "' value!");
+	}
+
+	/**
+	 * Returns currently stored value.
+	 * In case of it not being stored earlier, this method will return provided default value.
+	 *
+	 * @param key unique key under which value is stored
+	 * @param defaultValue value to return if no value is set
+	 * @return stored value if present, defaultValue otherwise
+	 */
+	default <T> T orElse(Key<T> key, T defaultValue) {
+		return Objects.requireNonNullElse(get(key), defaultValue);
 	}
 
 	/**
@@ -61,14 +72,7 @@ public interface PacketContext {
 	 * @param key unique key under which value is stored
 	 * @param value value to store
 	 */
-	<T> void setValue(Key<T> key, T value);
-
-	/**
-	 * Allows to update multiple values efficiently.
-	 *
-	 * @param updater consumer used to update stored context values
-	 */
-	void updateValues(Consumer<ContextUpdater> updater);
+	<T> void set(Key<T> key, T value);
 
 	/**
 	 * Returns a connection that owns this packet context.
@@ -126,11 +130,6 @@ public interface PacketContext {
 	 */
 	static <T> Key<T> key(Identifier key) {
 		return new Key<>(key);
-	}
-
-	@FunctionalInterface
-	interface ContextUpdater {
-		<T> void set(Key<T> key, T value);
 	}
 
 	final class Key<T> {

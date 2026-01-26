@@ -50,7 +50,7 @@ public class PacketContextTest implements ModInitializer {
 
 		// Store some example value when logging in.
 		ServerLoginConnectionEvents.INIT.register((listener, server) -> {
-			listener.getPacketContext().setValue(STRING_KEY, STRING_VALUE);
+			listener.getPacketContext().set(STRING_KEY, STRING_VALUE);
 		});
 
 		// Context check.
