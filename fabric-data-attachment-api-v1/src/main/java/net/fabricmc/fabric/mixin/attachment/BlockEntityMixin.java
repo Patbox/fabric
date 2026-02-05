@@ -16,6 +16,8 @@
 
 package net.fabricmc.fabric.mixin.attachment;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,17 +28,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ChunkHolder;
+import net.minecraft.server.level.ChunkResult;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.impl.attachment.AttachmentTargetImpl;
-import net.fabricmc.fabric.impl.attachment.AttachmentTypeImpl;
 import net.fabricmc.fabric.impl.attachment.sync.AttachmentChange;
-import net.fabricmc.fabric.impl.attachment.sync.AttachmentSync;
 import net.fabricmc.fabric.impl.attachment.sync.AttachmentTargetInfo;
 
 @Mixin(BlockEntity.class)
@@ -73,7 +78,29 @@ abstract class BlockEntityMixin implements AttachmentTargetImpl {
 
 	@Override
 	public void fabric_markChanged(AttachmentType<?> type) {
-		this.setChanged();
+		if (this.level instanceof ServerLevel serverLevel) {
+			ChunkHolder chunkHolder = serverLevel.getChunkSource().chunkMap.getUpdatingChunkIfPresent(ChunkPos.pack(this.worldPosition));
+
+			// If chunkHolder is null, then chunk is probably unloaded/unloading.
+			// calling setChanged() may start loading the chunk again, causing an infinite loop of chunk loading/unloading.
+			// so just do nothing.
+			if (chunkHolder == null) {
+				return;
+			}
+
+			CompletableFuture<ChunkResult<LevelChunk>> chunkFuture = chunkHolder.getFullChunkFuture();
+
+			if (chunkFuture.isDone()) {
+				// If chunk is already loaded successfully, then call setChanged() immediately
+				chunkFuture.thenAccept(chunkResult -> chunkResult.ifSuccess(_ -> this.setChanged()));
+			} else {
+				// Otherwise setChanged() is called after to avoid deadlocking the server thread
+				MinecraftServer server = serverLevel.getServer();
+				server.schedule(server.wrapRunnable(() -> fabric_markChanged(type)));
+			}
+		} else {
+			this.setChanged();
+		}
 	}
 
 	@Override
@@ -83,18 +110,20 @@ abstract class BlockEntityMixin implements AttachmentTargetImpl {
 
 	@Override
 	public void fabric_syncChange(AttachmentType<?> type, AttachmentChange change) {
-		PlayerLookup.tracking((BlockEntity) (Object) this)
-				.forEach(player -> {
-					if (((AttachmentTypeImpl<?>) type).syncPredicate().test(this, player)) {
-						AttachmentSync.trySync(change, player);
-					}
-				});
+		if (this.level instanceof ServerLevel serverLevel) {
+			serverLevel.getChunkSource().blockChanged(this.worldPosition);
+		}
 	}
 
 	@Override
 	public boolean fabric_shouldTryToSync() {
 		// Persistent attachments are read at a time with no level
 		return !this.hasLevel() || !this.level.isClientSide();
+	}
+
+	@Override
+	public boolean fabric_shouldDeferSync() {
+		return true;
 	}
 
 	@Override
