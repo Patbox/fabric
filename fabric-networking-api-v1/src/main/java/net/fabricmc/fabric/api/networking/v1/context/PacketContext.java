@@ -19,11 +19,15 @@ package net.fabricmc.fabric.api.networking.v1.context;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.network.Connection;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerHandshakePacketListenerImpl;
 
 import net.fabricmc.fabric.impl.networking.context.PacketContextImpl;
 
@@ -34,13 +38,29 @@ import net.fabricmc.fabric.impl.networking.context.PacketContextImpl;
 @ApiStatus.NonExtendable
 public interface PacketContext {
 	/**
+	 * The server instance that handles this connection. Only present on clientbound connections.
+	 * This value is set once the {@link ServerHandshakePacketListenerImpl} is constructed.
+	 */
+	ReadKey<MinecraftServer> SERVER_INSTANCE = PacketContextImpl.SERVER_INSTANCE;
+	/**
+	 * The Game Profile attached to this connection.
+	 * This value is set on both server and client, once the login process succeeds.
+	 */
+	ReadKey<GameProfile> GAME_PROFILE = PacketContextImpl.GAME_PROFILE;
+	/**
+	 * The connection that owns this packet context.
+	 * This value is always present.
+	 */
+	ReadKey<@NonNull Connection> CONNECTION = PacketContextImpl.CONNECTION;
+
+	/**
 	 * Returns currently stored value.
 	 *
 	 * @param key unique key under which value is stored
 	 * @return stored value or null if not set.
 	 */
 	@Nullable
-	<T> T get(Key<T> key);
+	<T> T get(ReadKey<T> key);
 
 	/**
 	 * Returns currently stored value.
@@ -50,8 +70,8 @@ public interface PacketContext {
 	 * @return stored value
 	 * @throws NullPointerException if not set
 	 */
-	default <T> T orElseThrow(Key<T> key) {
-		return Objects.requireNonNull(get(key), () -> "Packet Context is missing the '" + key.key + "' value!");
+	default <T> T orElseThrow(ReadKey<T> key) {
+		return Objects.requireNonNull(get(key), () -> "Packet Context is missing the '" + ((PacketContextImpl.KeyImpl<T>) key).key() + "' value!");
 	}
 
 	/**
@@ -62,7 +82,7 @@ public interface PacketContext {
 	 * @param defaultValue value to return if no value is set
 	 * @return stored value if present, defaultValue otherwise
 	 */
-	default <T> T orElse(Key<T> key, T defaultValue) {
+	default <T> T orElse(ReadKey<T> key, T defaultValue) {
 		return Objects.requireNonNullElse(get(key), defaultValue);
 	}
 
@@ -72,14 +92,7 @@ public interface PacketContext {
 	 * @param key unique key under which value is stored
 	 * @param value value to store
 	 */
-	<T> void set(Key<T> key, T value);
-
-	/**
-	 * Returns a connection that owns this packet context.
-	 *
-	 * @return the connection owning this context
-	 */
-	Connection getOwner();
+	<T> void set(Key<T> key, @Nullable T value);
 
 	/**
 	 * Returns currently set packet context.
@@ -88,7 +101,11 @@ public interface PacketContext {
 	 */
 	@Nullable
 	static PacketContext get() {
-		return PacketContextImpl.VALUE.get();
+		if (PacketContextImpl.VALUE.isBound()) {
+			return PacketContextImpl.VALUE.get();
+		}
+
+		return null;
 	}
 
 	/**
@@ -129,19 +146,12 @@ public interface PacketContext {
 	 * @return a unique key
 	 */
 	static <T> Key<T> key(Identifier key) {
-		return new Key<>(key);
+		return new PacketContextImpl.KeyImpl<>(key);
 	}
 
-	final class Key<T> {
-		private final Identifier key;
+	@ApiStatus.NonExtendable
+	interface ReadKey<T> { }
 
-		private Key(Identifier key) {
-			this.key = key;
-		}
-
-		@Override
-		public String toString() {
-			return "PacketContext.Key[" + this.key + "]";
-		}
-	}
+	@ApiStatus.NonExtendable
+	interface Key<T> extends ReadKey<T> { }
 }

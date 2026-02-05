@@ -34,7 +34,7 @@ import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.fabricmc.fabric.test.networking.NetworkingTestmods;
 
 public class PacketContextTest implements ModInitializer {
-	public static final Logger LOGGER = LoggerFactory.getLogger(PacketContextTest.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(PacketContextTest.class);
 
 	public static final PacketContext.Key<String> STRING_KEY = PacketContext.key(Identifier.fromNamespaceAndPath("fabric", "string_key"));
 	public static final String STRING_VALUE = "Hello World!";

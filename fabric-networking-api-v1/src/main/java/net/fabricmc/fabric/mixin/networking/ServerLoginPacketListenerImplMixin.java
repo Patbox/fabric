@@ -37,6 +37,7 @@ import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContextProvider;
 import net.fabricmc.fabric.impl.networking.PacketCallbackListener;
 import net.fabricmc.fabric.impl.networking.PacketListenerExtensions;
+import net.fabricmc.fabric.impl.networking.context.PacketContextImpl;
 import net.fabricmc.fabric.impl.networking.payload.FriendlyByteBufLoginQueryResponse;
 import net.fabricmc.fabric.impl.networking.server.ServerLoginNetworkAddon;
 
@@ -81,6 +82,11 @@ abstract class ServerLoginPacketListenerImplMixin implements PacketListenerExten
 	@Redirect(method = "verifyLoginAndFinishConnectionSetup", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getCompressionThreshold()I", ordinal = 0))
 	private int removeLateCompressionPacketSending(MinecraftServer server) {
 		return -1;
+	}
+
+	@Inject(method = "finishLoginAndWaitForClient", at = @At("HEAD"))
+	private void storeGameProfileContext(GameProfile gameProfile, CallbackInfo ci) {
+		this.getPacketContext().set(PacketContextImpl.GAME_PROFILE, gameProfile);
 	}
 
 	@Override

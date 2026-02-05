@@ -21,28 +21,35 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.mojang.authlib.GameProfile;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.network.Connection;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 
 public final class PacketContextImpl implements PacketContext {
 	public static final ScopedValue<PacketContext> VALUE = ScopedValue.newInstance();
+	public static final Key<MinecraftServer> SERVER_INSTANCE = fabricKey("server_instance");
+	public static final Key<GameProfile> GAME_PROFILE = fabricKey("game_profile");
+	public static final Key<@NonNull Connection> CONNECTION = fabricKey("connection");
+
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Connection connection;
 	private final Map<Key<?>, Object> contextMap = new IdentityHashMap<>();
 
 	public PacketContextImpl(Connection connection) {
-		this.connection = connection;
+		this.contextMap.put(CONNECTION, connection);
 	}
 
 	@Override
-	public @Nullable <T> T get(Key<T> key) {
+	public @Nullable <T> T get(ReadKey<T> key) {
 		this.lock.readLock().lock();
 
 		try {
-			//noinspection unchecked
+			//noinspection unchecked,SuspiciousMethodCalls
 			return (T) this.contextMap.get(key);
 		} finally {
 			this.lock.readLock().unlock();
@@ -62,8 +69,24 @@ public final class PacketContextImpl implements PacketContext {
 		this.lock.writeLock().unlock();
 	}
 
-	@Override
-	public Connection getOwner() {
-		return this.connection;
+	private static <T> Key<T> fabricKey(String path) {
+		return PacketContext.key(Identifier.fromNamespaceAndPath("fabric", path));
+	}
+
+	public static final class KeyImpl<T> implements PacketContext.Key<T> {
+		private final Identifier key;
+
+		public KeyImpl(Identifier key) {
+			this.key = key;
+		}
+
+		@Override
+		public String toString() {
+			return "PacketContext.Key[" + this.key + "]";
+		}
+
+		public Identifier key() {
+			return this.key;
+		}
 	}
 }
