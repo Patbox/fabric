@@ -20,11 +20,13 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.serialization.Codec;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.network.Connection;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerHandshakePacketListenerImpl;
@@ -34,6 +36,27 @@ import net.fabricmc.fabric.impl.networking.context.PacketContextImpl;
 /**
  * This class allow to easily pass context between multiple packet listeners and packet serialization.
  * All connections get their own unique context object.
+ *
+ * <p>When using outside of packet serialization, you can retrieve instance of PacketContext
+ * by calling the {@link PacketContextProvider#getPacketContext()} method on vanilla packet listeners.
+ *
+ * <p>When inside of packet serialization, whatever it's within {@link StreamCodec} or networking-used {@link Codec}
+ * you can retrievie the instance with {@link PacketContext#get()} or {@link PacketContext#orElseThrow()}.
+ *
+ * <p>Example usage:
+ * <pre>{@code
+ * PacketContext.Key<TriState> TATER_MESSAGE = PacketContext.key(Identifier.fromNamespaceAndPath("mod", "tater_message"));
+ *
+ * ServerConfigurationNetworking.registerGlobalReceiver(ServerboundModConfig.TYPE, (packet, context) -> {
+ *      context.packetListener().getPacketContext().set(TATER_MESSAGE, packet.taterMessage());
+ * });
+ *
+ * ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+ *      if (handler.getPacketContext().orElse(TATER_MESSAGE, TriState.DEFAULT).orElse(ModConfig.taterMessage)) {
+ *            handler.getPlayer().sendSystemMessage(Component.literal("I am a Tiny Potato and I believe in you!"), false);
+ *      }
+ * });
+ * }</pre>
  */
 @ApiStatus.NonExtendable
 public interface PacketContext {
@@ -90,7 +113,7 @@ public interface PacketContext {
 	 * Stores the value.
 	 *
 	 * @param key unique key under which value is stored
-	 * @param value value to store
+	 * @param value value to store, if null it will remove it instead
 	 */
 	<T> void set(Key<T> key, @Nullable T value);
 
