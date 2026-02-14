@@ -44,7 +44,7 @@ import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 public class CustomIngredientSync implements ModInitializer {
 	public static final Identifier PACKET_ID = Identifier.fromNamespaceAndPath("fabric", "custom_ingredient_sync");
 	public static final int PROTOCOL_VERSION_1 = 1;
-	public static final PacketContext.Key<Set<Identifier>> SUPPORTED_CUSTOM_INGREDIENTS = PacketContext.key(Identifier.fromNamespaceAndPath("fabric", "supported_custom_ingredient"));
+	public static final PacketContext.Key<Set<Identifier>> SUPPORTED_CUSTOM_INGREDIENTS = PacketContext.key(Identifier.fromNamespaceAndPath("fabric", "supported_custom_ingredients"));
 
 	public static ServerboundCustomIngredientPayload createResponsePayload(int serverProtocolVersion) {
 		if (serverProtocolVersion < PROTOCOL_VERSION_1) {
