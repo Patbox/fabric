@@ -27,33 +27,94 @@ import net.minecraft.world.entity.Entity;
 
 /**
  * Utility interface allowing quick access for permission checking methods.
- * Implemented by default on {@link Entity}, {@link CommandSourceStack} and {@link PermissionContext}
+ * Implemented by default on {@link Entity}, {@link CommandSourceStack} and {@link PermissionContext}.
+ * Other mods are allowed to implement this on their own classes as well.
  *
- * <p>See {@link PermissionContext}
+ * <p>See {@link PermissionContext} for creation and modification of permission contexts.
+ *
+ * <p>Example usage:
+ * <pre>{@code
+ * Identifier claimBypassPermission = Identifier.fromNamespaceAndPath("potatoclaims", "bypass_protection");
+ * ServerPlayer player = ...;
+ *
+ * AttackEntityCallback.EVENT.register((playerEntity, _, _, entity, _) -> {
+ *     if (ModChecks.isProtected(entity) && !player.checkPermission(claimBypassPermission, PermissionLevel.GAMEMASTERS)) {
+ *         return InteractionResult.FAIL;
+ *     }
+ *     return InteractionResult.PASS;
+ * });
+ * }</pre>
  */
 public interface PermissionContextOwner {
+	/**
+	 * Provides the permission context.
+	 * In case of entities, this context will be dynamic.
+	 *
+	 * @return PermissionContext attached to this object
+	 */
 	default PermissionContext getPermissionContext() {
 		throw new IllegalStateException("Implemented via Mixin");
 	}
 
+	/**
+	 * Simple permission check. Should be used to check if something is allowed.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @return TriState returning value of the permission (DEFAULT if not changed)
+	 */
 	default TriState checkPermission(Identifier permission) {
-		return checkPermission(permission, PermissionCodec.TRI_STATE, TriState.DEFAULT);
+		return checkPermission(permission, PermissionCodecs.TRI_STATE, TriState.DEFAULT);
 	}
 
+	/**
+	 * Simple permission check. Should be used to check if something is allowed.
+	 * Will default to {@param defaultValue} if permission value not is not provided.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @param defaultValue fallback value
+	 * @return a boolean representing state of the permission, returns defaultValue if not modified by other mods
+	 */
 	default boolean checkPermission(Identifier permission, boolean defaultValue) {
-		return checkPermission(permission, PermissionCodec.TRI_STATE, TriState.DEFAULT).toBoolean(defaultValue);
+		return checkPermission(permission, PermissionCodecs.TRI_STATE, TriState.DEFAULT).toBoolean(defaultValue);
 	}
 
+	/**
+	 * Simple permission check. Should be used to check if something is allowed.
+	 * Will check for vanilla permission level, if permission value not is not provided.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @param defaultPermissionLevel a fallback permission level to check against
+	 * @return a boolean representing state of the permission
+	 */
 	default boolean checkPermission(Identifier permission, PermissionLevel defaultPermissionLevel) {
 		PermissionLevel permissionLevel = this.getPermissionContext().permissionLevel();
-		return checkPermission(permission, PermissionCodec.TRI_STATE, TriState.DEFAULT).toBoolean(permissionLevel.isEqualOrHigherThan(defaultPermissionLevel));
+		return checkPermission(permission, PermissionCodecs.TRI_STATE, TriState.DEFAULT).toBoolean(permissionLevel.isEqualOrHigherThan(defaultPermissionLevel));
 	}
 
+	/**
+	 * A dynamic, typed permission check. Should be used to check for more complex permission values,
+	 * like allowed amount and alike.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @param type codec representing the type of the permission
+	 * @param <T> type of the permission
+	 * @return value of the permission or null if not provided
+	 */
 	@Nullable
 	default <T> T checkPermission(Identifier permission, Codec<T> type) {
 		return checkPermission(permission, type, null);
 	}
 
+	/**
+	 * A dynamic, typed permission check. Should be used to check for more complex permission values,
+	 * like allowed amount and alike.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @param type codec representing the type of the permission
+	 * @param defaultValue fallback value, if not provided
+	 * @param <T> type of the permission
+	 * @return  value of the permission or {@param defaultValue} if not provided
+	 */
 	default <T> T checkPermission(Identifier permission, Codec<T> type, T defaultValue) {
 		PermissionContext ctx = this.getPermissionContext();
 		T value = PermissionCheckCallback.EVENT.invoker().onPermissionCheck(ctx, permission, type);

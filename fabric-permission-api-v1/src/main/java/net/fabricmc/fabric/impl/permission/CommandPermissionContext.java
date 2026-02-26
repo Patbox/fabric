@@ -24,33 +24,14 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import net.minecraft.server.permissions.PermissionLevel;
-import net.minecraft.util.Util;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 
 public class CommandPermissionContext implements PermissionContext {
 	private final CommandSourceStack source;
-	private final Type type;
-	private final UUID uuid;
 
 	public CommandPermissionContext(CommandSourceStack source) {
 		this.source = source;
-		this.type = switch (source.getEntity()) {
-		case Player player -> Type.PLAYER;
-		case Entity entity -> Type.ENTITY;
-		case null -> Type.SYSTEM;
-		};
-		this.uuid = switch (source.getEntity()) {
-		case Entity entity -> entity.getUUID();
-		case null -> Util.NIL_UUID;
-		};
-	}
-
-	@Override
-	public UUID uuid() {
-		return this.uuid;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -78,6 +59,16 @@ public class CommandPermissionContext implements PermissionContext {
 
 	@Override
 	public Type type() {
-		return type;
+		return ((Extension) this.source).fabric_getType();
+	}
+
+	@Override
+	public UUID uuid() {
+		return ((Extension) this.source).fabric_getUuid();
+	}
+
+	public interface Extension {
+		Type fabric_getType();
+		UUID fabric_getUuid();
 	}
 }

@@ -27,7 +27,7 @@ import net.fabricmc.fabric.api.event.EventFactory;
 /**
  * The event used for getting the permission result for given context.
  *
- * <p>To check permissions, you should use dedicated methods from {@link PermissionContextOwner} interface
+ * <p>To check for permissions, you should use dedicated methods from {@link PermissionContextOwner} interface
  * and it's implementations over invoking this event.
  */
 public interface PermissionCheckCallback {

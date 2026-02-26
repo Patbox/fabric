@@ -18,16 +18,29 @@ package net.fabricmc.fabric.api.permission.v1;
 
 import java.util.function.Predicate;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.permissions.PermissionLevel;
 
 /**
- * Utility methods for creating permission predicates, mainly to be used for commands.
+ * Utility methods for creating permission predicates, mainly to be used for commands,
+ * but will work in any context that needs a predicate.
+ *
+ * <p>Example usage:
+ * <pre>{@code
+ * CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> {
+ *     dispatcher.register(literal("modcommand")
+ *         .requires(PermissionPredicates.require(Identifier.fromNamespaceAndPath("mymod", "command/main"), true))
+ *         .executes(ModCommands::executeMainCommand)
+ *         .then(literal("admin")
+ *             .requires(PermissionPredicates.require(Identifier.fromNamespaceAndPath("mymod", "command/admin"), PermissionLevel.ADMINS))
+ *             .executes(ModCommands::executeMainCommand)
+ *         )
+ * });
+ * }</pre>
  */
-@ApiStatus.NonExtendable
-public interface PermissionPredicates {
+public final class PermissionPredicates {
+	private PermissionPredicates() { }
+
 	/**
 	 * Predicate checking if context has a permission, defaults to false.
 	 *
@@ -35,7 +48,7 @@ public interface PermissionPredicates {
 	 * @param <T> type of the owner
 	 * @return predicate checking context's permission
 	 */
-	static <T extends PermissionContextOwner> Predicate<T> require(Identifier permission) {
+	public static <T extends PermissionContextOwner> Predicate<T> require(Identifier permission) {
 		return x -> x.checkPermission(permission).toBoolean(false);
 	}
 
@@ -47,7 +60,7 @@ public interface PermissionPredicates {
 	 * @param <T> type of the owner
 	 * @return predicate checking context's permission
 	 */
-	static <T extends PermissionContextOwner> Predicate<T> require(Identifier permission, boolean defaultValue) {
+	public static <T extends PermissionContextOwner> Predicate<T> require(Identifier permission, boolean defaultValue) {
 		return x -> x.checkPermission(permission, defaultValue);
 	}
 
@@ -59,7 +72,7 @@ public interface PermissionPredicates {
 	 * @param <T> type of the owner
 	 * @return predicate checking context's permission
 	 */
-	static <T extends PermissionContextOwner> Predicate<T> require(Identifier permission, PermissionLevel permissionLevel) {
+	public static <T extends PermissionContextOwner> Predicate<T> require(Identifier permission, PermissionLevel permissionLevel) {
 		return x -> x.checkPermission(permission, permissionLevel);
 	}
 }

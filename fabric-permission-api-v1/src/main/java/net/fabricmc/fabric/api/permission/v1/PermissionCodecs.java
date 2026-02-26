@@ -24,19 +24,21 @@ import net.minecraft.util.TriState;
  * Set of <i>suggested</i> codecs used for permission checks.
  * While custom codecs are also allowed, using one below (or other minimal codecs) is encouraged.
  */
-public interface PermissionCodec {
+public final class PermissionCodecs {
+	private PermissionCodecs() { }
+
 	/**
 	 * TriState codec, can be used for simple boolean / ability checks.
 	 */
-	Codec<TriState> TRI_STATE = TriState.CODEC;
+	public static Codec<TriState> TRI_STATE = TriState.CODEC;
 
 	/**
 	 * Integer codec, can be used for limit checks.
 	 */
-	Codec<Integer> INT = Codec.INT;
+	public static Codec<Integer> INT = Codec.INT;
 
 	/**
 	 * String codec, can be used for display.
 	 */
-	Codec<String> STRING = Codec.STRING;
+	public static Codec<String> STRING = Codec.STRING;
 }

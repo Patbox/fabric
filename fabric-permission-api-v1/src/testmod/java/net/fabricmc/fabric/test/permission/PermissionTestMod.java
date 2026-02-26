@@ -43,7 +43,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.permission.v1.PermissionCheckCallback;
-import net.fabricmc.fabric.api.permission.v1.PermissionCodec;
+import net.fabricmc.fabric.api.permission.v1.PermissionCodecs;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 import net.fabricmc.fabric.api.permission.v1.PermissionPredicates;
 import net.fabricmc.fabric.test.permission.example.PermissionMap;
@@ -117,7 +117,7 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 		BlockPos blockPos = context.get(PermissionContext.BLOCK_POSITION);
 		Entity entity = context.get(PermissionContext.ENTITY);
 
-		if (permissionType == PermissionCodec.TRI_STATE) {
+		if (permissionType == PermissionCodecs.TRI_STATE) {
 			if (permission.equals(ON_STONE) && level != null && blockPos != null) {
 				return (T) TriState.from(level.getBlockState(blockPos.below()).is(Blocks.STONE));
 			}
