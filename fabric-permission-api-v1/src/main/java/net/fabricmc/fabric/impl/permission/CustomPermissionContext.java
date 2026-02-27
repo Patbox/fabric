@@ -16,8 +16,10 @@
 
 package net.fabricmc.fabric.impl.permission;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -40,5 +42,10 @@ public record CustomPermissionContext(UUID uuid, Type type, PermissionLevel perm
 	public @Nullable <T> T get(Key<T> key) {
 		//noinspection unchecked
 		return (T) this.overrides.get(key);
+	}
+
+	@Override
+	public Set<Key<?>> keys() {
+		return Collections.unmodifiableSet(this.overrides.keySet());
 	}
 }

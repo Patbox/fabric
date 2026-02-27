@@ -18,8 +18,10 @@ package net.fabricmc.fabric.impl.permission;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.collect.Sets;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.server.permissions.PermissionLevel;
@@ -60,5 +62,10 @@ public record OverriddenPermissionContext(PermissionContext context, Map<Key<?>,
 	@Override
 	public PermissionLevel permissionLevel() {
 		return this.context.permissionLevel();
+	}
+
+	@Override
+	public Set<Key<?>> keys() {
+		return Sets.union(this.overrides.keySet(), this.context.keys());
 	}
 }

@@ -26,6 +26,9 @@ import net.fabricmc.fabric.api.event.EventFactory;
 
 /**
  * The event used for getting the permission result for given context.
+ * Implemented callbacks for this event should be thread safe, as permission methods can be called from another thread.
+ * Additionally, the execution should be reasonably fast for non-player and online player cases.
+ * Offline player checks are allowed to be slower.
  *
  * <p>To check for permissions, you should use dedicated methods from {@link PermissionContextOwner} interface
  * and it's implementations over invoking this event.

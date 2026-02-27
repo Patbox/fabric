@@ -17,14 +17,18 @@
 package net.fabricmc.fabric.api.permission.v1;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DynamicOps;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.server.players.NameAndId;
@@ -45,29 +49,40 @@ import net.fabricmc.fabric.impl.permission.PermissionContextKey;
  */
 public interface PermissionContext extends PermissionContextOwner {
 	/**
+	 * Represents name attached to the permission context.
+	 * It doesn't need to be unique.
+	 */
+	Key<String> NAME = PermissionContextKey.NAME;
+	/**
 	 * Represents position current position in which permission check is applied.
 	 */
-	Key<Vec3> POSITION = PermissionContextKey.fabricKey("position");
+	Key<Vec3> POSITION = PermissionContextKey.POSITION;
 	/**
 	 * Represents position current block position in which permission check is applied.
 	 */
-	Key<BlockPos> BLOCK_POSITION = PermissionContextKey.fabricKey("block_position");
+	Key<BlockPos> BLOCK_POSITION = PermissionContextKey.BLOCK_POSITION;
 	/**
 	 * Represents entity for which permission check is applied.
 	 */
-	Key<Entity> ENTITY = PermissionContextKey.fabricKey("entity");
+	Key<Entity> ENTITY = PermissionContextKey.ENTITY;
 	/**
 	 * Represents command source stack for which permission check is applied.
 	 */
-	Key<CommandSourceStack> COMMAND_SOURCE_STACK = PermissionContextKey.fabricKey("command_source_stack");
+	Key<CommandSourceStack> COMMAND_SOURCE_STACK = PermissionContextKey.COMMAND_SOURCE_STACK;
 
 	/**
 	 * Represents level for which permission check is applied.
 	 */
-	Key<Level> LEVEL = PermissionContextKey.fabricKey("level");
+	Key<Level> LEVEL = PermissionContextKey.LEVEL;
+
+	/**
+	 * Represents level key for which permission check is applied.
+	 */
+	Key<ResourceKey<Level>> LEVEL_KEY = PermissionContextKey.LEVEL_KEY;
 
 	/**
 	 * Creates a custom context, without any optional values.
+	 *
 	 * @param uuid the uuid connected to this context
 	 * @param type type of the context
 	 * @param permissionLevel base permission level
@@ -83,6 +98,10 @@ public interface PermissionContext extends PermissionContextOwner {
 
 	/**
 	 * Creates a context of offline player.
+	 * Do note that depending on the backing implementation, the check for offline players
+	 * might be noticeably slower, so using async check methods or checking them on non-main threads
+	 * is encouraged.
+	 *
 	 * @param uuid player's uuid
 	 * @param server the currently running server instance
 	 * @return mutable permission context
@@ -96,7 +115,28 @@ public interface PermissionContext extends PermissionContextOwner {
 	}
 
 	/**
+	 * Creates a context of offline player.
+	 * Do note that depending on the backing implementation, the check for offline players
+	 * might be noticeably slower, so using async check methods or checking them on non-main threads
+	 * is encouraged.
+	 *
+	 * @param nameAndId player's name and uuid
+	 * @param server the currently running server instance
+	 * @return mutable permission context
+	 */
+	static MutablePermissionContext offlinePlayer(NameAndId nameAndId, MinecraftServer server) {
+		Objects.requireNonNull(nameAndId, "nameAndId cannot be null");
+		Objects.requireNonNull(server, "server cannot be null");
+
+		PermissionLevel permissionLevel = server.getProfilePermissions(nameAndId).level();
+		var ctx = new CustomPermissionContext(nameAndId.id(), Type.PLAYER, permissionLevel);
+		ctx.set(PermissionContext.NAME, nameAndId.name());
+		return ctx;
+	}
+
+	/**
 	 * Creates a unique key, indented for attaching additional context data.
+	 * This key/value can't be serialized.
 	 *
 	 * @param identifier unique identifier
 	 * @param <T> type of attached
@@ -105,7 +145,23 @@ public interface PermissionContext extends PermissionContextOwner {
 	static <T> Key<T> key(Identifier identifier) {
 		Objects.requireNonNull(identifier, "identifier cannot be null");
 
-		return new PermissionContextKey<>(identifier);
+		return new PermissionContextKey<>(identifier, null);
+	}
+
+	/**
+	 * Creates a unique, serializable key, indented for attaching additional context data.
+	 * This key/value is serializable.
+	 *
+	 * @param identifier unique identifier
+	 * @param  codec representing the type
+	 * @param <T> type of attached
+	 * @return unique key
+	 */
+	static <T> Key<T> key(Identifier identifier, Codec<T> codec) {
+		Objects.requireNonNull(identifier, "identifier cannot be null");
+		Objects.requireNonNull(codec, "codec cannot be null");
+
+		return new PermissionContextKey<>(identifier, codec);
 	}
 
 	/**
@@ -158,6 +214,13 @@ public interface PermissionContext extends PermissionContextOwner {
 	 */
 	PermissionLevel permissionLevel();
 
+	/**
+	 * Provides a set of defined permission context keys.
+	 *
+	 * @return unmodifiable set of permission keys.
+	 */
+	Set<Key<?>> keys();
+
 	@Override
 	default PermissionContext getPermissionContext() {
 		return this;
@@ -173,8 +236,46 @@ public interface PermissionContext extends PermissionContextOwner {
 		OTHER
 	}
 
+	/**
+	 * Key used to represent additional permission context.
+	 * The context itself might be serializable, hovewer it's not a strict requirement.
+	 *
+	 * @param <T> type of the context
+	 */
 	@ApiStatus.NonExtendable
 	interface Key<T> {
+		/**
+		 * Identifier representing this context.
+		 *
+		 * @return id of this key
+		 */
 		Identifier id();
+
+		/**
+		 * This method defines if this key is serializable or not.
+		 *
+		 * @return true if it's serializable, false otherwise.
+		 */
+		boolean isSerializable();
+
+		/**
+		 * Encodes provided value.
+		 *
+		 * @param ops ops represeting the encoded type
+		 * @param value value to encode
+		 * @param <Y> type value gets encoded into
+		 * @return encoded value
+		 */
+		<Y> Y encodeValue(DynamicOps<Y> ops, T value);
+
+		/**
+		 * Decodes provided value.
+		 *
+		 * @param ops ops represeting the encoded type
+		 * @param value value to decode
+		 * @param <Y> type value gets decoded from
+		 * @return decoded value
+		 */
+		<Y> T decodeValue(DynamicOps<Y> ops, Y value);
 	}
 }

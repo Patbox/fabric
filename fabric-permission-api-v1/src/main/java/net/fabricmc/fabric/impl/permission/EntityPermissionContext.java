@@ -16,6 +16,7 @@
 
 package net.fabricmc.fabric.impl.permission;
 
+import java.util.Set;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -31,10 +32,12 @@ import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 public class EntityPermissionContext implements PermissionContext {
 	private final Entity entity;
 	private final Type type;
+	private final Set<Key<?>> keys;
 
 	public EntityPermissionContext(Entity entity) {
 		this.entity = entity;
 		this.type = entity instanceof Player ? Type.PLAYER : Type.ENTITY;
+		this.keys = this.entity instanceof ServerPlayer ? PermissionContextKey.DEFAULT_COMMAND_ENTITY_KEYS : PermissionContextKey.DEFAULT_ENTITY_KEYS;
 	}
 
 	@Override
@@ -42,15 +45,19 @@ public class EntityPermissionContext implements PermissionContext {
 		return this.entity.getUUID();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "resource"})
 	@Override
 	public @Nullable <T> T get(Key<T> key) {
-		if (key == PermissionContext.POSITION) {
+		if (key == PermissionContext.NAME) {
+			return (T) this.entity.getPlainTextName();
+		} else if (key == PermissionContext.POSITION) {
 			return (T) this.entity.position();
 		} else if (key == PermissionContext.BLOCK_POSITION) {
 			return (T) this.entity.blockPosition();
 		} else if (key == PermissionContext.LEVEL) {
 			return (T) this.entity.level();
+		} else if (key == PermissionContext.LEVEL_KEY) {
+			return (T) this.entity.level().dimension();
 		} else if (key == PermissionContext.ENTITY) {
 			return (T) this.entity;
 		} else if (key == PermissionContext.COMMAND_SOURCE_STACK) {
@@ -65,6 +72,11 @@ public class EntityPermissionContext implements PermissionContext {
 		return entity instanceof Player player && player.permissions() instanceof LevelBasedPermissionSet levelBasedPermissionSet
 				? levelBasedPermissionSet.level()
 				: PermissionLevel.ALL;
+	}
+
+	@Override
+	public Set<Key<?>> keys() {
+		return this.keys;
 	}
 
 	@Override

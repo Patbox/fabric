@@ -16,6 +16,8 @@
 
 package net.fabricmc.fabric.api.permission.v1;
 
+import java.util.concurrent.CompletableFuture;
+
 import com.mojang.serialization.Codec;
 import org.jspecify.annotations.Nullable;
 
@@ -119,5 +121,69 @@ public interface PermissionContextOwner {
 		PermissionContext ctx = this.getPermissionContext();
 		T value = PermissionCheckCallback.EVENT.invoker().onPermissionCheck(ctx, permission, type);
 		return value != null ? value : defaultValue;
+	}
+
+	/**
+	 * Asynchronous simple permission check. Should be used to check if something is allowed.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @return TriState returning value of the permission (DEFAULT if not changed)
+	 */
+	default CompletableFuture<TriState> checkPermissionAsync(Identifier permission) {
+		return checkPermissionAsync(permission, PermissionCodecs.TRI_STATE, TriState.DEFAULT);
+	}
+
+	/**
+	 * Asynchronous simple permission check. Should be used to check if something is allowed.
+	 * Will default to {@param defaultValue} if permission value not is not provided.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @param defaultValue fallback value
+	 * @return a boolean representing state of the permission, returns defaultValue if not modified by other mods
+	 */
+	default CompletableFuture<Boolean> checkPermissionAsync(Identifier permission, boolean defaultValue) {
+		return CompletableFuture.supplyAsync(() -> this.checkPermission(permission, PermissionCodecs.TRI_STATE, TriState.DEFAULT).toBoolean(defaultValue));
+	}
+
+	/**
+	 * Asynchronous simple permission check. Should be used to check if something is allowed.
+	 * Will check for vanilla permission level, if permission value not is not provided.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @param defaultPermissionLevel a fallback permission level to check against
+	 * @return a boolean representing state of the permission
+	 */
+	default CompletableFuture<Boolean> checkPermissionAsync(Identifier permission, PermissionLevel defaultPermissionLevel) {
+		PermissionLevel permissionLevel = this.getPermissionContext().permissionLevel();
+		return CompletableFuture.supplyAsync(() -> this.checkPermission(permission, PermissionCodecs.TRI_STATE, TriState.DEFAULT)
+				.toBoolean(permissionLevel.isEqualOrHigherThan(defaultPermissionLevel)));
+	}
+
+	/**
+	 * Asynchronous, dynamic and typed permission check. Should be used to check for more complex permission values,
+	 * like allowed amount and alike.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @param type codec representing the type of the permission
+	 * @param <T> type of the permission
+	 * @return value of the permission or null if not provided
+	 */
+	@Nullable
+	default <T> CompletableFuture<T> checkPermissionAsync(Identifier permission, Codec<T> type) {
+		return checkPermissionAsync(permission, type, null);
+	}
+
+	/**
+	 * Asynchronous, dynamic and typed permission check. Should be used to check for more complex permission values,
+	 * like allowed amount and alike.
+	 *
+	 * @param permission a permission identifier to check against
+	 * @param type codec representing the type of the permission
+	 * @param defaultValue fallback value, if not provided
+	 * @param <T> type of the permission
+	 * @return value of the permission or {@param defaultValue} if not provided
+	 */
+	default <T> CompletableFuture<T> checkPermissionAsync(Identifier permission, Codec<T> type, T defaultValue) {
+		return CompletableFuture.supplyAsync(() -> this.checkPermission(permission, type, defaultValue));
 	}
 }

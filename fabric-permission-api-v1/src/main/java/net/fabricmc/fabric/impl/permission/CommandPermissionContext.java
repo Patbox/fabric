@@ -16,6 +16,7 @@
 
 package net.fabricmc.fabric.impl.permission;
 
+import java.util.Set;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -37,12 +38,16 @@ public class CommandPermissionContext implements PermissionContext {
 	@SuppressWarnings("unchecked")
 	@Override
 	public @Nullable <T> T get(Key<T> key) {
-		if (key == PermissionContext.POSITION) {
+		if (key == PermissionContext.NAME) {
+			return (T) this.source.getTextName();
+		} else if (key == PermissionContext.POSITION) {
 			return (T) this.source.getPosition();
 		} else if (key == PermissionContext.BLOCK_POSITION) {
 			return (T) BlockPos.containing(this.source.getPosition());
 		} else if (key == PermissionContext.LEVEL) {
 			return (T) this.source.getLevel();
+		} else if (key == PermissionContext.LEVEL_KEY) {
+			return (T) this.source.getLevel().dimension();
 		} else if (key == PermissionContext.ENTITY) {
 			return (T) this.source.getEntity();
 		} else if (key == PermissionContext.COMMAND_SOURCE_STACK) {
@@ -55,6 +60,11 @@ public class CommandPermissionContext implements PermissionContext {
 	@Override
 	public PermissionLevel permissionLevel() {
 		return this.source.permissions() instanceof LevelBasedPermissionSet levelBasedPermissionSet ? levelBasedPermissionSet.level() : PermissionLevel.ALL;
+	}
+
+	@Override
+	public Set<Key<?>> keys() {
+		return this.source.getEntity() != null ? PermissionContextKey.DEFAULT_COMMAND_ENTITY_KEYS : PermissionContextKey.DEFAULT_COMMAND_KEYS;
 	}
 
 	@Override
