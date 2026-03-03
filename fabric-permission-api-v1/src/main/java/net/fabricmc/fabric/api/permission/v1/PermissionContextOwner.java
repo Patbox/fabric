@@ -27,6 +27,8 @@ import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.util.TriState;
 import net.minecraft.world.entity.Entity;
 
+import net.fabricmc.fabric.impl.permission.PermissionCheckCallbackImpl;
+
 /**
  * Utility interface allowing quick access for permission checking methods.
  * Implemented by default on {@link Entity}, {@link CommandSourceStack} and {@link PermissionContext}.
@@ -118,8 +120,8 @@ public interface PermissionContextOwner {
 	 * @return  value of the permission or {@param defaultValue} if not provided
 	 */
 	default <T> T checkPermission(Identifier permission, Codec<T> type, T defaultValue) {
-		PermissionContext ctx = this.getPermissionContext();
-		T value = PermissionCheckCallback.EVENT.invoker().onPermissionCheck(ctx, permission, type);
+		T value = PermissionCheckCallbackImpl.MAIN_EVENT.invoker().onPermissionCheck(this.getPermissionContext(), permission, type);
+
 		return value != null ? value : defaultValue;
 	}
 
@@ -142,7 +144,7 @@ public interface PermissionContextOwner {
 	 * @return a boolean representing state of the permission, returns defaultValue if not modified by other mods
 	 */
 	default CompletableFuture<Boolean> checkPermissionAsync(Identifier permission, boolean defaultValue) {
-		return CompletableFuture.supplyAsync(() -> this.checkPermission(permission, PermissionCodecs.TRI_STATE, TriState.DEFAULT).toBoolean(defaultValue));
+		return this.checkPermissionAsync(permission).thenApply(x -> x.toBoolean(defaultValue));
 	}
 
 	/**
@@ -154,9 +156,8 @@ public interface PermissionContextOwner {
 	 * @return a boolean representing state of the permission
 	 */
 	default CompletableFuture<Boolean> checkPermissionAsync(Identifier permission, PermissionLevel defaultPermissionLevel) {
-		PermissionLevel permissionLevel = this.getPermissionContext().permissionLevel();
-		return CompletableFuture.supplyAsync(() -> this.checkPermission(permission, PermissionCodecs.TRI_STATE, TriState.DEFAULT)
-				.toBoolean(permissionLevel.isEqualOrHigherThan(defaultPermissionLevel)));
+		boolean permissionLevelValue = this.getPermissionContext().permissionLevel().isEqualOrHigherThan(defaultPermissionLevel);
+		return this.checkPermissionAsync(permission).thenApply(x -> x.toBoolean(permissionLevelValue));
 	}
 
 	/**
@@ -168,8 +169,7 @@ public interface PermissionContextOwner {
 	 * @param <T> type of the permission
 	 * @return value of the permission or null if not provided
 	 */
-	@Nullable
-	default <T> CompletableFuture<T> checkPermissionAsync(Identifier permission, Codec<T> type) {
+	default <T> CompletableFuture<@Nullable T> checkPermissionAsync(Identifier permission, Codec<T> type) {
 		return checkPermissionAsync(permission, type, null);
 	}
 
@@ -184,6 +184,8 @@ public interface PermissionContextOwner {
 	 * @return value of the permission or {@param defaultValue} if not provided
 	 */
 	default <T> CompletableFuture<T> checkPermissionAsync(Identifier permission, Codec<T> type, T defaultValue) {
-		return CompletableFuture.supplyAsync(() -> this.checkPermission(permission, type, defaultValue));
+		CompletableFuture<T> value = PermissionCheckCallbackImpl.ASYNC_EVENT.invoker().onAsyncPermissionCheck(this.getPermissionContext(), permission, type);
+
+		return value != null ? value.thenApply(val -> val != null ? val : defaultValue) : CompletableFuture.completedFuture(defaultValue);
 	}
 }

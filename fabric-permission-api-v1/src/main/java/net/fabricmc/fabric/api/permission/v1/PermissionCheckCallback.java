@@ -16,39 +16,93 @@
 
 package net.fabricmc.fabric.api.permission.v1;
 
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+
 import com.mojang.serialization.Codec;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.resources.Identifier;
 
 import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.event.EventFactory;
+import net.fabricmc.fabric.impl.permission.PermissionCheckCallbackImpl;
 
 /**
  * The event used for getting the permission result for given context.
  * Implemented callbacks for this event should be thread safe, as permission methods can be called from another thread.
  * Additionally, the execution should be reasonably fast for non-player and online player cases.
- * Offline player checks are allowed to be slower.
+ * Offline player checks are allowed to be slower and can happen asynchronously.
+ *
+ * <p>When implementing this callback, only {@link PermissionCheckCallback#onPermissionCheck} needs to be implemented,
+ * but for better performance in case of support for async lookup, the {@link PermissionCheckCallback#onAsyncPermissionCheck}
+ * method should also be implemented. In case it wasn't it will default to running {@link PermissionCheckCallback#onPermissionCheck}
+ * on current thread.
  *
  * <p>To check for permissions, you should use dedicated methods from {@link PermissionContextOwner} interface
  * and it's implementations over invoking this event.
  */
 public interface PermissionCheckCallback {
-	Event<PermissionCheckCallback> EVENT = EventFactory.createArrayBacked(PermissionCheckCallback.class, callbacks -> new PermissionCheckCallback() {
-		@Override
-		public @Nullable <T> T onPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType) {
-			for (PermissionCheckCallback callback : callbacks) {
-				T value = callback.onPermissionCheck(context, permission, permissionType);
+	/**
+	 * Registers the permission callback.
+	 *
+	 * @param callback permission check callback to register
+	 */
+	static void register(PermissionCheckCallback callback) {
+		register(Event.DEFAULT_PHASE, callback);
+	}
 
-				if (value != null) {
-					return value;
-				}
-			}
+	/**
+	 * Registers the permission callback.
+	 *
+	 * @param phase ordering phase to place the callback
+	 * @param callback permission check callback to register
+	 */
+	static void register(Identifier phase, PermissionCheckCallback callback) {
+		Objects.requireNonNull(phase, "phase can't be null!");
+		Objects.requireNonNull(callback, "callback can't be null!");
 
-			return null;
-		}
-	});
+		PermissionCheckCallbackImpl.MAIN_EVENT.register(phase, callback::onPermissionCheck);
+		PermissionCheckCallbackImpl.ASYNC_EVENT.register(phase, callback::onAsyncPermissionCheck);
+	}
 
+	/**
+	 * Orders the phases in provided order.
+	 *
+	 * @param firstPhase the id of the phase that should happen first
+	 * @param lastPhase the id of the phase that should happen last
+	 */
+	static void addPhaseOrdering(Identifier firstPhase, Identifier lastPhase) {
+		Objects.requireNonNull(firstPhase, "firstPhase can't be null!");
+		Objects.requireNonNull(lastPhase, "lastPhase can't be null!");
+
+		PermissionCheckCallbackImpl.MAIN_EVENT.addPhaseOrdering(firstPhase, lastPhase);
+		PermissionCheckCallbackImpl.ASYNC_EVENT.addPhaseOrdering(firstPhase, lastPhase);
+	}
+
+	/**
+	 * Main check method, executes on current thread.
+	 *
+	 * @param context        context to check for
+	 * @param permission     identifier of the permission
+	 * @param permissionType codec representing type if permissions
+	 * @param <T>            type of permission
+	 * @return value of type T if present, null to pass through.
+	 */
 	@Nullable
 	<T> T onPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType);
+
+	/**
+	 * Async permission check method.
+	 *
+	 * @param context        context to check for
+	 * @param permission     identifier of the permission
+	 * @param permissionType codec representing type if permissions
+	 * @param <T>            type of permission
+	 * @return a completable future value of type T if present, null or null containing completable future to quickly pass through to next callback.
+	 */
+	@Nullable
+	default <T> CompletableFuture<@Nullable T> onAsyncPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType) {
+		T value = this.onPermissionCheck(context, permission, permissionType);
+		return value != null ? CompletableFuture.completedFuture(value) : null;
+	}
 }

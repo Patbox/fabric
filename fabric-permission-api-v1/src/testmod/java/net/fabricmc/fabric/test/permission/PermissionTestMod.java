@@ -19,6 +19,9 @@ package net.fabricmc.fabric.test.permission;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
@@ -35,6 +38,8 @@ import net.minecraft.nbt.TextComponentTagVisitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.TriState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -52,13 +57,41 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 	private static final Identifier ON_STONE = Identifier.fromNamespaceAndPath("test", "on_stone");
 	private static final Identifier IS_ENTITY = Identifier.fromNamespaceAndPath("test", "is_entity");
 	private static final Identifier ABOVE_SEA = Identifier.fromNamespaceAndPath("test", "above_sea");
+	private static final Identifier MAGIC = Identifier.fromNamespaceAndPath("test", "magic");
 
 	private final PermissionMap globalPermissionMap = new PermissionMap();
 
 	@Override
 	public void onInitialize() {
 		CommandRegistrationCallback.EVENT.register(this::registerCommands);
-		PermissionCheckCallback.EVENT.register(this);
+		PermissionCheckCallback.register(this);
+
+		try {
+			this.runBasicTest();
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void runBasicTest() throws Throwable {
+		int value = RandomSource.createThreadLocalInstance().nextInt();
+
+		this.globalPermissionMap.set(MAGIC, value);
+
+		PermissionContext context = PermissionContext.create(UUID.randomUUID(), PermissionContext.Type.OTHER, PermissionLevel.ADMINS);
+
+		int valueMainCheck = context.checkPermission(MAGIC, PermissionCodecs.INT, value + 1);
+		int valueAsyncCheck = context.checkPermissionAsync(MAGIC, PermissionCodecs.INT, value - 1).get(5, TimeUnit.SECONDS);
+
+		if (valueMainCheck != value) {
+			throw new IllegalStateException("Permission check failed! valueMainCheck != value");
+		}
+
+		if (valueMainCheck != valueAsyncCheck) {
+			throw new IllegalStateException("Permission check failed! valueMainCheck != valueAsyncCheck");
+		}
 	}
 
 	private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context, Commands.CommandSelection selection) {
