@@ -73,7 +73,7 @@ public class PermissionCheckCallbackImpl {
 				}
 			}
 
-			return null;
+			return res;
 		}
 	});
 

@@ -86,11 +86,11 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 		int valueAsyncCheck = context.checkPermissionAsync(MAGIC, PermissionCodecs.INT, value - 1).get(5, TimeUnit.SECONDS);
 
 		if (valueMainCheck != value) {
-			throw new IllegalStateException("Permission check failed! valueMainCheck != value");
+			throw new IllegalStateException("Permission check failed! valueMainCheck != value, d=" + (valueMainCheck - value));
 		}
 
 		if (valueMainCheck != valueAsyncCheck) {
-			throw new IllegalStateException("Permission check failed! valueMainCheck != valueAsyncCheck");
+			throw new IllegalStateException("Permission check failed! valueMainCheck != valueAsyncCheck, d=" + (valueMainCheck - valueAsyncCheck));
 		}
 	}
 
