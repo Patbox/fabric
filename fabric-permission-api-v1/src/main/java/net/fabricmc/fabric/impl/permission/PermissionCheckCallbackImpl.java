@@ -18,15 +18,13 @@ package net.fabricmc.fabric.impl.permission;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.mojang.serialization.Codec;
 import org.jspecify.annotations.Nullable;
-
-import net.minecraft.resources.Identifier;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.permission.v1.PermissionCheckCallback;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
+import net.fabricmc.fabric.api.permission.v1.PermissionNode;
 
 /**
  * This class holds the permission checks split into 2 events.
@@ -41,9 +39,9 @@ import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 public class PermissionCheckCallbackImpl {
 	public static final Event<Callback> MAIN_EVENT = EventFactory.createArrayBacked(Callback.class, callbacks -> new Callback() {
 		@Override
-		public <T> T onPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType) {
+		public <T> T onPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
 			for (Callback callback : callbacks) {
-				T value = callback.onPermissionCheck(context, permission, permissionType);
+				T value = callback.onPermissionCheck(context, permission);
 
 				if (value != null) {
 					return value;
@@ -56,21 +54,17 @@ public class PermissionCheckCallbackImpl {
 
 	public static final Event<AsyncCallback> ASYNC_EVENT = EventFactory.createArrayBacked(AsyncCallback.class, callbacks -> new AsyncCallback() {
 		@Override
-		public <T> CompletableFuture<T> onAsyncPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType) {
+		public <T> CompletableFuture<T> onAsyncPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
 			CompletableFuture<T> res = CompletableFuture.completedFuture(null);
 
 			for (AsyncCallback callback : callbacks) {
-				CompletableFuture<T> future = callback.onAsyncPermissionCheck(context, permission, permissionType);
+				res = res.thenCompose(value -> {
+					if (value != null) {
+						return CompletableFuture.completedFuture(value);
+					}
 
-				if (future != null) {
-					res = res.thenCompose(value -> {
-						if (value != null) {
-							return CompletableFuture.completedFuture(value);
-						}
-
-						return future;
-					});
-				}
+					return callback.onAsyncPermissionCheck(context, permission);
+				});
 			}
 
 			return res;
@@ -78,10 +72,10 @@ public class PermissionCheckCallbackImpl {
 	});
 
 	public interface Callback {
-		<T> T onPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType);
+		<T> T onPermissionCheck(PermissionContext context, PermissionNode<T> permission);
 	}
 
 	public interface AsyncCallback {
-		<T> @Nullable CompletableFuture<@Nullable T> onAsyncPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType);
+		<T> CompletableFuture<@Nullable T> onAsyncPermissionCheck(PermissionContext context, PermissionNode<T> permission);
 	}
 }

@@ -29,10 +29,12 @@ import net.minecraft.server.permissions.PermissionLevel;
  * <pre>{@code
  * CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> {
  *     dispatcher.register(literal("modcommand")
+ *     	   // By using direct Identitier
  *         .requires(PermissionPredicates.require(Identifier.fromNamespaceAndPath("mymod", "command/main"), true))
  *         .executes(ModCommands::executeMainCommand)
  *         .then(literal("admin")
- *             .requires(PermissionPredicates.require(Identifier.fromNamespaceAndPath("mymod", "command/admin"), PermissionLevel.ADMINS))
+ *             // By using boolean permission node
+ *             .requires(PermissionPredicates.require(PermissionNode.of(Identifier.fromNamespaceAndPath("mymod", "command/admin")), PermissionLevel.ADMINS))
  *             .executes(ModCommands::executeMainCommand)
  *         )
  * });
@@ -49,7 +51,7 @@ public final class PermissionPredicates {
 	 * @return predicate checking context's permission
 	 */
 	public static <T extends PermissionContextOwner> Predicate<T> require(Identifier permission) {
-		return x -> x.checkPermission(permission).toBoolean(false);
+		return x -> x.checkPermission(permission, false);
 	}
 
 	/**
@@ -74,5 +76,40 @@ public final class PermissionPredicates {
 	 */
 	public static <T extends PermissionContextOwner> Predicate<T> require(Identifier permission, PermissionLevel permissionLevel) {
 		return x -> x.checkPermission(permission, permissionLevel);
+	}
+
+	/**
+	 * Predicate checking if context has a permission, defaults to false.
+	 *
+	 * @param permission permission to check
+	 * @param <T> type of the owner
+	 * @return predicate checking context's permission
+	 */
+	public static <T extends PermissionContextOwner> Predicate<T> require(PermissionNode<Boolean> permission) {
+		return x -> x.checkPermission(permission, false);
+	}
+
+	/**
+	 * Predicate checking if context has a permission.
+	 *
+	 * @param permission permission to check
+	 * @param defaultValue default result of permission check
+	 * @param <T> type of the owner
+	 * @return predicate checking context's permission
+	 */
+	public static <T extends PermissionContextOwner> Predicate<T> require(PermissionNode<Boolean> permission, boolean defaultValue) {
+		return x -> x.checkPermission(permission, defaultValue);
+	}
+
+	/**
+	 * Predicate checking if context has a permission.
+	 *
+	 * @param permission permission to check
+	 * @param permissionLevel fallback permission level check
+	 * @param <T> type of the owner
+	 * @return predicate checking context's permission
+	 */
+	public static <T extends PermissionContextOwner> Predicate<T> require(PermissionNode<Boolean> permission, PermissionLevel permissionLevel) {
+		return x -> x.checkPermission(permission, x.getPermissionContext().permissionLevel().isEqualOrHigherThan(permissionLevel));
 	}
 }

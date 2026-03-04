@@ -19,7 +19,6 @@ package net.fabricmc.fabric.api.permission.v1;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import com.mojang.serialization.Codec;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.resources.Identifier;
@@ -83,26 +82,22 @@ public interface PermissionCheckCallback {
 	 * Main check method, executes on current thread.
 	 *
 	 * @param context        context to check for
-	 * @param permission     identifier of the permission
-	 * @param permissionType codec representing type if permissions
+	 * @param permission     a permission node representing a permission
 	 * @param <T>            type of permission
 	 * @return value of type T if present, null to pass through.
 	 */
 	@Nullable
-	<T> T onPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType);
+	<T> T onPermissionCheck(PermissionContext context, PermissionNode<T> permission);
 
 	/**
 	 * Async permission check method.
 	 *
 	 * @param context        context to check for
-	 * @param permission     identifier of the permission
-	 * @param permissionType codec representing type if permissions
+	 * @param permission     a permission node representing a permission
 	 * @param <T>            type of permission
 	 * @return a completable future value of type T if present, null or null containing completable future to quickly pass through to next callback.
 	 */
-	@Nullable
-	default <T> CompletableFuture<@Nullable T> onAsyncPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType) {
-		T value = this.onPermissionCheck(context, permission, permissionType);
-		return value != null ? CompletableFuture.completedFuture(value) : null;
+	default <T> CompletableFuture<@Nullable T> onAsyncPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
+		return CompletableFuture.supplyAsync(() -> this.onPermissionCheck(context, permission));
 	}
 }

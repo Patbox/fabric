@@ -40,7 +40,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.TriState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -48,16 +47,16 @@ import net.minecraft.world.level.block.Blocks;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.permission.v1.PermissionCheckCallback;
-import net.fabricmc.fabric.api.permission.v1.PermissionCodecs;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
+import net.fabricmc.fabric.api.permission.v1.PermissionNode;
 import net.fabricmc.fabric.api.permission.v1.PermissionPredicates;
 import net.fabricmc.fabric.test.permission.example.PermissionMap;
 
 public class PermissionTestMod implements ModInitializer, PermissionCheckCallback {
-	private static final Identifier ON_STONE = Identifier.fromNamespaceAndPath("test", "on_stone");
-	private static final Identifier IS_ENTITY = Identifier.fromNamespaceAndPath("test", "is_entity");
-	private static final Identifier ABOVE_SEA = Identifier.fromNamespaceAndPath("test", "above_sea");
-	private static final Identifier MAGIC = Identifier.fromNamespaceAndPath("test", "magic");
+	private static final PermissionNode<Boolean> ON_STONE = PermissionNode.of(Identifier.fromNamespaceAndPath("test", "on_stone"));
+	private static final PermissionNode<Boolean> IS_ENTITY = PermissionNode.of(Identifier.fromNamespaceAndPath("test", "is_entity"));
+	private static final PermissionNode<Boolean> ABOVE_SEA = PermissionNode.of(Identifier.fromNamespaceAndPath("test", "above_sea"));
+	private static final PermissionNode<Integer> MAGIC = PermissionNode.ofInteger(Identifier.fromNamespaceAndPath("test", "magic"));
 
 	private final PermissionMap globalPermissionMap = new PermissionMap();
 
@@ -78,12 +77,12 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 	private void runBasicTest() throws Throwable {
 		int value = RandomSource.createThreadLocalInstance().nextInt();
 
-		this.globalPermissionMap.set(MAGIC, value);
+		this.globalPermissionMap.set(MAGIC.key(), value);
 
 		PermissionContext context = PermissionContext.create(UUID.randomUUID(), PermissionContext.Type.OTHER, PermissionLevel.ADMINS);
 
-		int valueMainCheck = context.checkPermission(MAGIC, PermissionCodecs.INT, value + 1);
-		int valueAsyncCheck = context.checkPermissionAsync(MAGIC, PermissionCodecs.INT, value - 1).get(5, TimeUnit.SECONDS);
+		int valueMainCheck = context.checkPermission(MAGIC, value + 1);
+		int valueAsyncCheck = context.checkPermissionAsync(MAGIC, value - 1).get(5, TimeUnit.SECONDS);
 
 		if (valueMainCheck != value) {
 			throw new IllegalStateException("Permission check failed! valueMainCheck != value, d=" + (valueMainCheck - value));
@@ -145,25 +144,25 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public @Nullable <T> T onPermissionCheck(PermissionContext context, Identifier permission, Codec<T> permissionType) {
+	public @Nullable <T> T onPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
 		Level level = context.get(PermissionContext.LEVEL);
 		BlockPos blockPos = context.get(PermissionContext.BLOCK_POSITION);
 		Entity entity = context.get(PermissionContext.ENTITY);
 
-		if (permissionType == PermissionCodecs.TRI_STATE) {
-			if (permission.equals(ON_STONE) && level != null && blockPos != null) {
-				return (T) TriState.from(level.getBlockState(blockPos.below()).is(Blocks.STONE));
+		if (permission.codec() == Codec.BOOL) {
+			if (permission.key().equals(ON_STONE) && level != null && blockPos != null) {
+				return (T) Boolean.valueOf(level.getBlockState(blockPos.below()).is(Blocks.STONE));
 			}
 
-			if (permission.equals(IS_ENTITY)) {
-				return (T) TriState.from(entity != null);
+			if (permission.key().equals(IS_ENTITY)) {
+				return (T) Boolean.valueOf(entity != null);
 			}
 
-			if (permission.equals(ABOVE_SEA) && blockPos != null && level != null) {
-				return (T) TriState.from(level.getSeaLevel() < blockPos.getY());
+			if (permission.key().equals(ABOVE_SEA) && blockPos != null && level != null) {
+				return (T) Boolean.valueOf(level.getSeaLevel() < blockPos.getY());
 			}
 		}
 
-		return this.globalPermissionMap.get(permission, permissionType);
+		return this.globalPermissionMap.get(permission.key(), permission.codec());
 	}
 }

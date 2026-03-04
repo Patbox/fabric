@@ -50,7 +50,8 @@ import net.fabricmc.fabric.impl.permission.PermissionContextKey;
 public interface PermissionContext extends PermissionContextOwner {
 	/**
 	 * Represents name attached to the permission context.
-	 * It doesn't need to be unique.
+	 * There is no requirement for it to be unique, as it might be changed by external factors.
+	 * Mainly used to help with identifying system-type contexts / context with shared/nil uuid.
 	 */
 	Key<String> NAME = PermissionContextKey.NAME;
 	/**
