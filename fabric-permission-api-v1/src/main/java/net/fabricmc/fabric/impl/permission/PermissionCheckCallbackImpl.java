@@ -39,6 +39,7 @@ import net.fabricmc.fabric.api.permission.v1.PermissionNode;
 public class PermissionCheckCallbackImpl {
 	public static final Event<Callback> MAIN_EVENT = EventFactory.createArrayBacked(Callback.class, callbacks -> new Callback() {
 		@Override
+		@Nullable
 		public <T> T onPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
 			for (Callback callback : callbacks) {
 				T value = callback.onPermissionCheck(context, permission);
@@ -54,8 +55,8 @@ public class PermissionCheckCallbackImpl {
 
 	public static final Event<AsyncCallback> ASYNC_EVENT = EventFactory.createArrayBacked(AsyncCallback.class, callbacks -> new AsyncCallback() {
 		@Override
-		public <T> CompletableFuture<T> onAsyncPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
-			CompletableFuture<T> res = CompletableFuture.completedFuture(null);
+		public <T> CompletableFuture<@Nullable T> onAsyncPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
+			CompletableFuture<@Nullable T> res = CompletableFuture.completedFuture(null);
 
 			for (AsyncCallback callback : callbacks) {
 				res = res.thenCompose(value -> {
@@ -72,6 +73,7 @@ public class PermissionCheckCallbackImpl {
 	});
 
 	public interface Callback {
+		@Nullable
 		<T> T onPermissionCheck(PermissionContext context, PermissionNode<T> permission);
 	}
 

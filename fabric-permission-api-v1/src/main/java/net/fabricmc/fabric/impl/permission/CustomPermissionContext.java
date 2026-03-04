@@ -34,8 +34,9 @@ public record CustomPermissionContext(UUID uuid, Type type, PermissionLevel perm
 	}
 
 	@Override
-	public <T> void set(Key<T> key, @Nullable T value) {
+	public <T> MutablePermissionContext set(Key<T> key, @Nullable T value) {
 		this.overrides.put(key, value);
+		return this;
 	}
 
 	@Override

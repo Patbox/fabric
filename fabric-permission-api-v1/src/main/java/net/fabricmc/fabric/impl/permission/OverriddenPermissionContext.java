@@ -35,8 +35,9 @@ public record OverriddenPermissionContext(PermissionContext context, Map<Key<?>,
 	}
 
 	@Override
-	public <T> void set(Key<T> key, @Nullable T value) {
+	public <T> MutablePermissionContext set(Key<T> key, @Nullable T value) {
 		this.overrides.put(key, value);
+		return this;
 	}
 
 	@Override

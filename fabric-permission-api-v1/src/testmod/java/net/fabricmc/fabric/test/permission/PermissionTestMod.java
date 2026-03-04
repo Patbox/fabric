@@ -22,9 +22,11 @@ import static net.minecraft.commands.Commands.literal;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.google.gson.JsonElement;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.commands.CommandBuildContext;
@@ -37,15 +39,19 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TextComponentTagVisitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.decoration.Mannequin;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.permission.v1.PermissionCheckCallback;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 import net.fabricmc.fabric.api.permission.v1.PermissionNode;
@@ -71,6 +77,43 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 			throw e;
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
+		}
+
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			try {
+				this.runEntityTest(server);
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
+	private void runEntityTest(MinecraftServer server) {
+		Mannequin entity = new Mannequin(EntityType.MANNEQUIN, server.overworld());
+		PermissionContext context = entity.getPermissionContext();
+
+		for (PermissionContext.Key<?> key : context.keys()) {
+			if (!key.isSerializable()) {
+				continue;
+			}
+
+			//noinspection unchecked
+			PermissionContext.Key<Object> genericKey = (PermissionContext.Key<Object>) key;
+			Object value = context.get(genericKey);
+
+			if (value == null) {
+				continue;
+			}
+
+			JsonElement encoded = genericKey.encodeValue(JsonOps.INSTANCE, value);
+
+			Object decoded = genericKey.decodeValue(JsonOps.INSTANCE, encoded);
+
+			if (!decoded.equals(value)) {
+				throw new IllegalStateException("PermissionContext key serialization failed! value != decoded");
+			}
 		}
 	}
 
@@ -150,15 +193,15 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 		Entity entity = context.get(PermissionContext.ENTITY);
 
 		if (permission.codec() == Codec.BOOL) {
-			if (permission.key().equals(ON_STONE) && level != null && blockPos != null) {
+			if (permission.equals(ON_STONE) && level != null && blockPos != null) {
 				return (T) Boolean.valueOf(level.getBlockState(blockPos.below()).is(Blocks.STONE));
 			}
 
-			if (permission.key().equals(IS_ENTITY)) {
+			if (permission.equals(IS_ENTITY)) {
 				return (T) Boolean.valueOf(entity != null);
 			}
 
-			if (permission.key().equals(ABOVE_SEA) && blockPos != null && level != null) {
+			if (permission.equals(ABOVE_SEA) && blockPos != null && level != null) {
 				return (T) Boolean.valueOf(level.getSeaLevel() < blockPos.getY());
 			}
 		}

@@ -119,7 +119,7 @@ public interface PermissionContextOwner {
 	 * @return  value of the permission or {@param defaultValue} if not provided
 	 */
 	@Contract("_, null -> _; _, !null -> !null")
-	default <T> T checkPermission(PermissionNode<T> permission, T defaultValue) {
+	default <T> @Nullable T checkPermission(PermissionNode<T> permission, @Nullable T defaultValue) {
 		T value = PermissionCheckCallbackImpl.MAIN_EVENT.invoker().onPermissionCheck(this.getPermissionContext(), permission);
 
 		return value != null ? value : defaultValue;
@@ -181,8 +181,8 @@ public interface PermissionContextOwner {
 	 * @param <T> type of the permission
 	 * @return value of the permission or {@param defaultValue} if not provided
 	 */
-	default <T> CompletableFuture<T> checkPermissionAsync(PermissionNode<T> permission, T defaultValue) {
-		CompletableFuture<T> value = PermissionCheckCallbackImpl.ASYNC_EVENT.invoker().onAsyncPermissionCheck(this.getPermissionContext(), permission);
+	default <T> CompletableFuture<@Nullable T> checkPermissionAsync(PermissionNode<T> permission, @Nullable T defaultValue) {
+		CompletableFuture<@Nullable T> value = PermissionCheckCallbackImpl.ASYNC_EVENT.invoker().onAsyncPermissionCheck(this.getPermissionContext(), permission);
 
 		return value.thenApply(val -> val != null ? val : defaultValue);
 	}

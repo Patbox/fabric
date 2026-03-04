@@ -16,7 +16,10 @@
 
 package net.fabricmc.fabric.api.permission.v1;
 
+import java.util.Objects;
+
 import com.mojang.serialization.Codec;
+import org.jetbrains.annotations.ApiStatus;
 
 import net.minecraft.resources.Identifier;
 
@@ -30,6 +33,7 @@ import net.fabricmc.fabric.impl.permission.PermissionNodeImpl;
  *
  * @param <T> type of the permission
  */
+@ApiStatus.NonExtendable
 public interface PermissionNode<T> {
 	/**
 	 * Creates a permission node of boolean type.
@@ -39,6 +43,8 @@ public interface PermissionNode<T> {
 	 * @return permission node for boolean type
 	 */
 	static PermissionNode<Boolean> of(Identifier key) {
+		Objects.requireNonNull(key, "key can't be null!");
+
 		return new PermissionNodeImpl<>(key, Codec.BOOL);
 	}
 
@@ -51,6 +57,9 @@ public interface PermissionNode<T> {
 	 * @return permission node for boolean type
 	 */
 	static PermissionNode<Boolean> of(String namespace, String path) {
+		Objects.requireNonNull(namespace, "namespace can't be null!");
+		Objects.requireNonNull(path, "path can't be null!");
+
 		return of(Identifier.fromNamespaceAndPath(namespace, path));
 	}
 
@@ -62,6 +71,8 @@ public interface PermissionNode<T> {
 	 * @return permission node for integer type
 	 */
 	static PermissionNode<Integer> ofInteger(Identifier key) {
+		Objects.requireNonNull(key, "key can't be null!");
+
 		return new PermissionNodeImpl<>(key, Codec.INT);
 	}
 
@@ -74,6 +85,9 @@ public interface PermissionNode<T> {
 	 * @return permission node for integer type
 	 */
 	static PermissionNode<Integer> ofInteger(String namespace, String path) {
+		Objects.requireNonNull(namespace, "namespace can't be null!");
+		Objects.requireNonNull(path, "path can't be null!");
+
 		return ofInteger(Identifier.fromNamespaceAndPath(namespace, path));
 	}
 
@@ -85,6 +99,8 @@ public interface PermissionNode<T> {
 	 * @return permission node for string type
 	 */
 	static PermissionNode<String> ofString(Identifier key) {
+		Objects.requireNonNull(key, "key can't be null!");
+
 		return new PermissionNodeImpl<>(key, Codec.STRING);
 	}
 
@@ -97,6 +113,9 @@ public interface PermissionNode<T> {
 	 * @return permission node for string type
 	 */
 	static PermissionNode<String> ofString(String namespace, String path) {
+		Objects.requireNonNull(namespace, "namespace can't be null!");
+		Objects.requireNonNull(path, "path can't be null!");
+
 		return ofString(Identifier.fromNamespaceAndPath(namespace, path));
 	}
 
@@ -109,6 +128,8 @@ public interface PermissionNode<T> {
 	 * @return permission node for codec-defined type
 	 */
 	static <T> PermissionNode<T> ofCustom(Identifier key, Codec<T> codec) {
+		Objects.requireNonNull(key, "key can't be null!");
+
 		return new PermissionNodeImpl<>(key, codec);
 	}
 
@@ -121,6 +142,9 @@ public interface PermissionNode<T> {
 	 * @return permission node for codec-defined type
 	 */
 	static <T> PermissionNode<T> ofCustom(String namespace, String path, Codec<T> codec) {
+		Objects.requireNonNull(namespace, "namespace can't be null!");
+		Objects.requireNonNull(path, "path can't be null!");
+
 		return ofCustom(Identifier.fromNamespaceAndPath(namespace, path), codec);
 	}
 

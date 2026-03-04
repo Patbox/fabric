@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.api.permission.v1;
+@NullMarked
+package net.fabricmc.fabric.impl.permission;
 
-import org.jspecify.annotations.Nullable;
-
-/**
- * Mutable version of {@link PermissionContext}, intended for creation of custom context conditions.
- */
-public interface MutablePermissionContext extends PermissionContext {
-	<T> MutablePermissionContext set(PermissionContext.Key<T> key, @Nullable T value);
-}
+import org.jspecify.annotations.NullMarked;
