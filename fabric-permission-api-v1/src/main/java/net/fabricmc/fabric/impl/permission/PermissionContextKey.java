@@ -18,6 +18,8 @@ package net.fabricmc.fabric.impl.permission;
 
 import java.util.Set;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
@@ -34,7 +36,7 @@ import net.minecraft.world.phys.Vec3;
 
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 
-public class PermissionContextKey<T> implements PermissionContext.Key<T> {
+public record PermissionContextKey<T>(Identifier id, @Nullable Codec<T> codec) implements PermissionContext.Key<T> {
 	public static final PermissionContext.Key<String> NAME = fabricKey("name", Codec.STRING);
 	public static final PermissionContext.Key<Vec3> POSITION = fabricKey("position", Vec3.CODEC);
 	public static final PermissionContext.Key<BlockPos> BLOCK_POSITION = fabricKey("block_position", BlockPos.CODEC);
@@ -48,30 +50,24 @@ public class PermissionContextKey<T> implements PermissionContext.Key<T> {
 	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(COMMAND_SOURCE_STACK));
 	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_ENTITY_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(ENTITY, COMMAND_SOURCE_STACK));
 
-	private final Identifier identifier;
-	private final @Nullable Codec<T> codec;
-
-	public PermissionContextKey(Identifier identifier, @Nullable Codec<T> codec) {
-		this.identifier = identifier;
-		this.codec = codec;
-	}
+	private static final Interner<PermissionContextKey<?>> VALUES = Interners.newWeakInterner();
 
 	private static <T> PermissionContext.Key<T> fabricKey(String path) {
-		return new PermissionContextKey<>(Identifier.fromNamespaceAndPath("fabric", path), null);
+		return getOrCreateKey(Identifier.fromNamespaceAndPath("fabric", path), null);
 	}
 
 	private static <T> PermissionContext.Key<T> fabricKey(String path, Codec<T> codec) {
-		return new PermissionContextKey<>(Identifier.fromNamespaceAndPath("fabric", path), codec);
+		return getOrCreateKey(Identifier.fromNamespaceAndPath("fabric", path), codec);
+	}
+
+	public static <T> PermissionContext.Key<T> getOrCreateKey(Identifier identifier, @Nullable Codec<T> codec) {
+		//noinspection unchecked
+		return (PermissionContext.Key<T>) VALUES.intern(new PermissionContextKey<>(identifier, codec));
 	}
 
 	@Override
 	public String toString() {
-		return "PermissionContext.Key[" + identifier + "]";
-	}
-
-	@Override
-	public Identifier id() {
-		return this.identifier;
+		return "PermissionContext.Key[" + id + "]";
 	}
 
 	@Override

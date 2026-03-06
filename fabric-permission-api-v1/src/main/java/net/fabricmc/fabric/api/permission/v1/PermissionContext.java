@@ -51,21 +51,25 @@ public interface PermissionContext extends PermissionContextOwner {
 	/**
 	 * Represents name attached to the permission context.
 	 * There is no requirement for it to be unique, as it might be changed by external factors.
-	 * Mainly used to help with identifying system-type contexts / context with shared/nil uuid.
+	 * Mainly used to help with identifying system-type contexts or context with shared/nil uuid.
 	 */
 	Key<String> NAME = PermissionContextKey.NAME;
+
 	/**
 	 * Represents position current position in which permission check is applied.
 	 */
 	Key<Vec3> POSITION = PermissionContextKey.POSITION;
+
 	/**
 	 * Represents position current block position in which permission check is applied.
 	 */
 	Key<BlockPos> BLOCK_POSITION = PermissionContextKey.BLOCK_POSITION;
+
 	/**
 	 * Represents entity for which permission check is applied.
 	 */
 	Key<Entity> ENTITY = PermissionContextKey.ENTITY;
+
 	/**
 	 * Represents command source stack for which permission check is applied.
 	 */
@@ -146,15 +150,16 @@ public interface PermissionContext extends PermissionContextOwner {
 	static <T> Key<T> key(Identifier identifier) {
 		Objects.requireNonNull(identifier, "identifier cannot be null");
 
-		return new PermissionContextKey<>(identifier, null);
+		return PermissionContextKey.getOrCreateKey(identifier, null);
 	}
 
 	/**
-	 * Creates a unique, serializable key, indented for attaching additional context data.
+	 * Creates a serializable key, indented for attaching additional context data.
 	 * This key/value is serializable.
+	 * Any instance of this key with equal id and codec can be used for lookup of these values.
 	 *
 	 * @param identifier unique identifier
-	 * @param  codec representing the type
+	 * @param codec representing the type
 	 * @param <T> type of attached
 	 * @return unique key
 	 */
@@ -162,7 +167,7 @@ public interface PermissionContext extends PermissionContextOwner {
 		Objects.requireNonNull(identifier, "identifier cannot be null");
 		Objects.requireNonNull(codec, "codec cannot be null");
 
-		return new PermissionContextKey<>(identifier, codec);
+		return PermissionContextKey.getOrCreateKey(identifier, codec);
 	}
 
 	/**
@@ -239,7 +244,7 @@ public interface PermissionContext extends PermissionContextOwner {
 
 	/**
 	 * Key used to represent additional permission context.
-	 * The context itself might be serializable, hovewer it's not a strict requirement.
+	 * The context itself might be serializable, however it's not a strict requirement.
 	 *
 	 * @param <T> type of the context
 	 */

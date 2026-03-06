@@ -169,7 +169,7 @@ public interface PermissionContextOwner {
 	 * @return value of the permission or null if not provided
 	 */
 	default <T> CompletableFuture<@Nullable T> checkPermissionAsync(PermissionNode<T> permission) {
-		return checkPermissionAsync(permission, null);
+		return this.checkPermissionAsync(permission, null);
 	}
 
 	/**

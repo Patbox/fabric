@@ -19,6 +19,7 @@ package net.fabricmc.fabric.api.permission.v1;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.resources.Identifier;
@@ -86,6 +87,7 @@ public interface PermissionCheckCallback {
 	 * @param <T>            type of permission
 	 * @return value of type T if present, null to pass through.
 	 */
+	@ApiStatus.OverrideOnly
 	@Nullable
 	<T> T onPermissionCheck(PermissionContext context, PermissionNode<T> permission);
 
@@ -97,7 +99,8 @@ public interface PermissionCheckCallback {
 	 * @param <T>            type of permission
 	 * @return a completable future value of type T if present, null or null containing completable future to quickly pass through to next callback.
 	 */
+	@ApiStatus.OverrideOnly
 	default <T> CompletableFuture<@Nullable T> onAsyncPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
-		return CompletableFuture.supplyAsync(() -> this.onPermissionCheck(context, permission));
+		return CompletableFuture.completedFuture(this.onPermissionCheck(context, permission));
 	}
 }
