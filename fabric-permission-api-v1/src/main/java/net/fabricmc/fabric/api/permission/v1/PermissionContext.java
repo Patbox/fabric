@@ -52,6 +52,7 @@ public interface PermissionContext extends PermissionContextOwner {
 	 * Represents name attached to the permission context.
 	 * There is no requirement for it to be unique, as it might be changed by external factors.
 	 * Mainly used to help with identifying system-type contexts or context with shared/nil uuid.
+	 * For entities, it defaults to the plain name, based on either custom name or entity type name.
 	 */
 	Key<String> NAME = PermissionContextKey.NAME;
 
