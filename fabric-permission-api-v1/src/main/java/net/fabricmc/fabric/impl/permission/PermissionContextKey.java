@@ -37,6 +37,8 @@ import net.minecraft.world.phys.Vec3;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 
 public record PermissionContextKey<T>(Identifier id, @Nullable Codec<T> codec) implements PermissionContext.Key<T> {
+	private static final Interner<PermissionContextKey<?>> VALUES = Interners.newWeakInterner();
+
 	public static final PermissionContext.Key<String> NAME = fabricKey("name", Codec.STRING);
 	public static final PermissionContext.Key<Vec3> POSITION = fabricKey("position", Vec3.CODEC);
 	public static final PermissionContext.Key<BlockPos> BLOCK_POSITION = fabricKey("block_position", BlockPos.CODEC);
@@ -49,8 +51,6 @@ public record PermissionContextKey<T>(Identifier id, @Nullable Codec<T> codec) i
 	public static final Set<PermissionContext.Key<?>> DEFAULT_ENTITY_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(ENTITY));
 	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(COMMAND_SOURCE_STACK));
 	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_ENTITY_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(ENTITY, COMMAND_SOURCE_STACK));
-
-	private static final Interner<PermissionContextKey<?>> VALUES = Interners.newWeakInterner();
 
 	private static <T> PermissionContext.Key<T> fabricKey(String path) {
 		return getOrCreateKey(Identifier.fromNamespaceAndPath("fabric", path), null);
