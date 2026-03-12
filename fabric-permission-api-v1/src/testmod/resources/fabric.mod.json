@@ -12,5 +12,8 @@
     "main": [
       "net.fabricmc.fabric.test.permission.PermissionTestMod"
     ]
+  },
+  "custom": {
+    "fabric-api:module-lifecycle": "experimental"
   }
 }
