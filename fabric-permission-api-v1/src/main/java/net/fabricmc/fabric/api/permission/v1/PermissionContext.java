@@ -20,15 +20,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DynamicOps;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.server.players.NameAndId;
@@ -80,11 +77,6 @@ public interface PermissionContext extends PermissionContextOwner {
 	 * Represents level for which permission check is applied.
 	 */
 	Key<Level> LEVEL = PermissionContextKey.LEVEL;
-
-	/**
-	 * Represents level key for which permission check is applied.
-	 */
-	Key<ResourceKey<Level>> LEVEL_KEY = PermissionContextKey.LEVEL_KEY;
 
 	/**
 	 * Creates a custom context, without any optional values.
@@ -151,24 +143,7 @@ public interface PermissionContext extends PermissionContextOwner {
 	static <T> Key<T> key(Identifier identifier) {
 		Objects.requireNonNull(identifier, "identifier cannot be null");
 
-		return PermissionContextKey.getOrCreateKey(identifier, null);
-	}
-
-	/**
-	 * Creates a serializable key, indented for attaching additional context data.
-	 * This key/value is serializable.
-	 * Any instance of this key with equal id and codec can be used for lookup of these values.
-	 *
-	 * @param identifier unique identifier
-	 * @param codec representing the type
-	 * @param <T> type of attached
-	 * @return unique key
-	 */
-	static <T> Key<T> key(Identifier identifier, Codec<T> codec) {
-		Objects.requireNonNull(identifier, "identifier cannot be null");
-		Objects.requireNonNull(codec, "codec cannot be null");
-
-		return PermissionContextKey.getOrCreateKey(identifier, codec);
+		return PermissionContextKey.getOrCreateKey(identifier);
 	}
 
 	/**
@@ -257,32 +232,5 @@ public interface PermissionContext extends PermissionContextOwner {
 		 * @return id of this key
 		 */
 		Identifier id();
-
-		/**
-		 * This method defines if this key is serializable or not.
-		 *
-		 * @return true if it's serializable, false otherwise.
-		 */
-		boolean isSerializable();
-
-		/**
-		 * Encodes provided value.
-		 *
-		 * @param ops ops represeting the encoded type
-		 * @param value value to encode
-		 * @param <Y> type value gets encoded into
-		 * @return encoded value
-		 */
-		<Y> Y encodeValue(DynamicOps<Y> ops, T value);
-
-		/**
-		 * Decodes provided value.
-		 *
-		 * @param ops ops represeting the encoded type
-		 * @param value value to decode
-		 * @param <Y> type value gets decoded from
-		 * @return decoded value
-		 */
-		<Y> T decodeValue(DynamicOps<Y> ops, Y value);
 	}
 }

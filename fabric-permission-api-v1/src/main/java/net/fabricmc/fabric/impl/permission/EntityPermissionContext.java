@@ -56,8 +56,6 @@ public class EntityPermissionContext implements PermissionContext {
 			return (T) this.entity.blockPosition();
 		} else if (key == PermissionContext.LEVEL) {
 			return (T) this.entity.level();
-		} else if (key == PermissionContext.LEVEL_KEY) {
-			return (T) this.entity.level().dimension();
 		} else if (key == PermissionContext.ENTITY) {
 			return (T) this.entity;
 		} else if (key == PermissionContext.COMMAND_SOURCE_STACK) {

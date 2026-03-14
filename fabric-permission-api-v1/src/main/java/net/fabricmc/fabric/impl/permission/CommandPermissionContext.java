@@ -46,8 +46,6 @@ public class CommandPermissionContext implements PermissionContext {
 			return (T) BlockPos.containing(this.source.getPosition());
 		} else if (key == PermissionContext.LEVEL) {
 			return (T) this.source.getLevel();
-		} else if (key == PermissionContext.LEVEL_KEY) {
-			return (T) this.source.getLevel().dimension();
 		} else if (key == PermissionContext.ENTITY) {
 			return (T) this.source.getEntity();
 		} else if (key == PermissionContext.COMMAND_SOURCE_STACK) {
