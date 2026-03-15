@@ -49,7 +49,7 @@ import net.fabricmc.fabric.impl.networking.context.PacketContextImpl;
  * PacketContext.Key<TriState> TATER_MESSAGE = PacketContext.key(Identifier.fromNamespaceAndPath("mod", "tater_message"));
  *
  * ServerConfigurationNetworking.registerGlobalReceiver(ServerboundModConfig.TYPE, (packet, context) -> {
- *      context.packetListener().getPacketContext().set(TATER_MESSAGE, packet.taterMessage());
+ *      context.packetContext().set(TATER_MESSAGE, packet.taterMessage());
  * });
  *
  * ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
