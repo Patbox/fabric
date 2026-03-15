@@ -145,7 +145,13 @@ public interface PacketContext {
 	 * @return current context or null
 	 */
 	static PacketContext orElseThrow() {
-		return PacketContextImpl.VALUE.orElseThrow(() -> new RuntimeException("PacketContext is required, but it wasn't set up!"));
+		PacketContext ctx = PacketContextImpl.VALUE.orElseThrow(() -> new RuntimeException("PacketContext is required, but it wasn't set up!"));
+
+		if (ctx == null) {
+			throw new RuntimeException("PacketContext is required, but it was disabled!");
+		}
+
+		return ctx;
 	}
 
 	/**
@@ -167,6 +173,34 @@ public interface PacketContext {
 	 */
 	static <T> T supplyWithContext(PacketContextProvider provider, Supplier<T> supplier) {
 		return ScopedValue.where(PacketContextImpl.VALUE, provider.getPacketContext()).call(supplier::get);
+	}
+
+	/**
+	 * Runs specified runnable without a packet context.
+	 *
+	 * @param runnable runnable to execute
+	 */
+	static void runWithoutContext(Runnable runnable) {
+		if (PacketContextImpl.VALUE.isBound()) {
+			ScopedValue.where(PacketContextImpl.VALUE, null).run(runnable);
+			return;
+		}
+
+		runnable.run();
+	}
+
+	/**
+	 * Runs specified runnable without a packet context, returning a value.
+	 *
+	 * @param supplier supplier to execute
+	 * @return result of supplier
+	 */
+	static <T> T supplyWithoutContext(Supplier<T> supplier) {
+		if (PacketContextImpl.VALUE.isBound()) {
+			return ScopedValue.where(PacketContextImpl.VALUE, null).call(supplier::get);
+		}
+
+		return supplier.get();
 	}
 
 	/**
