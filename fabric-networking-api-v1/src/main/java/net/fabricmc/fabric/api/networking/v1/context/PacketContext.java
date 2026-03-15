@@ -25,11 +25,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.Connection;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerHandshakePacketListenerImpl;
+import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 
 import net.fabricmc.fabric.impl.networking.context.PacketContextImpl;
 
@@ -62,9 +63,15 @@ import net.fabricmc.fabric.impl.networking.context.PacketContextImpl;
 public interface PacketContext {
 	/**
 	 * The server instance that handles this connection. Only present on clientbound connections.
-	 * This value is set once the {@link ServerHandshakePacketListenerImpl} is constructed.
+	 * This value is set once the {@link ServerLoginPacketListenerImpl} is constructed.
 	 */
 	ReadKey<MinecraftServer> SERVER_INSTANCE = PacketContextImpl.SERVER_INSTANCE;
+	/**
+	 * The instance of registry access.
+	 * This value is set once the {@link ServerLoginPacketListenerImpl} is constructed (on serve)
+	 * and once client side configuration is finished.
+	 */
+	ReadKey<RegistryAccess> REGISTRY_ACCESS = PacketContextImpl.REGISTRY_ACCESS;
 	/**
 	 * The Game Profile attached to this connection.
 	 * This value is set on both server and client, once the login process succeeds.
