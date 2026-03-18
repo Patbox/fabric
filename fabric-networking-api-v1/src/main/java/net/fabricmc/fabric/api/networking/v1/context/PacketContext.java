@@ -53,7 +53,7 @@ import net.fabricmc.fabric.impl.networking.context.PacketContextImpl;
  * });
  *
  * ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
- *      if (handler.getPacketContext().orElse(TATER_MESSAGE, TriState.DEFAULT).orElse(ModConfig.taterMessage)) {
+ *      if (handler.getPacketContext().orElse(TATER_MESSAGE, ModConfig.taterMessage)) {
  *            handler.getPlayer().sendSystemMessage(Component.literal("I am a Tiny Potato and I believe in you!"), false);
  *      }
  * });
