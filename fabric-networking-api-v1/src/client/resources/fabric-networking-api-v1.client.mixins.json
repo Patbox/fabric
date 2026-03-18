@@ -3,15 +3,16 @@
   "package": "net.fabricmc.fabric.mixin.networking.client",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "ClientCommonPacketListenerImplMixin",
-    "ClientConfigurationPacketListenerImplMixin",
-    "ClientHandshakePacketListenerImplMixin",
-    "ClientPacketListenerMixin",
     "accessor.ClientCommonPacketListenerImplAccessor",
     "accessor.ClientConfigurationPacketListenerImplAccessor",
     "accessor.ClientHandshakePacketListenerImplAccessor",
     "accessor.ConnectScreenAccessor",
-    "accessor.MinecraftAccessor"
+    "accessor.MinecraftAccessor",
+    "ClientCommonPacketListenerImplMixin",
+    "ClientConfigurationPacketListenerImplMixin",
+    "ClientHandshakePacketListenerImplMixin",
+    "ClientPacketListenerMixin",
+    "LocalPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -20,6 +21,5 @@
     "requireAnnotations": true
   },
   "mixins": [
-    "LocalPlayerMixin"
   ]
 }
