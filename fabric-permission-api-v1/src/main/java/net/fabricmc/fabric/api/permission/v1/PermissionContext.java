@@ -19,6 +19,7 @@ package net.fabricmc.fabric.api.permission.v1;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
@@ -79,6 +80,11 @@ public interface PermissionContext extends PermissionContextOwner {
 	Key<Level> LEVEL = PermissionContextKey.LEVEL;
 
 	/**
+	 * Represents the server to which this context is attached to.
+	 */
+	Key<MinecraftServer> SERVER = PermissionContextKey.SERVER;
+
+	/**
 	 * Creates a custom context, without any optional values.
 	 *
 	 * @param uuid the uuid connected to this context
@@ -104,12 +110,15 @@ public interface PermissionContext extends PermissionContextOwner {
 	 * @param server the currently running server instance
 	 * @return mutable permission context
 	 */
-	static MutablePermissionContext offlinePlayer(UUID uuid, MinecraftServer server) {
+	static CompletableFuture<MutablePermissionContext> offlinePlayer(UUID uuid, MinecraftServer server) {
 		Objects.requireNonNull(uuid, "uuid cannot be null");
 		Objects.requireNonNull(server, "server cannot be null");
 
 		PermissionLevel permissionLevel = server.getProfilePermissions(new NameAndId(uuid, "")).level();
-		return new CustomPermissionContext(uuid, Type.PLAYER, permissionLevel);
+		var ctx = new CustomPermissionContext(uuid, Type.PLAYER, permissionLevel);
+		ctx.set(PermissionContext.SERVER, server);
+
+		return PermissionEvents.PREPARE_OFFLINE_PLAYER.invoker().prepareOfflinePlayer(ctx, server).thenApply(_ -> ctx);
 	}
 
 	/**
@@ -122,14 +131,16 @@ public interface PermissionContext extends PermissionContextOwner {
 	 * @param server the currently running server instance
 	 * @return mutable permission context
 	 */
-	static MutablePermissionContext offlinePlayer(NameAndId nameAndId, MinecraftServer server) {
+	static CompletableFuture<MutablePermissionContext> offlinePlayer(NameAndId nameAndId, MinecraftServer server) {
 		Objects.requireNonNull(nameAndId, "nameAndId cannot be null");
 		Objects.requireNonNull(server, "server cannot be null");
 
 		PermissionLevel permissionLevel = server.getProfilePermissions(nameAndId).level();
 		var ctx = new CustomPermissionContext(nameAndId.id(), Type.PLAYER, permissionLevel);
 		ctx.set(PermissionContext.NAME, nameAndId.name());
-		return ctx;
+		ctx.set(PermissionContext.SERVER, server);
+
+		return PermissionEvents.PREPARE_OFFLINE_PLAYER.invoker().prepareOfflinePlayer(ctx, server).thenApply(_ -> ctx);
 	}
 
 	/**

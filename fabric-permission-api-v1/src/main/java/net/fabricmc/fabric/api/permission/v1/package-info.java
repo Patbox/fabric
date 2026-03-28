@@ -40,12 +40,9 @@
  * Boolean permissions can also use {@link net.minecraft.resources.Identifier} directly,
  * with addition for some extra utility methods on the owner object.
  *
- * <p>To define a provider, you need to implement the {@link net.fabricmc.fabric.api.permission.v1.PermissionCheckCallback} interface.
+ * <p>To define a provider, you need to register callbacks for events defined in {@link net.fabricmc.fabric.api.permission.v1.PermissionEvents}.
  * By default, you only need to implement the
- * {@link net.fabricmc.fabric.api.permission.v1.PermissionCheckCallback#onPermissionCheck(net.fabricmc.fabric.api.permission.v1.PermissionContext, net.fabricmc.fabric.api.permission.v1.PermissionNode)},
- * through you need to keep in mind it can be executed from any thread.
- * If needed, you can also implement {@link net.fabricmc.fabric.api.permission.v1.PermissionCheckCallback#onAsyncPermissionCheck(net.fabricmc.fabric.api.permission.v1.PermissionContext, net.fabricmc.fabric.api.permission.v1.PermissionNode)}
- * for better control around async permission checks. If not implemented that method defaults to using the onPermissionCheck implementation.
+ * {@link net.fabricmc.fabric.api.permission.v1.PermissionEvents#ON_REQUEST} event, but other ones might still be good to look into to allow better handling of them.
  *
  * <p>Example cases where you might want to use this api:
  * - Commands that might not make sense to give to all players, but might be required for helpers/moderators/admins,
@@ -88,7 +85,7 @@
  * // Protection mod / validation side (...)
  * var checkedPermissions = Set.of(Identifier.fromNamespaceAndPath("mymod", "can_summon_mount"), ...);
  *
- * PermissionCheckCallback.register((context, permission) -> {
+ * PermissionEvents.register((context, permission) -> {
  * 		if (context.type() != PermissionContext.Type.PLAYER && context.type() != PermissionContext.Type.ENTITY) return null;
  *
  * 		var pos = context.get(PermissionContext.BLOCK_POSITION);

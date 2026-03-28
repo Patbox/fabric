@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -40,11 +41,13 @@ public record PermissionContextKey<T>(Identifier id) implements PermissionContex
 	public static final PermissionContext.Key<Entity> ENTITY = fabricKey("entity");
 	public static final PermissionContext.Key<CommandSourceStack> COMMAND_SOURCE_STACK = fabricKey("command_source_stack");
 	public static final PermissionContext.Key<Level> LEVEL = fabricKey("level");
+	public static final PermissionContext.Key<MinecraftServer> SERVER = fabricKey("server");
 
 	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMON_KEYS = Set.of(POSITION, BLOCK_POSITION, LEVEL, NAME);
 	public static final Set<PermissionContext.Key<?>> DEFAULT_ENTITY_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(ENTITY));
-	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(COMMAND_SOURCE_STACK));
-	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_ENTITY_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(ENTITY, COMMAND_SOURCE_STACK));
+	public static final Set<PermissionContext.Key<?>> DEFAULT_SERVER_ENTITY_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(ENTITY, SERVER));
+	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(COMMAND_SOURCE_STACK, SERVER));
+	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_ENTITY_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(ENTITY, COMMAND_SOURCE_STACK, SERVER));
 
 	private static <T> PermissionContext.Key<T> fabricKey(String path) {
 		return getOrCreateKey(Identifier.fromNamespaceAndPath("fabric", path));

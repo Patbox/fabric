@@ -16,6 +16,9 @@
 
 package net.fabricmc.fabric.mixin.permission;
 
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -25,10 +28,19 @@ import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 import net.fabricmc.fabric.api.permission.v1.PermissionContextOwner;
 import net.fabricmc.fabric.impl.permission.EntityPermissionContext;
 
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
 @Mixin(Entity.class)
 public abstract class EntityMixin implements PermissionContextOwner {
 	@Unique
-	private final PermissionContext context = new EntityPermissionContext((Entity) ((Object) this));
+	private PermissionContext context;
+
+	@Inject(method = "<init>", at = @At("TAIL"))
+	private void createPermissionContext(EntityType type, Level level, CallbackInfo ci) {
+		this.context = new EntityPermissionContext((Entity) ((Object) this));
+	}
 
 	@Override
 	public PermissionContext getPermissionContext() {

@@ -20,11 +20,21 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
+
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.permission.v1.PermissionEvents;
+
+import net.minecraft.server.MinecraftServer;
+
+import net.minecraft.server.players.NameAndId;
+
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.commands.CommandBuildContext;
@@ -46,13 +56,16 @@ import net.minecraft.world.level.block.Blocks;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.permission.v1.PermissionCheckCallback;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 import net.fabricmc.fabric.api.permission.v1.PermissionNode;
 import net.fabricmc.fabric.api.permission.v1.PermissionPredicates;
 import net.fabricmc.fabric.test.permission.example.PermissionMap;
 
-public class PermissionTestMod implements ModInitializer, PermissionCheckCallback {
+import org.slf4j.Logger;
+
+public class PermissionTestMod implements ModInitializer, PermissionEvents.OnRequest, PermissionEvents.PrepareOfflinePlayer {
+	private static final Logger LOGGER = LogUtils.getLogger();
+
 	private static final PermissionNode<Boolean> ON_STONE = PermissionNode.of(Identifier.fromNamespaceAndPath("test", "on_stone"));
 	private static final PermissionNode<Boolean> IS_ENTITY = PermissionNode.of(Identifier.fromNamespaceAndPath("test", "is_entity"));
 	private static final PermissionNode<Boolean> ABOVE_SEA = PermissionNode.of(Identifier.fromNamespaceAndPath("test", "above_sea"));
@@ -63,18 +76,14 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 	@Override
 	public void onInitialize() {
 		CommandRegistrationCallback.EVENT.register(this::registerCommands);
-		PermissionCheckCallback.register(this);
+		PermissionEvents.ON_REQUEST.register(this);
+		PermissionEvents.PREPARE_OFFLINE_PLAYER.register(this);
 
-		try {
-			this.runBasicTest();
-		} catch (RuntimeException e) {
-			throw e;
-		} catch (Throwable e) {
-			throw new RuntimeException(e);
-		}
+		this.runBasicTest();
+		ServerLifecycleEvents.SERVER_STARTED.register(this::runServerTest);
 	}
 
-	private void runBasicTest() throws Throwable {
+	private void runBasicTest()  {
 		int value = RandomSource.createThreadLocalInstance().nextInt();
 
 		this.globalPermissionMap.set(MAGIC.key(), value);
@@ -82,15 +91,23 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 		PermissionContext context = PermissionContext.create(UUID.randomUUID(), PermissionContext.Type.OTHER, PermissionLevel.ADMINS);
 
 		int valueMainCheck = context.checkPermission(MAGIC, value + 1);
-		int valueAsyncCheck = context.checkPermissionAsync(MAGIC, value - 1).get(5, TimeUnit.SECONDS);
 
 		if (valueMainCheck != value) {
 			throw new IllegalStateException("Permission check failed! valueMainCheck != value, d=" + (valueMainCheck - value));
 		}
+	}
 
-		if (valueMainCheck != valueAsyncCheck) {
-			throw new IllegalStateException("Permission check failed! valueMainCheck != valueAsyncCheck, d=" + (valueMainCheck - valueAsyncCheck));
-		}
+	private void runServerTest(MinecraftServer server) {
+		PermissionContext.offlinePlayer(NameAndId.createOffline("TinyPotato"), server).thenAcceptAsync(context -> {
+			int value = RandomSource.createThreadLocalInstance().nextInt();
+			this.globalPermissionMap.set(MAGIC.key(), value);
+
+			int valueMainCheck = context.checkPermission(MAGIC, value + 1);
+
+			if (valueMainCheck != value) {
+				throw new IllegalStateException("Permission check failed! valueMainCheck != value, d=" + (valueMainCheck - value));
+			}
+		}, server);
 	}
 
 	private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context, Commands.CommandSelection selection) {
@@ -144,7 +161,7 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public @Nullable <T> T onPermissionCheck(PermissionContext context, PermissionNode<T> permission) {
+	public @Nullable <T> T handlePermissionRequest(PermissionContext context, PermissionNode<T> permission) {
 		Level level = context.get(PermissionContext.LEVEL);
 		BlockPos blockPos = context.get(PermissionContext.BLOCK_POSITION);
 		Entity entity = context.get(PermissionContext.ENTITY);
@@ -164,5 +181,11 @@ public class PermissionTestMod implements ModInitializer, PermissionCheckCallbac
 		}
 
 		return this.globalPermissionMap.get(permission.key(), permission.codec());
+	}
+
+	@Override
+	public @NonNull CompletableFuture<Void> prepareOfflinePlayer(PermissionContext context, MinecraftServer server) {
+		LOGGER.info("Preparing for offline player check for {} (also known as {})!", context.uuid(), context.get(PermissionContext.NAME));
+		return CompletableFuture.completedFuture(null);
 	}
 }

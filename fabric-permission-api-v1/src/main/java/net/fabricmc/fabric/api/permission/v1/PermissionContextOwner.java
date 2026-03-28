@@ -16,8 +16,6 @@
 
 package net.fabricmc.fabric.api.permission.v1;
 
-import java.util.concurrent.CompletableFuture;
-
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -27,7 +25,6 @@ import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.world.entity.Entity;
 
 import net.fabricmc.fabric.api.util.TriState;
-import net.fabricmc.fabric.impl.permission.PermissionCheckCallbackImpl;
 
 /**
  * Utility interface allowing quick access for permission checking methods.
@@ -120,70 +117,8 @@ public interface PermissionContextOwner {
 	 */
 	@Contract("_, null -> _; _, !null -> !null")
 	default <T> @Nullable T checkPermission(PermissionNode<T> permission, @Nullable T defaultValue) {
-		T value = PermissionCheckCallbackImpl.MAIN_EVENT.invoker().onPermissionCheck(this.getPermissionContext(), permission);
+		T value = PermissionEvents.ON_REQUEST.invoker().handlePermissionRequest(this.getPermissionContext(), permission);
 
 		return value != null ? value : defaultValue;
-	}
-
-	/**
-	 * Asynchronous simple permission check. Should be used to check if something is allowed.
-	 *
-	 * @param permission a permission node to check against
-	 * @return TriState returning value of the permission (DEFAULT if not changed)
-	 */
-	default CompletableFuture<TriState> checkPermissionAsync(Identifier permission) {
-		return checkPermissionAsync(PermissionNode.of(permission)).thenApply(TriState::of);
-	}
-
-	/**
-	 * Asynchronous simple permission check. Should be used to check if something is allowed.
-	 * Will default to {@param defaultValue} if permission value not is not provided.
-	 *
-	 * @param permission a permission identifier to check against
-	 * @param defaultValue fallback value
-	 * @return a boolean representing state of the permission, returns defaultValue if not modified by other mods
-	 */
-	default CompletableFuture<Boolean> checkPermissionAsync(Identifier permission, boolean defaultValue) {
-		return this.checkPermissionAsync(permission).thenApply(x -> x.orElse(defaultValue));
-	}
-
-	/**
-	 * Asynchronous simple permission check. Should be used to check if something is allowed.
-	 * Will check for vanilla permission level, if permission value not is not provided.
-	 *
-	 * @param permission a permission identifier to check against
-	 * @param defaultPermissionLevel a fallback permission level to check against
-	 * @return a boolean representing state of the permission
-	 */
-	default CompletableFuture<Boolean> checkPermissionAsync(Identifier permission, PermissionLevel defaultPermissionLevel) {
-		boolean permissionLevelValue = this.getPermissionContext().permissionLevel().isEqualOrHigherThan(defaultPermissionLevel);
-		return this.checkPermissionAsync(permission).thenApply(x -> x.orElse(permissionLevelValue));
-	}
-
-	/**
-	 * Asynchronous, dynamic and typed permission check. Should be used to check for more complex permission values,
-	 * like allowed amount and alike.
-	 *
-	 * @param permission a permission node to check against
-	 * @param <T> type of the permission
-	 * @return value of the permission or null if not provided
-	 */
-	default <T> CompletableFuture<@Nullable T> checkPermissionAsync(PermissionNode<T> permission) {
-		return this.checkPermissionAsync(permission, null);
-	}
-
-	/**
-	 * Asynchronous, dynamic and typed permission check. Should be used to check for more complex permission values,
-	 * like allowed amount and alike.
-	 *
-	 * @param permission a permission identifier to check against
-	 * @param defaultValue fallback value, if not provided
-	 * @param <T> type of the permission
-	 * @return value of the permission or {@param defaultValue} if not provided
-	 */
-	default <T> CompletableFuture<@Nullable T> checkPermissionAsync(PermissionNode<T> permission, @Nullable T defaultValue) {
-		CompletableFuture<@Nullable T> value = PermissionCheckCallbackImpl.ASYNC_EVENT.invoker().onAsyncPermissionCheck(this.getPermissionContext(), permission);
-
-		return value.thenApply(val -> val != null ? val : defaultValue);
 	}
 }

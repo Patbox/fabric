@@ -19,6 +19,8 @@ package net.fabricmc.fabric.impl.permission;
 import java.util.Set;
 import java.util.UUID;
 
+import net.minecraft.server.MinecraftServer;
+
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -33,11 +35,20 @@ public class EntityPermissionContext implements PermissionContext {
 	private final Entity entity;
 	private final Type type;
 	private final Set<Key<?>> keys;
+	private final @Nullable MinecraftServer server;
 
 	public EntityPermissionContext(Entity entity) {
 		this.entity = entity;
 		this.type = entity instanceof Player ? Type.PLAYER : Type.ENTITY;
-		this.keys = this.entity instanceof ServerPlayer ? PermissionContextKey.DEFAULT_COMMAND_ENTITY_KEYS : PermissionContextKey.DEFAULT_ENTITY_KEYS;
+		this.server = entity.level().getServer() != null ? entity.level().getServer() : null;
+
+		if (this.entity instanceof ServerPlayer) {
+			this.keys = PermissionContextKey.DEFAULT_COMMAND_ENTITY_KEYS;
+		} else if (this.server != null) {
+			this.keys = PermissionContextKey.DEFAULT_SERVER_ENTITY_KEYS;
+		} else {
+			this.keys = PermissionContextKey.DEFAULT_ENTITY_KEYS;
+		}
 	}
 
 	@Override
@@ -60,6 +71,8 @@ public class EntityPermissionContext implements PermissionContext {
 			return (T) this.entity;
 		} else if (key == PermissionContext.COMMAND_SOURCE_STACK) {
 			return (T) this.entity instanceof ServerPlayer player ? (T) player.commandSource() : null;
+		} else if (key == PermissionContext.SERVER) {
+			return (T) this.server;
 		}
 
 		return null;

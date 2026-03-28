@@ -49,7 +49,9 @@ public class CommandPermissionContext implements PermissionContext {
 		} else if (key == PermissionContext.ENTITY) {
 			return (T) this.source.getEntity();
 		} else if (key == PermissionContext.COMMAND_SOURCE_STACK) {
-			return (T) this;
+			return (T) this.source;
+		} else if (key == PermissionContext.SERVER) {
+			return (T) this.source.getServer();
 		}
 
 		return null;
