@@ -26,16 +26,9 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
-
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.permission.v1.PermissionEvents;
-
-import net.minecraft.server.MinecraftServer;
-
-import net.minecraft.server.players.NameAndId;
-
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
 
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -47,8 +40,10 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TextComponentTagVisitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -56,12 +51,12 @@ import net.minecraft.world.level.block.Blocks;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
+import net.fabricmc.fabric.api.permission.v1.PermissionEvents;
 import net.fabricmc.fabric.api.permission.v1.PermissionNode;
 import net.fabricmc.fabric.api.permission.v1.PermissionPredicates;
 import net.fabricmc.fabric.test.permission.example.PermissionMap;
-
-import org.slf4j.Logger;
 
 public class PermissionTestMod implements ModInitializer, PermissionEvents.OnRequest, PermissionEvents.PrepareOfflinePlayer {
 	private static final Logger LOGGER = LogUtils.getLogger();
@@ -83,7 +78,7 @@ public class PermissionTestMod implements ModInitializer, PermissionEvents.OnReq
 		ServerLifecycleEvents.SERVER_STARTED.register(this::runServerTest);
 	}
 
-	private void runBasicTest()  {
+	private void runBasicTest() {
 		int value = RandomSource.createThreadLocalInstance().nextInt();
 
 		this.globalPermissionMap.set(MAGIC.key(), value);

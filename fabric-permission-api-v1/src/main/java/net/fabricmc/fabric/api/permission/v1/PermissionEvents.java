@@ -17,15 +17,14 @@
 package net.fabricmc.fabric.api.permission.v1;
 
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.event.EventFactory;
+import org.jspecify.annotations.Nullable;
 
 import net.minecraft.server.MinecraftServer;
 
-import org.jspecify.annotations.Nullable;
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.EventFactory;
 
 /**
  * These events used for handling permission resolution within PermissionContext system.
@@ -52,10 +51,12 @@ public final class PermissionEvents {
 		public @Nullable <T> T handlePermissionRequest(PermissionContext context, PermissionNode<T> permission) {
 			for (OnRequest callback : arr) {
 				T out = callback.handlePermissionRequest(context, permission);
+
 				if (out != null) {
 					return out;
 				}
 			}
+
 			return null;
 		}
 	});
@@ -67,14 +68,14 @@ public final class PermissionEvents {
 	 */
 	public static final Event<PrepareOfflinePlayer> PREPARE_OFFLINE_PLAYER = EventFactory.createArrayBacked(PrepareOfflinePlayer.class,
 			(_, _) -> CompletableFuture.completedFuture(null), arr -> (context, server) -> {
-		var list = new ArrayList<CompletableFuture<?>>();
+				var list = new ArrayList<CompletableFuture<?>>();
 
-		for (PrepareOfflinePlayer callback : arr) {
-			list.add(callback.prepareOfflinePlayer(context, server));
-		}
+				for (PrepareOfflinePlayer callback : arr) {
+					list.add(callback.prepareOfflinePlayer(context, server));
+				}
 
-		return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new));
-	});
+				return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new));
+			});
 
 	@FunctionalInterface
 	public interface OnRequest {

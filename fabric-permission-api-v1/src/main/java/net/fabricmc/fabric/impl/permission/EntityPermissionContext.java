@@ -19,10 +19,9 @@ package net.fabricmc.fabric.impl.permission;
 import java.util.Set;
 import java.util.UUID;
 
-import net.minecraft.server.MinecraftServer;
-
 import org.jspecify.annotations.Nullable;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import net.minecraft.server.permissions.PermissionLevel;
