@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
 import net.fabricmc.fabric.api.event.Event;
@@ -101,15 +100,6 @@ public final class DefaultItemComponentEvents {
 		 */
 		default void modify(Collection<Item> items, BiConsumer<DataComponentMap.Builder, Item> builderConsumer) {
 			modify(items::contains, builderConsumer);
-		}
-
-		/**
-		 * Modify the default data components of the specified items.
-		 * @param tag The tag with items to modify
-		 * @param builderConsumer A consumer that provides a {@link DataComponentMap.Builder} to modify the item's components.
-		 */
-		default void modify(TagKey<Item> tag, BiConsumer<DataComponentMap.Builder, Item> builderConsumer) {
-			modify(item -> item.builtInRegistryHolder().is(tag), builderConsumer);
 		}
 	}
 
