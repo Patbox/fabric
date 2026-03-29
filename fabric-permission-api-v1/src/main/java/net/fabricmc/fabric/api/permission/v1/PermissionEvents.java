@@ -18,6 +18,7 @@ package net.fabricmc.fabric.api.permission.v1;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
 
@@ -68,13 +69,23 @@ public final class PermissionEvents {
 	 */
 	public static final Event<PrepareOfflinePlayer> PREPARE_OFFLINE_PLAYER = EventFactory.createArrayBacked(PrepareOfflinePlayer.class,
 			(_, _) -> CompletableFuture.completedFuture(null), arr -> (context, server) -> {
-				var list = new ArrayList<CompletableFuture<?>>();
+				var list = new ArrayList<CompletableFuture<@Nullable Consumer<MutablePermissionContext>>>();
 
 				for (PrepareOfflinePlayer callback : arr) {
 					list.add(callback.prepareOfflinePlayer(context, server));
 				}
 
-				return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new));
+				return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new)).thenApply(_ -> {
+					return mutableContext -> {
+						for (CompletableFuture<@Nullable Consumer<MutablePermissionContext>> future : list) {
+							Consumer<MutablePermissionContext> consumer = future.getNow(null);
+
+							if (consumer != null) {
+								consumer.accept(mutableContext);
+							}
+						}
+					};
+				});
 			});
 
 	@FunctionalInterface
@@ -99,8 +110,8 @@ public final class PermissionEvents {
 		 *
 		 * @param context context to load.
 		 * @param server server for which this player is resolved against.
-		 * @return a completable future indicating that permission context is ready to be checked against.
+		 * @return a completable future indicating that permission context is ready to be checked against, with optional callback to modify the context.
 		 */
-		CompletableFuture<Void> prepareOfflinePlayer(PermissionContext context, MinecraftServer server);
+		CompletableFuture<@Nullable Consumer<MutablePermissionContext>> prepareOfflinePlayer(PermissionContext context, MinecraftServer server);
 	}
 }

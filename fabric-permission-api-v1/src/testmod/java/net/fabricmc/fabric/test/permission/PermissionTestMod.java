@@ -21,6 +21,7 @@ import static net.minecraft.commands.Commands.literal;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -52,6 +53,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.permission.v1.MutablePermissionContext;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 import net.fabricmc.fabric.api.permission.v1.PermissionEvents;
 import net.fabricmc.fabric.api.permission.v1.PermissionNode;
@@ -60,6 +62,8 @@ import net.fabricmc.fabric.test.permission.example.PermissionMap;
 
 public class PermissionTestMod implements ModInitializer, PermissionEvents.OnRequest, PermissionEvents.PrepareOfflinePlayer {
 	private static final Logger LOGGER = LogUtils.getLogger();
+
+	private static final PermissionContext.Key<Object> OBJECT_KEY = PermissionContext.key(Identifier.fromNamespaceAndPath("test", "object_key"));
 
 	private static final PermissionNode<Boolean> ON_STONE = PermissionNode.of(Identifier.fromNamespaceAndPath("test", "on_stone"));
 	private static final PermissionNode<Boolean> IS_ENTITY = PermissionNode.of(Identifier.fromNamespaceAndPath("test", "is_entity"));
@@ -94,6 +98,10 @@ public class PermissionTestMod implements ModInitializer, PermissionEvents.OnReq
 
 	private void runServerTest(MinecraftServer server) {
 		PermissionContext.offlinePlayer(NameAndId.createOffline("TinyPotato"), server).thenAcceptAsync(context -> {
+			if (context.get(OBJECT_KEY) == null) {
+				throw new IllegalStateException("Context wasn't modified correctly!");
+			}
+
 			int value = RandomSource.createThreadLocalInstance().nextInt();
 			this.globalPermissionMap.set(MAGIC.key(), value);
 
@@ -179,8 +187,11 @@ public class PermissionTestMod implements ModInitializer, PermissionEvents.OnReq
 	}
 
 	@Override
-	public @NonNull CompletableFuture<Void> prepareOfflinePlayer(PermissionContext context, MinecraftServer server) {
+	public @NonNull CompletableFuture<@Nullable Consumer<MutablePermissionContext>> prepareOfflinePlayer(PermissionContext context, MinecraftServer server) {
 		LOGGER.info("Preparing for offline player check for {} (also known as {})!", context.uuid(), context.get(PermissionContext.NAME));
-		return CompletableFuture.completedFuture(null);
+		return CompletableFuture.completedFuture(mutCtx -> {
+			mutCtx.set(OBJECT_KEY, new Object());
+			LOGGER.info("Modified context for {}!", mutCtx.uuid());
+		});
 	}
 }

@@ -118,7 +118,13 @@ public interface PermissionContext extends PermissionContextOwner {
 		var ctx = new CustomPermissionContext(uuid, Type.PLAYER, permissionLevel);
 		ctx.set(PermissionContext.SERVER, server);
 
-		return PermissionEvents.PREPARE_OFFLINE_PLAYER.invoker().prepareOfflinePlayer(ctx, server).thenApply(_ -> ctx);
+		return PermissionEvents.PREPARE_OFFLINE_PLAYER.invoker().prepareOfflinePlayer(ctx, server).thenApply(consumer -> {
+			if (consumer != null) {
+				consumer.accept(ctx);
+			}
+
+			return ctx;
+		});
 	}
 
 	/**
@@ -140,7 +146,13 @@ public interface PermissionContext extends PermissionContextOwner {
 		ctx.set(PermissionContext.NAME, nameAndId.name());
 		ctx.set(PermissionContext.SERVER, server);
 
-		return PermissionEvents.PREPARE_OFFLINE_PLAYER.invoker().prepareOfflinePlayer(ctx, server).thenApply(_ -> ctx);
+		return PermissionEvents.PREPARE_OFFLINE_PLAYER.invoker().prepareOfflinePlayer(ctx, server).thenApply(consumer -> {
+			if (consumer != null) {
+				consumer.accept(ctx);
+			}
+
+			return ctx;
+		});
 	}
 
 	/**
