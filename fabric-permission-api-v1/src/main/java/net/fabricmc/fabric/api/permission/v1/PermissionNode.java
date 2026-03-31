@@ -28,8 +28,10 @@ import net.fabricmc.fabric.impl.permission.PermissionNodeImpl;
 /**
  * This class represents a permission, which consist of identifier as the key and a codec to dictate
  * its type. This class can be instantiated dynamically (just before permission request) or statically
- * on mod initialization. Newly created instances that use equal keys and the same codec instance
- * are considered to be equal.
+ * on mod initialization.
+ *
+ * <p>PermissionNode objects are considered to be equal objects (but not the same instances)
+ * as long as they were created with the same key and codec pair.
  *
  * @param <T> type of the permission
  */
@@ -137,7 +139,8 @@ public interface PermissionNode<T> {
 	 * Creates a permission node of custom, codec defined type.
 	 *
 	 * @param namespace namespace of the key identifying this permission node
-	 * @param path path of the key identifying this permission node	 * @param codec a codec used to read the permission value
+	 * @param path path of the key identifying this permission node
+	 * @param codec a codec used to read the permission value
 	 * @param <T> the type of permission
 	 * @return permission node for codec-defined type
 	 */

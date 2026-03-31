@@ -18,8 +18,6 @@ package net.fabricmc.fabric.impl.permission;
 
 import java.util.Set;
 
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
 
 import net.minecraft.commands.CommandSourceStack;
@@ -33,8 +31,6 @@ import net.minecraft.world.phys.Vec3;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 
 public record PermissionContextKey<T>(Identifier id) implements PermissionContext.Key<T> {
-	private static final Interner<PermissionContextKey<?>> VALUES = Interners.newWeakInterner();
-
 	public static final PermissionContext.Key<String> NAME = fabricKey("name");
 	public static final PermissionContext.Key<Vec3> POSITION = fabricKey("position");
 	public static final PermissionContext.Key<BlockPos> BLOCK_POSITION = fabricKey("block_position");
@@ -50,12 +46,7 @@ public record PermissionContextKey<T>(Identifier id) implements PermissionContex
 	public static final Set<PermissionContext.Key<?>> DEFAULT_COMMAND_ENTITY_KEYS = Sets.union(DEFAULT_COMMON_KEYS, Set.of(ENTITY, COMMAND_SOURCE_STACK, SERVER));
 
 	private static <T> PermissionContext.Key<T> fabricKey(String path) {
-		return getOrCreateKey(Identifier.fromNamespaceAndPath("fabric", path));
-	}
-
-	public static <T> PermissionContext.Key<T> getOrCreateKey(Identifier identifier) {
-		//noinspection unchecked
-		return (PermissionContext.Key<T>) VALUES.intern(new PermissionContextKey<>(identifier));
+		return new PermissionContextKey<>(Identifier.fromNamespaceAndPath("fabric", path));
 	}
 
 	@Override

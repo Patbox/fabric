@@ -69,7 +69,7 @@ public interface PermissionContextOwner {
 
 	/**
 	 * Simple permission check. Should be used to check if something is allowed.
-	 * Will default to {@param defaultValue} if permission value not is not provided.
+	 * Will default to {@param defaultValue} if permission value is not provided.
 	 *
 	 * @param permission a permission identifier to check against
 	 * @param defaultValue fallback value
@@ -82,7 +82,7 @@ public interface PermissionContextOwner {
 
 	/**
 	 * Simple permission check. Should be used to check if something is allowed.
-	 * Will check for vanilla permission level, if permission value not is not provided.
+	 * Will check for vanilla permission level, if permission value is not provided.
 	 *
 	 * @param permission a permission identifier to check against
 	 * @param defaultPermissionLevel a fallback permission level to check against

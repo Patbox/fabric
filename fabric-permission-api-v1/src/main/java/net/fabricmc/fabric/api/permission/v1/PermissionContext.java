@@ -156,7 +156,7 @@ public interface PermissionContext extends PermissionContextOwner {
 	}
 
 	/**
-	 * Creates a unique key, indented for attaching additional context data.
+	 * Creates a unique key, intended for attaching additional context data.
 	 * This key/value can't be serialized.
 	 *
 	 * @param identifier unique identifier
@@ -166,7 +166,7 @@ public interface PermissionContext extends PermissionContextOwner {
 	static <T> Key<T> key(Identifier identifier) {
 		Objects.requireNonNull(identifier, "identifier cannot be null");
 
-		return PermissionContextKey.getOrCreateKey(identifier);
+		return new PermissionContextKey<>(identifier);
 	}
 
 	/**
@@ -193,7 +193,7 @@ public interface PermissionContext extends PermissionContextOwner {
 	 * Returns optional value attached to this context, with a fallback.
 	 *
 	 * @param key unique key
-	 * @param defaultValue fallback value, if it's not present
+	 * @param defaultValue fallback value, if it's not present or null
 	 * @param <T> type of value
 	 * @return stored value if it's present, otherwise defaultValue
 	 */
@@ -243,7 +243,6 @@ public interface PermissionContext extends PermissionContextOwner {
 
 	/**
 	 * Key used to represent additional permission context.
-	 * The context itself might be serializable, however it's not a strict requirement.
 	 *
 	 * @param <T> type of the context
 	 */

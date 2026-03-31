@@ -16,7 +16,7 @@
 
 package net.fabricmc.fabric.impl.permission;
 
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -31,12 +31,17 @@ import net.fabricmc.fabric.api.permission.v1.PermissionContext;
 
 public record OverriddenPermissionContext(PermissionContext context, Map<Key<?>, Object> overrides) implements MutablePermissionContext {
 	public OverriddenPermissionContext(PermissionContext context) {
-		this(context, new IdentityHashMap<>());
+		this(context, new HashMap<>());
 	}
 
 	@Override
 	public <T> MutablePermissionContext set(Key<T> key, @Nullable T value) {
-		this.overrides.put(key, value);
+		if (value != null) {
+			this.overrides.put(key, value);
+		} else {
+			this.overrides.remove(key);
+		}
+
 		return this;
 	}
 
