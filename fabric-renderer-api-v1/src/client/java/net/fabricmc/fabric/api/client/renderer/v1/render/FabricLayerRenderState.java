@@ -20,9 +20,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.rendertype.RenderType;
 
-import net.fabricmc.fabric.api.client.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 
 /**
@@ -38,28 +36,12 @@ public interface FabricLayerRenderState {
 	 * positions of geometry added to this emitter will automatically be output on
 	 * {@link ItemStackRenderState#visitExtents(Consumer)} ({@link ItemStackRenderState.LayerRenderState#setExtents(Supplier)} must still
 	 * be used to add positions of {@linkplain ItemStackRenderState.LayerRenderState#prepareQuadList() vanilla quads}). Adding quads
-	 * that use animated sprites to this emitter will not automatically call {@link ItemStackRenderState#setAnimated()}. Any
+	 * that use animated sprites or guaranteed glint to this emitter will not automatically call {@link ItemStackRenderState#setAnimated()}. Any
 	 * quads added to this emitter will be cleared on {@link ItemStackRenderState.LayerRenderState#clear()}.
 	 *
 	 * <p>Do not retain references outside the context of this layer.
 	 */
 	default QuadEmitter emitter() {
-		return Renderer.get().getLayerRenderStateEmitter((ItemStackRenderState.LayerRenderState) this);
-	}
-
-	/**
-	 * Sets the function that chooses the {@link RenderType} for quads added to this layer through {@link #emitter()}
-	 * based on certain quad properties. This method has no effect on how
-	 * {@linkplain ItemStackRenderState.LayerRenderState#prepareQuadList() vanilla quads} are rendered. If this function
-	 * is not set, all non-vanilla quads in this layer will be rendered using this layer's
-	 * {@linkplain ItemStackRenderState.LayerRenderState#setRenderType(RenderType) default render type}. If the
-	 * function returns {@code null} for a certain combination of quad properties, then all non-vanilla quads with
-	 * matching property values will use this layer's default render type. This layer's function will be unset on
-	 * {@link ItemStackRenderState.LayerRenderState#clear()}.
-	 *
-	 * @see ItemRenderTypeGetter
-	 */
-	default void setRenderTypeGetter(ItemRenderTypeGetter renderTypeGetter) {
-		Renderer.get().setLayerRenderTypeGetter((ItemStackRenderState.LayerRenderState) this, renderTypeGetter);
+		throw new AssertionError("Implemented in mixin.");
 	}
 }
