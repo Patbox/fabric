@@ -17,9 +17,11 @@
 package net.fabricmc.fabric.api.permission.v1;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import com.mojang.serialization.Codec;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
 
 import net.minecraft.resources.Identifier;
 
@@ -47,7 +49,7 @@ public interface PermissionNode<T> {
 	static PermissionNode<Boolean> of(Identifier key) {
 		Objects.requireNonNull(key, "key can't be null!");
 
-		return new PermissionNodeImpl<>(key, Codec.BOOL);
+		return new PermissionNodeImpl<>(key, Codec.BOOL, PermissionNodeImpl.BOOLEAN);
 	}
 
 	/**
@@ -75,7 +77,7 @@ public interface PermissionNode<T> {
 	static PermissionNode<Integer> ofInteger(Identifier key) {
 		Objects.requireNonNull(key, "key can't be null!");
 
-		return new PermissionNodeImpl<>(key, Codec.INT);
+		return new PermissionNodeImpl<>(key, Codec.INT, PermissionNodeImpl.INTEGER);
 	}
 
 	/**
@@ -103,7 +105,7 @@ public interface PermissionNode<T> {
 	static PermissionNode<String> ofString(Identifier key) {
 		Objects.requireNonNull(key, "key can't be null!");
 
-		return new PermissionNodeImpl<>(key, Codec.STRING);
+		return new PermissionNodeImpl<>(key, Codec.STRING, PermissionNodeImpl.STRING);
 	}
 
 	/**
@@ -126,13 +128,14 @@ public interface PermissionNode<T> {
 	 *
 	 * @param key a key identifying this permission
 	 * @param codec a codec used to read the permission value
+	 * @param checkedClass the class representing the custom value, used for cast validation
 	 * @param <T> the type of permission
 	 * @return permission node for codec-defined type
 	 */
-	static <T> PermissionNode<T> ofCustom(Identifier key, Codec<T> codec) {
+	static <T> PermissionNode<T> ofCustom(Identifier key, Codec<T> codec, Class<T> checkedClass) {
 		Objects.requireNonNull(key, "key can't be null!");
 
-		return new PermissionNodeImpl<>(key, codec);
+		return new PermissionNodeImpl<>(key, codec, i -> checkedClass.isAssignableFrom(i.getClass()));
 	}
 
 	/**
@@ -141,15 +144,63 @@ public interface PermissionNode<T> {
 	 * @param namespace namespace of the key identifying this permission node
 	 * @param path path of the key identifying this permission node
 	 * @param codec a codec used to read the permission value
+	 * @param checkedClass the class representing the custom value, used for cast validation
 	 * @param <T> the type of permission
 	 * @return permission node for codec-defined type
 	 */
-	static <T> PermissionNode<T> ofCustom(String namespace, String path, Codec<T> codec) {
+	static <T> PermissionNode<T> ofCustom(String namespace, String path, Codec<T> codec, Class<T> checkedClass) {
+		Objects.requireNonNull(namespace, "namespace can't be null!");
+		Objects.requireNonNull(path, "path can't be null!");
+		Objects.requireNonNull(codec, "codec can't be null!");
+		Objects.requireNonNull(checkedClass, "checkedClass can't be null!");
+
+		return ofCustom(Identifier.fromNamespaceAndPath(namespace, path), codec, checkedClass);
+	}
+
+	/**
+	 * Creates a permission node of custom, codec defined type.
+	 *
+	 * @param key a key identifying this permission
+	 * @param codec a codec used to read the permission value
+	 * @param castValidator a predicate used for validating if provided value can be cast to type of this node
+	 * @param <T> the type of permission
+	 * @return permission node for codec-defined type
+	 */
+	static <T> PermissionNode<T> ofCustom(Identifier key, Codec<T> codec, Predicate<Object> castValidator) {
+		Objects.requireNonNull(key, "key can't be null!");
+		Objects.requireNonNull(codec, "codec can't be null!");
+		Objects.requireNonNull(castValidator, "castValidator can't be null!");
+
+		return new PermissionNodeImpl<>(key, codec, castValidator);
+	}
+
+	/**
+	 * Creates a permission node of custom, codec defined type.
+	 *
+	 * @param namespace namespace of the key identifying this permission node
+	 * @param path path of the key identifying this permission node
+	 * @param codec a codec used to read the permission value
+	 * @param castValidator a predicate used for validating if provided value can be cast to type of this node
+	 * @param <T> the type of permission
+	 * @return permission node for codec-defined type
+	 */
+	static <T> PermissionNode<T> ofCustom(String namespace, String path, Codec<T> codec, Predicate<Object> castValidator) {
 		Objects.requireNonNull(namespace, "namespace can't be null!");
 		Objects.requireNonNull(path, "path can't be null!");
 
-		return ofCustom(Identifier.fromNamespaceAndPath(namespace, path), codec);
+		return ofCustom(Identifier.fromNamespaceAndPath(namespace, path), codec, castValidator);
 	}
+
+	/**
+	 * Validates and cast a value to the type of permission nodes.
+	 * Should be used when not handling permission resolution with the provided codec.
+	 *
+	 * @param value value to cast, should be compatible with T
+	 * @return The same value as input
+	 * @throws IllegalArgumentException if the provided object isn't valid!
+	 */
+	@Nullable
+	T cast(@Nullable Object value);
 
 	/**
 	 * Returns a key that represents this permission.

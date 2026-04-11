@@ -171,19 +171,20 @@ public class PermissionTestMod implements ModInitializer, PermissionEvents.OnReq
 
 		if (permission.codec() == Codec.BOOL) {
 			if (permission.equals(ON_STONE) && level != null && blockPos != null) {
-				return (T) Boolean.valueOf(level.getBlockState(blockPos.below()).is(Blocks.STONE));
+				return permission.cast(level.getBlockState(blockPos.below()).is(Blocks.STONE));
 			}
 
 			if (permission.equals(IS_ENTITY)) {
-				return (T) Boolean.valueOf(entity != null);
+				return permission.cast(entity != null);
 			}
 
 			if (permission.equals(ABOVE_SEA) && blockPos != null && level != null) {
-				return (T) Boolean.valueOf(level.getSeaLevel() < blockPos.getY());
+				return permission.cast(level.getSeaLevel() < blockPos.getY());
 			}
 		}
 
-		return this.globalPermissionMap.get(permission.key(), permission.codec());
+		// This isn't needed since PermissionMap uses codec, but it's done to make sure it works™
+		return permission.cast(this.globalPermissionMap.get(permission.key(), permission.codec()));
 	}
 
 	@Override

@@ -16,9 +16,9 @@
 
 package net.fabricmc.fabric.test.permission.unit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.mojang.serialization.MapCodec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +28,7 @@ import net.minecraft.util.Util;
 
 import net.fabricmc.fabric.api.permission.v1.MutablePermissionContext;
 import net.fabricmc.fabric.api.permission.v1.PermissionContext;
+import net.fabricmc.fabric.api.permission.v1.PermissionNode;
 
 public class PermissionContextTests {
 	private static final PermissionContext.Key<Object> OBJECT_KEY = PermissionContext.key(Identifier.fromNamespaceAndPath("test", "object"));
@@ -64,5 +65,46 @@ public class PermissionContextTests {
 
 		context.set(OBJECT_KEY, a);
 		assertEquals(context.orElse(OBJECT_KEY, b), a);
+	}
+
+	// Test casting and it's object validation.
+	@Test
+	void testCasts() {
+		interface BaseType {}
+		record ImplementedType() implements BaseType {}
+		record Implemented2Type() implements BaseType {}
+
+		var typed = new ImplementedType();
+		var typed2 = new Implemented2Type();
+		var object = new Object();
+
+		var booleanPermission = PermissionNode.of("test", "boolean");
+		assertDoesNotThrow(() -> assertNull(booleanPermission.cast(null)));
+		assertDoesNotThrow(() -> assertNotNull(booleanPermission.cast(true)));
+		assertDoesNotThrow(() -> assertNotNull(booleanPermission.cast(Boolean.FALSE)));
+		assertThrows(IllegalArgumentException.class, () -> booleanPermission.cast(typed));
+
+		var stringPermission = PermissionNode.ofString("test", "string");
+		assertDoesNotThrow(() -> assertNull(stringPermission.cast(null)));
+		assertDoesNotThrow(() -> assertNotNull(stringPermission.cast("Right type")));
+		assertThrows(IllegalArgumentException.class, () -> stringPermission.cast(typed));
+
+		var intPermission = PermissionNode.ofInteger("test", "int");
+		assertDoesNotThrow(() -> assertNull(intPermission.cast(null)));
+		assertDoesNotThrow(() -> assertNotNull(intPermission.cast(1234)));
+		assertDoesNotThrow(() -> assertNotNull(intPermission.cast(Integer.valueOf(5))));
+		assertThrows(IllegalArgumentException.class, () -> intPermission.cast(typed));
+
+		var customGenericPermission = PermissionNode.ofCustom("test", "custom_generic", MapCodec.unitCodec(object), Object.class);
+		assertDoesNotThrow(() -> assertNull(customGenericPermission.cast(null)));
+		assertDoesNotThrow(() -> assertNotNull(customGenericPermission.cast(1234)));
+		assertDoesNotThrow(() -> assertNotNull(customGenericPermission.cast(object)));
+		assertDoesNotThrow(() -> assertNotNull(customGenericPermission.cast(typed)));
+
+		var customSpecificPermission = PermissionNode.ofCustom("test", "custom_specific", MapCodec.unitCodec(typed), BaseType.class);
+		assertDoesNotThrow(() -> assertNull(customSpecificPermission.cast(null)));
+		assertDoesNotThrow(() -> assertNotNull(customSpecificPermission.cast(typed)));
+		assertDoesNotThrow(() -> assertNotNull(customSpecificPermission.cast(typed2)));
+		assertThrows(IllegalArgumentException.class, () -> customSpecificPermission.cast(object));
 	}
 }
