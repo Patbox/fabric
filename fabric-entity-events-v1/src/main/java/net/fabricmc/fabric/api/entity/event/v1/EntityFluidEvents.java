@@ -17,6 +17,7 @@
 package net.fabricmc.fabric.api.entity.event.v1;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityFluidInteraction;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -27,13 +28,13 @@ import net.fabricmc.fabric.api.event.EventFactory;
 public final class EntityFluidEvents {
 	/**
 	 * An event to handle the fluid interaction update for all entities.
-	 * Listeners should return true, if entity is interacting with mods custom fluid, false otherwise
+	 * Listeners should return true, if entity is interacting with mods custom fluid, false otherwise.
 	 */
-	public static final Event<FluidInteractionUpdate> ON_FLUID_INTERACTION_UPDATE = EventFactory.createArrayBacked(FluidInteractionUpdate.class, listeners -> (entity, shouldBePushed) -> {
+	public static final Event<FluidInteractionUpdate> ON_FLUID_INTERACTION_UPDATE = EventFactory.createArrayBacked(FluidInteractionUpdate.class, listeners -> (entity, interaction, shouldBePushed) -> {
 		boolean interacted = false;
 
 		for (FluidInteractionUpdate listener : listeners) {
-			interacted |= listener.onFluidInteractionHandle(entity, shouldBePushed);
+			interacted |= listener.onFluidInteractionUpdate(entity, interaction, shouldBePushed);
 		}
 
 		return interacted;
@@ -42,9 +43,13 @@ public final class EntityFluidEvents {
 	@FunctionalInterface
 	public interface FluidInteractionUpdate {
 		/**
+		 * Called when entity processes the fluid interaction updates.
+		 *
+		 * @param entity entity that fluid interaction update is processed for
+		 * @param interaction entity's fluid interaction tracker, can be used to query values or apply fluid current
 		 * @return true if entity interacted with a custom fluid, false otherwise
 		 */
-		boolean onFluidInteractionHandle(Entity entity, boolean shouldBePushed);
+		boolean onFluidInteractionUpdate(Entity entity, EntityFluidInteraction interaction, boolean shouldBePushed);
 	}
 
 	private EntityFluidEvents() {
