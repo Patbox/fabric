@@ -16,6 +16,7 @@
 
 package net.fabricmc.fabric.mixin.entity.event;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,12 +28,16 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 
+import net.fabricmc.fabric.api.entity.event.v1.EntityFluidEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 
 @Mixin(Entity.class)
 abstract class EntityMixin {
 	@Shadow
 	private Level level;
+
+	@Shadow
+	public abstract boolean isPushedByFluid();
 
 	@WrapOperation(method = "teleport", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;"))
 	private Entity afterDimensionChanged(Entity instance, ServerLevel sourceLevel, ServerLevel targetWorld, TeleportTransition teleportTransition, Operation<Entity> original) {
@@ -44,5 +49,10 @@ abstract class EntityMixin {
 		}
 
 		return ret;
+	}
+
+	@ModifyReturnValue(method = "updateFluidInteraction", at = @At("RETURN"))
+	private boolean handleCustomFluidInteractionUpdates(boolean original) {
+		return EntityFluidEvents.ON_FLUID_INTERACTION_UPDATE.invoker().onFluidInteractionHandle((Entity) (Object) this, this.isPushedByFluid()) || original;
 	}
 }
