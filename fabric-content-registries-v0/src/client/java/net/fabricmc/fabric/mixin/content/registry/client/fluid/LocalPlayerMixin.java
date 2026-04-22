@@ -37,7 +37,7 @@ public class LocalPlayerMixin {
 		}
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
+			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
 
 			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canMoveDownInFluid(tagKey, (Entity) (Object) this)) {
 				return true;
@@ -54,7 +54,7 @@ public class LocalPlayerMixin {
 		}
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
+			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
 
 			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
 				return true;

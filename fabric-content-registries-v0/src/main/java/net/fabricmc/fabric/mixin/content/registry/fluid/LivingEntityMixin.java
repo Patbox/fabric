@@ -47,7 +47,7 @@ public abstract class LivingEntityMixin extends Entity {
 		}
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
+			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
 
 			if (inFluid) {
 				return true;
@@ -60,7 +60,7 @@ public abstract class LivingEntityMixin extends Entity {
 	@WrapWithCondition(method = "travelInFluid", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;travelInLava(Lnet/minecraft/world/phys/Vec3;DZD)V"))
 	private boolean travenInCustomFluid(LivingEntity instance, Vec3 vec3, double input, boolean baseGravity, double isFalling) {
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
+			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
 
 			if (inFluid) {
 				EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).travelInFluid(tagKey, (LivingEntity) (Object) this, vec3, input, baseGravity, isFalling);
@@ -78,7 +78,7 @@ public abstract class LivingEntityMixin extends Entity {
 		}
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
+			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
 
 			if (inFluid) {
 				fluid.set(tagKey);
@@ -96,7 +96,7 @@ public abstract class LivingEntityMixin extends Entity {
 		}
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = ((EntityAccessor) this).getFluidInteraction().isEyeInFluid(tagKey);
+			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isEyeInFluid(tagKey);
 
 			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canDrownInFluid(tagKey, (LivingEntity) (Object) this)) {
 				return true;
@@ -113,7 +113,7 @@ public abstract class LivingEntityMixin extends Entity {
 
 	@ModifyArg(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;jumpInLiquid(Lnet/minecraft/tags/TagKey;)V", ordinal = 0))
 	private TagKey<Fluid> swapFluidTag(TagKey<Fluid> fluidTagKey, @Share("fluid") LocalRef<TagKey<Fluid>> fluid) {
-		var custom = fluid.get();
+		TagKey<Fluid> custom = fluid.get();
 		return custom != null ? custom : fluidTagKey;
 	}
 }

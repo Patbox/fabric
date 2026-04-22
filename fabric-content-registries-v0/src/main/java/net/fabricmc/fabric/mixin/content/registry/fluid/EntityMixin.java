@@ -62,7 +62,7 @@ public abstract class EntityMixin {
 		}
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = this.fluidInteraction.isInFluid(tagKey);
+			boolean inFluid = this.fluidInteraction.isInFluid(tagKey);
 
 			if (inFluid) {
 				return true;
@@ -77,7 +77,7 @@ public abstract class EntityMixin {
 		final boolean isPushedByFluid = this.isPushedByFluid();
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = this.fluidInteraction.isInFluid(tagKey);
+			boolean inFluid = this.fluidInteraction.isInFluid(tagKey);
 
 			if (inFluid) {
 				hasInteracted = true;
@@ -95,7 +95,7 @@ public abstract class EntityMixin {
 		}
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = this.fluidInteraction.isInFluid(tagKey);
+			boolean inFluid = this.fluidInteraction.isInFluid(tagKey);
 
 			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
 				return true;
@@ -111,7 +111,7 @@ public abstract class EntityMixin {
 		successfulFluids.set(set);
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = this.fluidInteraction.isEyeInFluid(tagKey);
+			boolean inFluid = this.fluidInteraction.isEyeInFluid(tagKey);
 
 			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
 				original = true;
@@ -140,12 +140,12 @@ public abstract class EntityMixin {
 
 	@ModifyExpressionValue(method = "isVisuallyCrawling", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isInWater()Z"))
 	private boolean checkCustomFluids(boolean original) {
-		if (original)  {
+		if (original) {
 			return true;
 		}
 
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
-			var inFluid = this.fluidInteraction.isInFluid(tagKey);
+			boolean inFluid = this.fluidInteraction.isInFluid(tagKey);
 
 			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
 				return true;

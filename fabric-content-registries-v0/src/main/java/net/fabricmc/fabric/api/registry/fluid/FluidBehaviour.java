@@ -39,7 +39,6 @@ public interface FluidBehaviour {
 	 * @param canPushEntity controls whatever entity can be pushed
 	 */
 	default void handleFluidInteractionUpdate(TagKey<Fluid> fluid, Entity entity, EntityFluidInteraction interaction, boolean canPushEntity) {
-
 	}
 
 	/**
@@ -66,7 +65,6 @@ public interface FluidBehaviour {
 	 * @param oldY old y position value
 	 */
 	default void travelInFluid(TagKey<Fluid> fluid, LivingEntity entity, Vec3 input, double baseGravity, boolean isFalling, double oldY) {
-
 	}
 
 	/**

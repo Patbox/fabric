@@ -28,12 +28,12 @@ import net.fabricmc.fabric.api.registry.fluid.FluidBehaviour;
 import net.fabricmc.fabric.mixin.content.registry.fluid.LivingEntityAccessor;
 
 public record TestFluidBehaviour() implements FluidBehaviour {
-
 	@Override
 	public void handleFluidInteractionUpdate(TagKey<Fluid> fluid, Entity entity, EntityFluidInteraction interaction, boolean canPushEntity) {
 		if (canPushEntity) {
 			interaction.applyCurrentTo(fluid, entity, 0.05);
 		}
+
 		entity.fallDistance *= 0.5f;
 	}
 
