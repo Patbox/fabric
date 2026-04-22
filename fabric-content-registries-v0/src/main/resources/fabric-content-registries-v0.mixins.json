@@ -7,7 +7,6 @@
     "AxeItemMixin",
     "BlockBehaviourAccessor",
     "BlockBehaviourBlockStateBaseMixin",
-    "EntityMixin",
     "FireBlockMixin",
     "FuelValuesMixin",
     "GiveGiftToHeroAccessor",
@@ -21,7 +20,11 @@
     "VillagerMixin",
     "WalkNodeEvaluatorMixin",
     "WeatheringCopperMixin",
-    "WorkAtComposterAccessor"
+    "WorkAtComposterAccessor",
+    "fluid.EntityAccessor",
+    "fluid.EntityMixin",
+    "fluid.LivingEntityAccessor",
+    "fluid.LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

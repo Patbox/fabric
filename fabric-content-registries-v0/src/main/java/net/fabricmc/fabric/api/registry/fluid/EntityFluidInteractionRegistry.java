@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.api.registry;
+package net.fabricmc.fabric.api.registry.fluid;
 
 import java.util.Objects;
+
+import org.jetbrains.annotations.ApiStatus;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityFluidInteraction;
 import net.minecraft.world.level.material.Fluid;
 
-import net.fabricmc.fabric.impl.content.registry.EntityFluidInteractionRegistryImpl;
+import net.fabricmc.fabric.impl.content.registry.fluid.EntityFluidInteractionRegistryImpl;
 
 /**
  * A registry for fluid tags, that should be tracked by {@link Entity}'s {@link EntityFluidInteraction}.
  */
+@ApiStatus.Experimental
 public final class EntityFluidInteractionRegistry {
 	private EntityFluidInteractionRegistry() {
 	}
@@ -37,9 +40,10 @@ public final class EntityFluidInteractionRegistry {
 	 *
 	 * @param fluidTagKey  tag representing a fluid type that should be tracked.
 	 */
-	public static void register(TagKey<Fluid> fluidTagKey) {
+	public static void register(TagKey<Fluid> fluidTagKey, FluidBehaviour behaviour) {
 		Objects.requireNonNull(fluidTagKey, "fluidTagKey can't be null!");
+		Objects.requireNonNull(behaviour, "behaviour can't be null!");
 
-		EntityFluidInteractionRegistryImpl.register(fluidTagKey);
+		EntityFluidInteractionRegistryImpl.register(fluidTagKey, behaviour);
 	}
 }

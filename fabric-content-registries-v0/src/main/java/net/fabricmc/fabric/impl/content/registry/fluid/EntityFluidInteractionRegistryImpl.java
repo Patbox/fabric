@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 
-package net.fabricmc.fabric.impl.content.registry;
+package net.fabricmc.fabric.impl.content.registry.fluid;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Objects;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 
-public final class EntityFluidInteractionRegistryImpl {
-	private static final HashSet<TagKey<Fluid>> TRACKED_FLUIDS = new HashSet<>();
+import net.fabricmc.fabric.api.registry.fluid.FluidBehaviour;
 
-	public static void register(TagKey<Fluid> fluidTagKey) {
-		TRACKED_FLUIDS.add(fluidTagKey);
+public final class EntityFluidInteractionRegistryImpl {
+	private static final HashMap<TagKey<Fluid>, FluidBehaviour> TRACKED_FLUIDS = new HashMap<>();
+
+	public static void register(TagKey<Fluid> fluidTagKey, FluidBehaviour behaviour) {
+		TRACKED_FLUIDS.put(fluidTagKey, behaviour);
 	}
 
 	public static Collection<TagKey<Fluid>> getTrackedFluids() {
-		return TRACKED_FLUIDS;
+		return TRACKED_FLUIDS.keySet();
+	}
+
+	public static FluidBehaviour getFluidBehaviour(TagKey<Fluid> tagKey) {
+		return Objects.requireNonNull(TRACKED_FLUIDS.get(tagKey));
 	}
 }
