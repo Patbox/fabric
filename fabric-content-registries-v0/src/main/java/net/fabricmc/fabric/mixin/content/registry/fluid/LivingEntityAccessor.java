@@ -22,4 +22,10 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface LivingEntityAccessor {
 	@Invoker
 	void callJumpOutOfFluid(double oldY);
+
+	@Invoker
+	float callGetWaterSlowDown();
+
+	@Invoker
+	void callFloatInWaterWhileRidden();
 }

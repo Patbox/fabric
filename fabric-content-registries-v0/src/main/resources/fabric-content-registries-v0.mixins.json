@@ -21,10 +21,12 @@
     "WalkNodeEvaluatorMixin",
     "WeatheringCopperMixin",
     "WorkAtComposterAccessor",
+    "fluid.AbstractBoatMixin",
     "fluid.EntityAccessor",
     "fluid.EntityMixin",
     "fluid.LivingEntityAccessor",
-    "fluid.LivingEntityMixin"
+    "fluid.LivingEntityMixin",
+    "fluid.SwimMixin"
   ],
   "injectors": {
     "defaultRequire": 1

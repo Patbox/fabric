@@ -81,7 +81,7 @@ public abstract class EntityMixin {
 
 			if (inFluid) {
 				hasInteracted = true;
-				EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).handleFluidInteractionUpdate(tagKey, (Entity) (Object) this, this.fluidInteraction, isPushedByFluid);
+				EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).handleFluidInteractionUpdate(tagKey, (Entity) (Object) this, this.fluidInteraction, isPushedByFluid);
 			}
 		}
 
@@ -97,7 +97,7 @@ public abstract class EntityMixin {
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
 			boolean inFluid = this.fluidInteraction.isInFluid(tagKey);
 
-			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
+			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
 				return true;
 			}
 		}
@@ -113,7 +113,7 @@ public abstract class EntityMixin {
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
 			boolean inFluid = this.fluidInteraction.isEyeInFluid(tagKey);
 
-			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
+			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
 				original = true;
 				set.add(tagKey);
 			}
@@ -147,11 +147,28 @@ public abstract class EntityMixin {
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
 			boolean inFluid = this.fluidInteraction.isInFluid(tagKey);
 
-			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
+			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	@ModifyReturnValue(method = "canSpawnSprintParticle", at = @At("RETURN"))
+	private boolean preventParticlesInFluids(boolean original) {
+		if (!original) {
+			return false;
+		}
+
+		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
+			boolean inFluid = this.fluidInteraction.isInFluid(tagKey);
+
+			if (inFluid) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

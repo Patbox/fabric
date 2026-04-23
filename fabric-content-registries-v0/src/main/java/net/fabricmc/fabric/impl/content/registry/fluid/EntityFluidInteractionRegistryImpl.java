@@ -23,12 +23,12 @@ import java.util.Objects;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 
-import net.fabricmc.fabric.api.registry.fluid.FluidBehaviour;
+import net.fabricmc.fabric.api.registry.fluid.FluidBehavior;
 
 public final class EntityFluidInteractionRegistryImpl {
-	private static final HashMap<TagKey<Fluid>, FluidBehaviour> TRACKED_FLUIDS = new HashMap<>();
+	private static final HashMap<TagKey<Fluid>, FluidBehavior> TRACKED_FLUIDS = new HashMap<>();
 
-	public static void register(TagKey<Fluid> fluidTagKey, FluidBehaviour behaviour) {
+	public static void register(TagKey<Fluid> fluidTagKey, FluidBehavior behaviour) {
 		TRACKED_FLUIDS.put(fluidTagKey, behaviour);
 	}
 
@@ -36,7 +36,7 @@ public final class EntityFluidInteractionRegistryImpl {
 		return TRACKED_FLUIDS.keySet();
 	}
 
-	public static FluidBehaviour getFluidBehaviour(TagKey<Fluid> tagKey) {
+	public static FluidBehavior getFluidBehavior(TagKey<Fluid> tagKey) {
 		return Objects.requireNonNull(TRACKED_FLUIDS.get(tagKey));
 	}
 }

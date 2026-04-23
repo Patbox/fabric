@@ -16,9 +16,11 @@
 
 package net.fabricmc.fabric.api.registry.fluid;
 
+import java.util.Collection;
 import java.util.Objects;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
@@ -38,12 +40,35 @@ public final class EntityFluidInteractionRegistry {
 	/**
 	 * Registers a tracked fluid tag.
 	 *
-	 * @param fluidTagKey  tag representing a fluid type that should be tracked.
+	 * @param fluid tag representing a fluid type that should be tracked.
+	 * @param behavior an instance defining the behavior of the fluid
 	 */
-	public static void register(TagKey<Fluid> fluidTagKey, FluidBehaviour behaviour) {
-		Objects.requireNonNull(fluidTagKey, "fluidTagKey can't be null!");
-		Objects.requireNonNull(behaviour, "behaviour can't be null!");
+	public static void register(TagKey<Fluid> fluid, FluidBehavior behavior) {
+		Objects.requireNonNull(fluid, "fluid can't be null!");
+		Objects.requireNonNull(behavior, "behavior can't be null!");
 
-		EntityFluidInteractionRegistryImpl.register(fluidTagKey, behaviour);
+		EntityFluidInteractionRegistryImpl.register(fluid, behavior);
+	}
+
+	/**
+	 * Returns the custom registered fluid behavior.
+	 *
+	 * @param fluid  tag representing a fluid type
+	 * @return connected fluid behavior instance or null if not set
+	 */
+	@Nullable
+	public static FluidBehavior getFluidBehavior(TagKey<Fluid> fluid) {
+		Objects.requireNonNull(fluid, "fluid can't be null!");
+
+		return EntityFluidInteractionRegistryImpl.getFluidBehavior(fluid);
+	}
+
+	/**
+	 * Returns a collection of registered fluid tags with custom behavior.
+	 *
+	 * @return a collection of fluid tags
+	 */
+	public static Collection<TagKey<Fluid>> getCustomInteractableFluids() {
+		return EntityFluidInteractionRegistryImpl.getTrackedFluids();
 	}
 }

@@ -58,12 +58,12 @@ public abstract class LivingEntityMixin extends Entity {
 	}
 
 	@WrapWithCondition(method = "travelInFluid", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;travelInLava(Lnet/minecraft/world/phys/Vec3;DZD)V"))
-	private boolean travenInCustomFluid(LivingEntity instance, Vec3 vec3, double input, boolean baseGravity, double isFalling) {
+	private boolean travelInCustomFluid(LivingEntity instance, Vec3 vec3, double input, boolean baseGravity, double isFalling) {
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
 			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
 
 			if (inFluid) {
-				EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).travelInFluid(tagKey, (LivingEntity) (Object) this, vec3, input, baseGravity, isFalling);
+				EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).travelInFluid(tagKey, (LivingEntity) (Object) this, vec3, input, baseGravity, isFalling);
 				return false;
 			}
 		}
@@ -72,7 +72,7 @@ public abstract class LivingEntityMixin extends Entity {
 	}
 
 	@ModifyExpressionValue(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getFluidHeight(Lnet/minecraft/tags/TagKey;)D", ordinal = 1))
-	private double tryOtherFluids(double original, @Share("fluid") LocalRef<TagKey<Fluid>> fluid) {
+	private double tryOtherFluidsForFluidJumping(double original, @Share("fluid") LocalRef<TagKey<Fluid>> fluid) {
 		if (original != 0) {
 			return original;
 		}
@@ -98,7 +98,7 @@ public abstract class LivingEntityMixin extends Entity {
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
 			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isEyeInFluid(tagKey);
 
-			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canDrownInFluid(tagKey, (LivingEntity) (Object) this)) {
+			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).canDrownInFluid(tagKey, (LivingEntity) (Object) this)) {
 				return true;
 			}
 		}

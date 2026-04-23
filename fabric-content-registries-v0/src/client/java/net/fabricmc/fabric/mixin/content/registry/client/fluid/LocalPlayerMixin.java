@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.material.Fluid;
 
 import net.fabricmc.fabric.impl.content.registry.fluid.EntityFluidInteractionRegistryImpl;
@@ -39,7 +40,7 @@ public class LocalPlayerMixin {
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
 			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
 
-			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canMoveDownInFluid(tagKey, (Entity) (Object) this)) {
+			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).canMoveDownInFluid(tagKey, (Entity) (Object) this)) {
 				return true;
 			}
 		}
@@ -56,7 +57,25 @@ public class LocalPlayerMixin {
 		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
 			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
 
-			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehaviour(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
+			if (inFluid && EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).canSwimInFluid(tagKey, (Entity) (Object) this)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	@ModifyExpressionValue(method = "isSprintingPossible", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isInShallowWater()Z"))
+	private boolean preventSprintingInFluid(boolean original) {
+		if (original) {
+			return true;
+		}
+
+		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
+			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
+
+			if (inFluid && !EntityFluidInteractionRegistryImpl.getFluidBehavior(tagKey).canSprintInFluid(tagKey, (LivingEntity) (Object) this)) {
 				return true;
 			}
 		}
