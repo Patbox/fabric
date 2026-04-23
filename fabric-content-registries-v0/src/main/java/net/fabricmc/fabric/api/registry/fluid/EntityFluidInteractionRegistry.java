@@ -17,6 +17,7 @@
 package net.fabricmc.fabric.api.registry.fluid;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -69,6 +70,6 @@ public final class EntityFluidInteractionRegistry {
 	 * @return a collection of fluid tags
 	 */
 	public static Collection<TagKey<Fluid>> getCustomInteractableFluids() {
-		return EntityFluidInteractionRegistryImpl.getTrackedFluids();
+		return Collections.unmodifiableCollection(EntityFluidInteractionRegistryImpl.getTrackedFluids());
 	}
 }
