@@ -65,7 +65,6 @@ public class LocalPlayerMixin {
 		return false;
 	}
 
-
 	@ModifyExpressionValue(method = "isSprintingPossible", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isInShallowWater()Z"))
 	private boolean preventSprintingInFluid(boolean original) {
 		if (original) {
