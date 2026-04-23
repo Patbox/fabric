@@ -106,6 +106,27 @@ public abstract class LivingEntityMixin extends Entity {
 		return false;
 	}
 
+	// This looks to be a vanilla bug or some sort of leftover?
+	// Causes fluids to apply their push twice if they aren't water (so in case of vanilla, lava only).
+	// This is not desired effect for mods through, as it will cause push value to functionally double (and fluid update stuff applying twice).
+	// So I decided to just skip it for modded ones, while keeping vanilla/lava as is.
+	@ModifyExpressionValue(method = "checkFallDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isInWater()Z"))
+	private boolean fixDoubleUpdateForCustomFluids(boolean original) {
+		if (original) {
+			return true;
+		}
+
+		for (TagKey<Fluid> tagKey : EntityFluidInteractionRegistryImpl.getTrackedFluids()) {
+			boolean inFluid = ((EntityAccessor) this).getFluidInteraction().isInFluid(tagKey);
+
+			if (inFluid) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	@ModifyExpressionValue(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isInLava()Z", ordinal = 1))
 	private boolean jumpInCustomFluid(boolean original, @Share("fluid") LocalRef<TagKey<Fluid>> fluid) {
 		return original || fluid.get() != null;

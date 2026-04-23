@@ -19,6 +19,7 @@ package net.fabricmc.fabric.impl.content.registry.fluid;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ToFloatFunction;
 import net.minecraft.world.effect.MobEffects;
@@ -36,7 +37,7 @@ import net.fabricmc.fabric.mixin.content.registry.fluid.LivingEntityAccessor;
 public record SimpleConfiguredFluidBehavior(ToFloatFunction<LivingEntity> movementSpeed,
 											FluidBehavior.Builder.MovementSlowdownFunction movementSlowdown,
 											float gravityMultiplier, float fallDistanceMultiplier,
-											float flowingPushScale,
+											double flowingPushScale,
 											boolean allowMovingDown, boolean allowBoats,
 											boolean allowSwimming, boolean makeMobsFloat,
 											boolean makeRiddenMobsFloat, boolean drowning,
@@ -78,7 +79,7 @@ public record SimpleConfiguredFluidBehavior(ToFloatFunction<LivingEntity> moveme
 				movement = movement.multiply(slowDown, 0.8F, slowDown);
 				// This also applies the gravity multiplier
 				return entity.getFluidFallingAdjustedMovement(baseGravity, isFalling, movement);
-			}).fallDistanceModifier(0).flowingPushScale(0.014f).gravityMultiplier(0).makeMobsFloat(true)
+			}).fallDistanceModifier(0).flowingPushScale(0.014).gravityMultiplier(0).makeMobsFloat(true)
 			.makeRiddenMobsFloat(true).enableDrowning(true).allowSwimming(true).allowMovingDown(true)
 			.allowBoats(true).allowSprinting((fluid, entity) -> entity.isEyeInFluid(fluid)).build();
 
@@ -109,14 +110,18 @@ public record SimpleConfiguredFluidBehavior(ToFloatFunction<LivingEntity> moveme
 
 		entity.setDeltaMovement(this.movementSlowdown.apply(entity, entity.getDeltaMovement(), entity.getFluidHeight(fluid) <= entity.getFluidJumpThreshold(), baseGravity, isFalling));
 
-		if (baseGravity != (double) 0.0F) {
+		if (baseGravity != 0.0F && this.gravityMultiplier != 0.0F) {
 			entity.setDeltaMovement(entity.getDeltaMovement().add(0.0F, -baseGravity * this.gravityMultiplier, 0.0F));
 		}
 
 		((LivingEntityAccessor) entity).callJumpOutOfFluid(oldY);
 
 		if (this.makeRiddenMobsFloat) {
-			((LivingEntityAccessor) entity).callFloatInWaterWhileRidden();
+			boolean canEntityFloatInWater = entity.is(EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN);
+
+			if (canEntityFloatInWater && entity.isVehicle() && entity.getFluidHeight(fluid) > entity.getFluidJumpThreshold()) {
+				entity.setDeltaMovement(entity.getDeltaMovement().add(0.0F, 0.04F, 0.0F));
+			}
 		}
 	}
 
@@ -144,7 +149,7 @@ public record SimpleConfiguredFluidBehavior(ToFloatFunction<LivingEntity> moveme
 		private ToFloatFunction<LivingEntity> movementSpeed = _ -> 0.02f;
 		private MovementSlowdownFunction movementSlowdown = (_, m, _, _, _) -> m.multiply(0.65f, 0.8f, 0.65f);
 		private float gravityMultiplier = 1 / 16f;
-		private float flowingPushScale = 0.018f;
+		private double flowingPushScale = 0.014f;
 		private boolean allowMovingDown = false;
 		private boolean allowBoats = false;
 		private boolean allowSwimming = false;
@@ -203,7 +208,7 @@ public record SimpleConfiguredFluidBehavior(ToFloatFunction<LivingEntity> moveme
 		}
 
 		@Override
-		public FluidBehavior.Builder flowingPushScale(float value) {
+		public FluidBehavior.Builder flowingPushScale(double value) {
 			this.flowingPushScale = value;
 			return this;
 		}

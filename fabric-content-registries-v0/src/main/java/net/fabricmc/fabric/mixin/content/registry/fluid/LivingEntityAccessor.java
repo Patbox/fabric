@@ -25,7 +25,4 @@ public interface LivingEntityAccessor {
 
 	@Invoker
 	float callGetWaterSlowDown();
-
-	@Invoker
-	void callFloatInWaterWhileRidden();
 }

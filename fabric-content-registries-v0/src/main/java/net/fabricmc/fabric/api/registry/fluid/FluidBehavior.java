@@ -212,7 +212,7 @@ public interface FluidBehavior {
 		 * @param value value to set
 		 * @return this builder
 		 */
-		Builder flowingPushScale(float value);
+		Builder flowingPushScale(double value);
 
 		/**
 		 * Toggles ability to move down faster in fluid when pressing shift.

@@ -217,7 +217,7 @@ public final class ContentRegistryTest implements ModInitializer {
 		});
 
 		EntityFluidInteractionRegistry.register(TEST_FLUID_KEY, FluidBehavior.simple()
-				.allowBoats(true).allowMovingDown(true).allowSwimming(true).enableDrowning(true)
+				.allowBoats(true).allowMovingDown(true).allowSwimming(false).enableDrowning(false)
 				.gravityMultiplier(-0.25f).makeMobsFloat(true).flowingPushScale(-0.02f)
 				.movementSpeed(0.02f).movementSlowdown(0.8f, 0.6f).fallDistanceModifier(0.8f).build());
 
