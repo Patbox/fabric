@@ -16,6 +16,8 @@
 
 package net.fabricmc.fabric.mixin.content.registry.fluid;
 
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Share;
@@ -23,6 +25,7 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Slice;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
@@ -71,7 +74,10 @@ public abstract class LivingEntityMixin extends Entity {
 		return true;
 	}
 
-	@ModifyExpressionValue(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getFluidHeight(Lnet/minecraft/tags/TagKey;)D", ordinal = 1))
+	@Definition(id = "WATER", field = "Lnet/minecraft/tags/FluidTags;WATER:Lnet/minecraft/tags/TagKey;")
+	@Definition(id = "getFluidHeight", method = "Lnet/minecraft/world/entity/LivingEntity;getFluidHeight(Lnet/minecraft/tags/TagKey;)D")
+	@Expression("this.getFluidHeight(WATER)")
+	@ModifyExpressionValue(method = "aiStep", at = @At("MIXINEXTRAS:EXPRESSION"))
 	private double tryOtherFluidsForFluidJumping(double original, @Share("fluid") LocalRef<TagKey<Fluid>> fluid) {
 		if (original != 0) {
 			return original;
@@ -127,12 +133,17 @@ public abstract class LivingEntityMixin extends Entity {
 		return false;
 	}
 
-	@ModifyExpressionValue(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isInLava()Z", ordinal = 1))
+	@ModifyExpressionValue(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isInLava()Z"),
+			slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getFluidJumpThreshold()D"))
+	)
 	private boolean jumpInCustomFluid(boolean original, @Share("fluid") LocalRef<TagKey<Fluid>> fluid) {
 		return original || fluid.get() != null;
 	}
 
-	@ModifyArg(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;jumpInLiquid(Lnet/minecraft/tags/TagKey;)V", ordinal = 0))
+	@Definition(id = "LAVA", field = "Lnet/minecraft/tags/FluidTags;LAVA:Lnet/minecraft/tags/TagKey;")
+	@Definition(id = "jumpInLiquid", method = "Lnet/minecraft/world/entity/LivingEntity;jumpInLiquid(Lnet/minecraft/tags/TagKey;)V")
+	@Expression("this.jumpInLiquid(LAVA)")
+	@ModifyArg(method = "aiStep", at = @At("MIXINEXTRAS:EXPRESSION"))
 	private TagKey<Fluid> swapFluidTag(TagKey<Fluid> fluidTagKey, @Share("fluid") LocalRef<TagKey<Fluid>> fluid) {
 		TagKey<Fluid> custom = fluid.get();
 		return custom != null ? custom : fluidTagKey;
