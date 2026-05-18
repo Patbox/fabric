@@ -16,6 +16,8 @@
 
 package net.fabricmc.fabric.test.resource.conditions;
 
+import java.util.Optional;
+
 import com.mojang.serialization.JsonOps;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,11 +32,13 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.server.packs.metadata.pack.PackFormat;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
+import net.fabricmc.fabric.impl.resource.conditions.OverlayConditionsMetadata;
 
 public class ResourceConditionsUnitTest {
 	private static final String TESTMOD_ID = "fabric-resource-conditions-api-v1-testmod";
@@ -126,5 +130,77 @@ public class ResourceConditionsUnitTest {
 		expectCondition("block registry, empty check", emptyBlock, true);
 		expectCondition("unknown registry, non-empty", unknownRegistry, false);
 		expectCondition("unknown registry, empty", emptyUnknown, true);
+	}
+
+	@Test
+	public void overlayFormatRange() {
+		PackFormat format48 = new PackFormat(48, 0);
+
+		OverlayConditionsMetadata.Entry inRange = new OverlayConditionsMetadata.Entry(
+				"test", ResourceConditions.alwaysTrue(), Optional.of(1), Optional.of(100)
+		);
+
+		if (!inRange.isFormatInRange(format48)) {
+			throw new AssertionError("Format 48 should be in range [1, 100]");
+		}
+
+		OverlayConditionsMetadata.Entry belowMin = new OverlayConditionsMetadata.Entry(
+				"test", ResourceConditions.alwaysTrue(), Optional.of(100), Optional.of(200)
+		);
+
+		if (belowMin.isFormatInRange(format48)) {
+			throw new AssertionError("Format 48 should not be in range [100, 200]");
+		}
+
+		OverlayConditionsMetadata.Entry minOnly = new OverlayConditionsMetadata.Entry(
+				"test", ResourceConditions.alwaysTrue(), Optional.of(1), Optional.empty()
+		);
+
+		if (!minOnly.isFormatInRange(format48)) {
+			throw new AssertionError("Format 48 should be in range [1, +inf)");
+		}
+
+		OverlayConditionsMetadata.Entry maxTooLow = new OverlayConditionsMetadata.Entry(
+				"test", ResourceConditions.alwaysTrue(), Optional.empty(), Optional.of(10)
+		);
+
+		if (maxTooLow.isFormatInRange(format48)) {
+			throw new AssertionError("Format 48 should not be in range (-inf, 10]");
+		}
+
+		OverlayConditionsMetadata.Entry noBounds = new OverlayConditionsMetadata.Entry(
+				"test", ResourceConditions.alwaysTrue()
+		);
+
+		if (!noBounds.isFormatInRange(format48)) {
+			throw new AssertionError("Format 48 should pass with no format constraints");
+		}
+
+		OverlayConditionsMetadata.Entry exact = new OverlayConditionsMetadata.Entry(
+				"test", ResourceConditions.alwaysTrue(), Optional.of(48), Optional.of(48)
+		);
+
+		if (!exact.isFormatInRange(format48)) {
+			throw new AssertionError("Format 48 should be in range [48, 48]");
+		}
+	}
+
+	@Test
+	public void overlayFormatCodecRoundTrip() {
+		OverlayConditionsMetadata.Entry entry = new OverlayConditionsMetadata.Entry(
+				"my_overlay", ResourceConditions.alwaysTrue(), Optional.of(42), Optional.of(48)
+		);
+
+		OverlayConditionsMetadata.Entry.CODEC
+				.encodeStart(JsonOps.INSTANCE, entry)
+				.getOrThrow(message -> new AssertionError("Could not serialize overlay entry with format: " + message));
+
+		OverlayConditionsMetadata.Entry noFormat = new OverlayConditionsMetadata.Entry(
+				"plain_overlay", ResourceConditions.alwaysTrue()
+		);
+
+		OverlayConditionsMetadata.Entry.CODEC
+				.encodeStart(JsonOps.INSTANCE, noFormat)
+				.getOrThrow(message -> new AssertionError("Could not serialize overlay entry without format: " + message));
 	}
 }
