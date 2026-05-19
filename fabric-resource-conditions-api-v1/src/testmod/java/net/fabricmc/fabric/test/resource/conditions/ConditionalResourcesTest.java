@@ -134,7 +134,7 @@ public class ConditionalResourcesTest {
 			throw new AssertionError("dont_overlay predicate should not have been overlayed.");
 		}
 
-		// Format range overlays, pack_format is 48.
+		// Format range condition overlays, pack_format is 48.
 
 		if (registries.get(ResourceKey.create(Registries.PREDICATE, id("format_in_range_overlay"))).isEmpty()) {
 			throw new AssertionError("format_in_range_overlay predicate should have been overlayed (format 48 is within 1-100).");
