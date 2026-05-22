@@ -33,26 +33,26 @@ import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditionType;
 import net.fabricmc.fabric.impl.resource.conditions.DefaultResourceConditionTypes;
 
-public record PackFormatInRangeResourceCondition(PackType packType, Optional<Integer> minFormat, Optional<Integer> maxFormat) implements ResourceCondition {
+public record PackFormatInRangeResourceCondition(PackType packType, Optional<PackFormat> minFormat, Optional<PackFormat> maxFormat) implements ResourceCondition {
 	private static final Codec<PackType> PACK_TYPE_CODEC = Codec.STRING.comapFlatMap(
 			PackFormatInRangeResourceCondition::parsePackType,
-			t -> t == PackType.SERVER_DATA ? "data" : "client"
+			t -> t == PackType.SERVER_DATA ? "data" : "assets"
 	);
 
 	private static DataResult<PackType> parsePackType(String s) {
 		if ("data".equals(s)) {
 			return DataResult.success(PackType.SERVER_DATA);
-		} else if ("client".equals(s)) {
+		} else if ("assets".equals(s)) {
 			return DataResult.success(PackType.CLIENT_RESOURCES);
 		}
 
-		return DataResult.error(() -> "Unknown pack type: " + s + ", expected 'data' or 'client'");
+		return DataResult.error(() -> "Unknown pack type: " + s + ", expected 'data' or 'assets'");
 	}
 
 	public static final MapCodec<PackFormatInRangeResourceCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			PACK_TYPE_CODEC.fieldOf("pack_type").forGetter(PackFormatInRangeResourceCondition::packType),
-			Codec.INT.optionalFieldOf("min_format").forGetter(PackFormatInRangeResourceCondition::minFormat),
-			Codec.INT.optionalFieldOf("max_format").forGetter(PackFormatInRangeResourceCondition::maxFormat)
+			PackFormat.BOTTOM_CODEC.optionalFieldOf("min_format").forGetter(PackFormatInRangeResourceCondition::minFormat),
+			PackFormat.TOP_CODEC.optionalFieldOf("max_format").forGetter(PackFormatInRangeResourceCondition::maxFormat)
 	).apply(instance, PackFormatInRangeResourceCondition::new));
 
 	@Override
@@ -64,21 +64,12 @@ public record PackFormatInRangeResourceCondition(PackType packType, Optional<Int
 	public boolean test(RegistryOps.@Nullable RegistryInfoLookup registryInfo) {
 		PackFormat currentFormat = SharedConstants.getCurrentVersion().packVersion(this.packType);
 
-		if (this.minFormat.isPresent()) {
-			// Compare via PackFormat to reuse vanilla's ordering logic.
-			PackFormat min = new PackFormat(this.minFormat.get(), 0);
-
-			if (currentFormat.compareTo(min) < 0) {
-				return false;
-			}
+		if (this.minFormat.isPresent() && currentFormat.compareTo(this.minFormat.get()) < 0) {
+			return false;
 		}
 
-		if (this.maxFormat.isPresent()) {
-			PackFormat max = new PackFormat(this.maxFormat.get(), 0);
-
-			if (currentFormat.compareTo(max) > 0) {
-				return false;
-			}
+		if (this.maxFormat.isPresent() && currentFormat.compareTo(this.maxFormat.get()) > 0) {
+			return false;
 		}
 
 		return true;

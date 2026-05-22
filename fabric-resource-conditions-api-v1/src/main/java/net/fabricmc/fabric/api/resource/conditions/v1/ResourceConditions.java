@@ -26,6 +26,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.metadata.pack.PackFormat;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.flag.FeatureFlag;
 
@@ -196,8 +197,8 @@ public final class ResourceConditions {
 	/**
 	 * A condition that passes if the current pack format for the given {@code packType}
 	 * is within the specified range. Has ID {@code fabric:pack_format_in_range} and takes
-	 * three fields: {@code pack_type} ({@code "data"} or {@code "client"}), and optional
-	 * {@code min_format} and {@code max_format} integers defining the inclusive range.
+	 * three fields: {@code pack_type}, ({@code "data"} or {@code "assets"}), and optional
+	 * {@code min_format} and {@code max_format} defining the inclusive range.
 	 * If {@code min_format} is absent, there is no lower bound. If {@code max_format}
 	 * is absent, there is no upper bound.
 	 *
@@ -205,14 +206,14 @@ public final class ResourceConditions {
 	 * @param minFormat the minimum format (inclusive), or empty for no lower bound
 	 * @param maxFormat the maximum format (inclusive), or empty for no upper bound
 	 */
-	public static ResourceCondition packFormatInRange(PackType packType, Optional<Integer> minFormat, Optional<Integer> maxFormat) {
+	public static ResourceCondition packFormatInRange(PackType packType, Optional<PackFormat> minFormat, Optional<PackFormat> maxFormat) {
 		return new PackFormatInRangeResourceCondition(packType, minFormat, maxFormat);
 	}
 
 	/**
 	 * @see #packFormatInRange(PackType, Optional, Optional)
 	 */
-	public static ResourceCondition packFormatInRange(PackType packType, int minFormat, int maxFormat) {
+	public static ResourceCondition packFormatInRange(PackType packType, PackFormat minFormat, PackFormat maxFormat) {
 		return new PackFormatInRangeResourceCondition(packType, Optional.of(minFormat), Optional.of(maxFormat));
 	}
 }
