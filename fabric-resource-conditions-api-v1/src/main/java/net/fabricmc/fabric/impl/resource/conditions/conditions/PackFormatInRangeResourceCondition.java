@@ -49,11 +49,22 @@ public record PackFormatInRangeResourceCondition(PackType packType, Optional<Pac
 		return DataResult.error(() -> "Unknown pack type: " + s + ", expected 'data' or 'assets'");
 	}
 
-	public static final MapCodec<PackFormatInRangeResourceCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<PackFormatInRangeResourceCondition> CODEC = RecordCodecBuilder.<PackFormatInRangeResourceCondition>mapCodec(instance -> instance.group(
 			PACK_TYPE_CODEC.fieldOf("pack_type").forGetter(PackFormatInRangeResourceCondition::packType),
 			PackFormat.BOTTOM_CODEC.optionalFieldOf("min_format").forGetter(PackFormatInRangeResourceCondition::minFormat),
 			PackFormat.TOP_CODEC.optionalFieldOf("max_format").forGetter(PackFormatInRangeResourceCondition::maxFormat)
-	).apply(instance, PackFormatInRangeResourceCondition::new));
+	).apply(instance, PackFormatInRangeResourceCondition::new)).flatXmap(
+			PackFormatInRangeResourceCondition::validateBounds,
+			PackFormatInRangeResourceCondition::validateBounds
+	);
+
+	private static DataResult<PackFormatInRangeResourceCondition> validateBounds(PackFormatInRangeResourceCondition condition) {
+		if (condition.minFormat.isEmpty() && condition.maxFormat.isEmpty()) {
+			return DataResult.error(() -> "pack_format_in_range must specify at least one of min_format or max_format");
+		}
+
+		return DataResult.success(condition);
+	}
 
 	@Override
 	public ResourceConditionType<?> getType() {

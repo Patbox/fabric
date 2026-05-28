@@ -138,13 +138,11 @@ public class ResourceConditionsUnitTest {
 		ResourceCondition belowMin = ResourceConditions.packFormatInRange(PackType.SERVER_DATA, new PackFormat(99999, 0), new PackFormat(999999, 0));
 		ResourceCondition minOnly = ResourceConditions.packFormatInRange(PackType.SERVER_DATA, Optional.of(new PackFormat(1, 0)), Optional.empty());
 		ResourceCondition maxTooLow = ResourceConditions.packFormatInRange(PackType.SERVER_DATA, Optional.empty(), Optional.of(new PackFormat(0, 0)));
-		ResourceCondition noBounds = ResourceConditions.packFormatInRange(PackType.SERVER_DATA, Optional.empty(), Optional.empty());
 
 		expectCondition("format in range", inRange, true);
 		expectCondition("format below min", belowMin, false);
 		expectCondition("format min only", minOnly, true);
 		expectCondition("format max too low", maxTooLow, false);
-		expectCondition("format no bounds", noBounds, true);
 	}
 
 	@Test
@@ -155,10 +153,10 @@ public class ResourceConditionsUnitTest {
 				.encodeStart(JsonOps.INSTANCE, condition)
 				.getOrThrow(message -> new AssertionError("Could not serialize pack_format_in_range condition: " + message));
 
-		ResourceCondition noFormat = ResourceConditions.packFormatInRange(PackType.CLIENT_RESOURCES, Optional.empty(), Optional.empty());
+		ResourceCondition noBounds = ResourceConditions.packFormatInRange(PackType.CLIENT_RESOURCES, Optional.empty(), Optional.empty());
 
-		ResourceCondition.CODEC
-				.encodeStart(JsonOps.INSTANCE, noFormat)
-				.getOrThrow(message -> new AssertionError("Could not serialize pack_format_in_range condition without bounds: " + message));
+		if (ResourceCondition.CODEC.encodeStart(JsonOps.INSTANCE, noBounds).isSuccess()) {
+			throw new AssertionError("pack_format_in_range without min_format or max_format must fail validation, but it was accepted.");
+		}
 	}
 }
