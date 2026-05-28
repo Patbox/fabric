@@ -207,6 +207,10 @@ public final class ResourceConditions {
 	 * @param maxFormat the maximum format (inclusive), or empty for no upper bound
 	 */
 	public static ResourceCondition packFormatInRange(PackType packType, Optional<PackFormat> minFormat, Optional<PackFormat> maxFormat) {
+		if (minFormat.isEmpty() && maxFormat.isEmpty()) {
+			throw new IllegalArgumentException("pack_format_in_range must specify at least one of minFormat or maxFormat");
+		}
+
 		return new PackFormatInRangeResourceCondition(packType, minFormat, maxFormat);
 	}
 
