@@ -68,22 +68,43 @@ abstract class ClientPacketListenerMixin implements ClientCommandInternals.LastR
 	@Unique
 	private @Nullable ClientboundCommandsPacket lastReceivedCommandsPacket = null;
 
+	@Unique
+	private boolean receivedCommands = false;
+
 	@Inject(method = "<init>", at = @At("RETURN"))
 	private void init(Minecraft minecraft, Connection connection, CommonListenerCookie cookie, CallbackInfo ci) {
 		((ClientSuggestionProviderExtensions) this.suggestionsProvider).fabric_markAttended();
 	}
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Inject(method = "handleLogin", at = @At("RETURN"))
 	private void onGameJoin(ClientboundLoginPacket packet, CallbackInfo info) {
 		final CommandDispatcher<FabricClientCommandSource> dispatcher = new CommandDispatcher<>();
 		ClientCommandInternals.setActiveDispatcher(dispatcher);
 		ClientCommandRegistrationCallback.EVENT.invoker().register(dispatcher, CommandBuildContext.simple(this.registryAccess, this.enabledFeatures));
 		ClientCommandInternals.finalizeInit();
+
+		// Check if commands were already received to handle custom server implementations
+		// that don't follow vanilla packet order
+		if (this.receivedCommands) {
+			this.addClientCommands();
+		}
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Inject(method = "handleCommands", at = @At("RETURN"))
 	private void onOnCommandTree(ClientboundCommandsPacket packet, CallbackInfo info) {
+		this.receivedCommands = true;
+		this.addClientCommands();
+	}
+
+	@Unique
+	private void addClientCommands() {
+		// Client commands might have not been set up yet (or are just empty)!
+		if (ClientCommandInternals.isEmpty()) {
+			return;
+		}
+
 		// Add the commands to the vanilla dispatcher for completion.
 		// It's done here because both the server and the client commands have
 		// to be in the same dispatcher and completion results.
