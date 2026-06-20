@@ -233,6 +233,7 @@ public final class ClientCommandInternals {
 	public static void addCommands(CommandDispatcher<FabricClientCommandSource> target, FabricClientCommandSource source) {
 		if (activeDispatcher == null) {
 			LOGGER.warn("Tried to add client commands, but the dispatcher wasn't set up!");
+			return;
 		}
 
 		Map<CommandNode<FabricClientCommandSource>, CommandNode<FabricClientCommandSource>> nodes = new HashMap<>();

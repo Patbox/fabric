@@ -65,11 +65,11 @@ abstract class ClientPacketListenerMixin implements ClientCommandInternals.LastR
 	@Shadow
 	private RegistryAccess.Frozen registryAccess;
 
-	@Unique
-	private @Nullable ClientboundCommandsPacket lastReceivedCommandsPacket = null;
+	@Shadow
+	public abstract void handleCommands(ClientboundCommandsPacket packet);
 
 	@Unique
-	private boolean receivedCommands = false;
+	private volatile @Nullable ClientboundCommandsPacket lastReceivedCommandsPacket = null;
 
 	@Inject(method = "<init>", at = @At("RETURN"))
 	private void init(Minecraft minecraft, Connection connection, CommonListenerCookie cookie, CallbackInfo ci) {
@@ -86,7 +86,12 @@ abstract class ClientPacketListenerMixin implements ClientCommandInternals.LastR
 
 		// Check if commands were already received to handle custom server implementations
 		// that don't follow vanilla packet order
-		if (this.receivedCommands) {
+		if (this.lastReceivedCommandsPacket != null) {
+			// Rebuilds commands if command packet was already received.
+			this.handleCommands(this.lastReceivedCommandsPacket);
+		} else {
+			// Add commands even if packet wasn't received, in case of custom server impl that doesn't send commands at all.
+			// Unlikely, but can happen technically.
 			this.addClientCommands();
 		}
 	}
@@ -94,7 +99,6 @@ abstract class ClientPacketListenerMixin implements ClientCommandInternals.LastR
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Inject(method = "handleCommands", at = @At("RETURN"))
 	private void onOnCommandTree(ClientboundCommandsPacket packet, CallbackInfo info) {
-		this.receivedCommands = true;
 		this.addClientCommands();
 	}
 
