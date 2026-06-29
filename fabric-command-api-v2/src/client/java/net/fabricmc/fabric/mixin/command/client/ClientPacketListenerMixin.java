@@ -69,7 +69,7 @@ abstract class ClientPacketListenerMixin implements ClientCommandInternals.LastR
 	public abstract void handleCommands(ClientboundCommandsPacket packet);
 
 	@Unique
-	private volatile @Nullable ClientboundCommandsPacket lastReceivedCommandsPacket = null;
+	private @Nullable ClientboundCommandsPacket lastReceivedCommandsPacket = null;
 
 	@Inject(method = "<init>", at = @At("RETURN"))
 	private void init(Minecraft minecraft, Connection connection, CommonListenerCookie cookie, CallbackInfo ci) {
