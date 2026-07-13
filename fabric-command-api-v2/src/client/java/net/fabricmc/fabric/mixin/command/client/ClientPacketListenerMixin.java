@@ -76,7 +76,6 @@ abstract class ClientPacketListenerMixin implements ClientCommandInternals.LastR
 		((ClientSuggestionProviderExtensions) this.suggestionsProvider).fabric_markAttended();
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Inject(method = "handleLogin", at = @At("RETURN"))
 	private void onGameJoin(ClientboundLoginPacket packet, CallbackInfo info) {
 		final CommandDispatcher<FabricClientCommandSource> dispatcher = new CommandDispatcher<>();
@@ -96,13 +95,13 @@ abstract class ClientPacketListenerMixin implements ClientCommandInternals.LastR
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Inject(method = "handleCommands", at = @At("RETURN"))
 	private void onOnCommandTree(ClientboundCommandsPacket packet, CallbackInfo info) {
 		this.addClientCommands();
 	}
 
 	@Unique
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void addClientCommands() {
 		// Client commands might have not been set up yet (or are just empty)!
 		if (ClientCommandInternals.isEmpty()) {
