@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.BlockTransformer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -41,13 +42,17 @@ import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopperFullBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.BlockHitResult;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.registry.BlockTransformerRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelValueEvents;
 import net.fabricmc.fabric.api.registry.LandPathTypeRegistry;
@@ -105,6 +110,10 @@ public final class ContentRegistryTest implements ModInitializer {
 		//  - assign a loot table to the nitwit villager type
 		//  - right-clicking a 'test_event' block will emit a 'test_event' game event, which will have a vibration frequency of 2
 		//  - new test fluids acts as a proper liquid like water / lava
+		//  - dried kelp blocks can be transformed into dead brain coral blocks by a shovel, without any sound or particle
+		//  - bamboo mosaics can be transformed into bamboo blocks by a hoe, in precisely the same manner as tilling dirt into farmland
+		//  - any wool stairs can be transformed into a white wool slab by an axe, in precisely the same manner as stripping a log
+		//  - acacia stairs and birch stairs can be transformed into a top-half pale oak slab by a shovel, in precisely the same manner as flattening dirt into a path
 
 		FlammableBlockRegistry.getDefaultInstance().add(Blocks.DIAMOND_BLOCK, 4, 4);
 		FlammableBlockRegistry.getDefaultInstance().add(BlockTags.SAND, 4, 4);
@@ -178,6 +187,11 @@ public final class ContentRegistryTest implements ModInitializer {
 				.movementSpeed(0.02f).movementSlowdown(0.8f, 0.6f).fallDistanceModifier(0.8f).build());
 
 		EntityFluidInteractionRegistry.register(WATER_LIKE_FLUID_KEY, FluidBehavior.WATER_LIKE);
+
+		BlockTransformerRegistry.registerShovel(BlockTransformer.BlockTransformData.builder(BlockPredicate.matchesBlocks(Blocks.DRIED_KELP_BLOCK), Blocks.DEAD_BRAIN_CORAL_BLOCK).build());
+		BlockTransformerRegistry.registerTilling(Blocks.BAMBOO_MOSAIC, Blocks.BAMBOO_BLOCK);
+		BlockTransformerRegistry.registerStripping(BlockTags.WOOL_STAIRS, Blocks.WOOL_SLAB.white());
+		BlockTransformerRegistry.registerFlattening(new Block[]{Blocks.ACACIA_STAIRS, Blocks.BIRCH_STAIRS}, Blocks.PALE_OAK_SLAB.defaultBlockState().setValue(BlockStateProperties.SLAB_TYPE, SlabType.TOP));
 	}
 
 	public static class TestEventBlock extends Block {
