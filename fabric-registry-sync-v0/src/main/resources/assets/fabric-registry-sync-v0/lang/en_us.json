@@ -1,4 +1,6 @@
 {
+  "fabric-registry-sync-v0.missing-entries.description": "Some entries for content registries are missing! This might have been caused by mods getting removed or updated. This means that once you open this world affected content will be removed forever!",
+  "fabric-registry-sync-v0.missing-entries.title": "Content Registry Entries are missing!",
   "fabric-registry-sync-v0.unknown-registry.footer": "And %d more...",
   "fabric-registry-sync-v0.unknown-registry.subtitle.1": "This is usually caused by a mismatched mod set between the client and server.",
   "fabric-registry-sync-v0.unknown-registry.subtitle.2": " See the client logs for more details.\nThe following registries are not present on the client:\n\n",
