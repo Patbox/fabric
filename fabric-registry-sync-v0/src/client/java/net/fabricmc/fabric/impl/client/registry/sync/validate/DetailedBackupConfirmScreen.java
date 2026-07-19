@@ -40,6 +40,6 @@ public class DetailedBackupConfirmScreen extends BackupConfirmScreen {
 		int textSize = (((BackupConfirmScreenAccessor) this).fabric_getMessage().getLineCount() + 1) * 9;
 		this.addRenderableWidget(Button.builder(Component.translatable("selectWorld.experimental.details"),
 						(button) -> this.minecraft.setScreenAndShow(new DetailsScreen(Component.translatable("fabric-registry-sync-v0.missing-entries.details.title"), this.detailsSupplier, this)))
-				.bounds(this.width / 2 - 155 + 80, 78 + textSize, 150, 20).build());
+				.bounds(this.width / 2 - 155 + 80, 76 + textSize, 150, 20).build());
 	}
 }

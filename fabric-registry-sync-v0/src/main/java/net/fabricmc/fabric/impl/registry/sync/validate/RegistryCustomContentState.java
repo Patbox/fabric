@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
+
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
@@ -44,7 +47,11 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
 import net.fabricmc.fabric.api.event.registry.RegistryAttributeHolder;
 
-public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entries) {
+public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entries, Status status) {
+	private static final Logger LOGGER = LogUtils.getLogger();
+
+	public static final RegistryCustomContentState EMPTY = new RegistryCustomContentState(Map.of(), Status.VALID);
+
 	public static RegistryCustomContentState construct(RegistryAccess registryAccess) {
 		var map = new HashMap<Identifier, List<Identifier>>();
 
@@ -56,7 +63,7 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 					registry.listElementIds().map(ResourceKey::identifier).filter(id -> !id.getNamespace().equals(Identifier.DEFAULT_NAMESPACE)).forEach(list::add);
 				});
 
-		return new RegistryCustomContentState(map);
+		return new RegistryCustomContentState(map, Status.VALID);
 	}
 
 	private static Path getPath(LevelStorageSource.LevelStorageAccess worldAccess) {
@@ -73,7 +80,7 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 
 			NbtIo.writeCompressed(RegistryCustomContentState.construct(registryAccess).toNbt(), path);
 		} catch (Throwable e) {
-			// Todo
+			LOGGER.warn("Failed to write the registry entries file!", e);
 		}
 	}
 
@@ -81,22 +88,23 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		Path path = RegistryCustomContentState.getPath(access);
 
 		if (!Files.exists(path)) {
-			return new RegistryCustomContentState(Map.of());
+			return EMPTY;
 		}
 
 		try {
 			return RegistryCustomContentState.fromNbt(NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap()));
 		} catch (Throwable e) {
-			// todo
+			LOGGER.error("Failed to read the registry entries file!", e);
 		}
 
-		return new RegistryCustomContentState(Map.of());
+		return new RegistryCustomContentState(Map.of(), Status.INVALID_FILE);
 	}
 
 	private static RegistryCustomContentState fromNbt(CompoundTag tag) {
+		Status status = Status.VALID;
+
 		if (tag.getIntOr("format_version", -1) != 0) {
-			// Todo
-			throw new RuntimeException("Invalid version!");
+			status = Status.UNSUPPORTED_VERSION;
 		}
 
 		var map = new HashMap<Identifier, List<Identifier>>();
@@ -109,15 +117,17 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 			var idList = new ArrayList<Identifier>();
 
 			for (Tag entry : entries) {
-				if (entry instanceof StringTag id) {
-					idList.add(Identifier.parse(id.value()));
+				if (entry instanceof StringTag(String value)) {
+					idList.add(Identifier.parse(value));
+				} else if (status == Status.VALID) {
+					status = Status.INVALID_FILE;
 				}
 			}
 
 			map.put(Identifier.parse(key), idList);
 		}
 
-		return new RegistryCustomContentState(map);
+		return new RegistryCustomContentState(map, status);
 	}
 
 	private CompoundTag toNbt() {
@@ -158,14 +168,26 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 			}
 		}
 
-		return new Missing(map, registries);
+		return new Missing(map, registries, this.status);
 	}
 
-	public record Missing(Map<Identifier, List<Identifier>> entries, List<Identifier> registries) {
-		public static final Missing NONE = new Missing(Map.of(), List.of());
+	public record Missing(Map<Identifier, List<Identifier>> entries, List<Identifier> registries, Status status) {
+		public static final Missing NONE = new Missing(Map.of(), List.of(), Status.VALID);
 
 		public Details asDetails() {
 			var list = new ArrayList<Details.Section>();
+
+			if (status == Status.INVALID_FILE) {
+				list.add(new Details.Section(
+						Component.translatable("fabric-registry-sync-v0.missing-entries.invalid_file").withColor(TextColor.RED),
+						List.of()
+				));
+			} else if (status == Status.UNSUPPORTED_VERSION) {
+				list.add(new Details.Section(
+						Component.translatable("fabric-registry-sync-v0.missing-entries.unsupported_version").withColor(TextColor.GOLD),
+						List.of()
+				));
+			}
 
 			for (Map.Entry<Identifier, List<Identifier>> entry : this.entries.entrySet()) {
 				var m = new HashMap<String, List<String>>();
@@ -209,7 +231,13 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		}
 
 		public boolean isEmpty() {
-			return this.entries.isEmpty() && this.registries.isEmpty();
+			return this.entries.isEmpty() && this.registries.isEmpty() && this.status == Status.VALID;
 		}
+	}
+
+	public enum Status {
+		VALID,
+		INVALID_FILE,
+		UNSUPPORTED_VERSION,
 	}
 }

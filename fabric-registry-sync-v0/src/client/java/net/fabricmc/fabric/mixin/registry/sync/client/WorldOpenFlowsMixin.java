@@ -55,6 +55,7 @@ public class WorldOpenFlowsMixin {
 					Component.translatable("fabric-registry-sync-v0.missing-entries.description"),
 					this.missingRegistryEntries::asDetails);
 		}
+
 		return original.call(onCancel, onProceed, title, description, promptForCacheErase);
 	}
 }

@@ -21,5 +21,5 @@ import java.util.List;
 import net.minecraft.network.chat.Component;
 
 public record Details(List<Section> sections) {
-	public record Section(Component header, List<Component> lines) {}
+	public record Section(Component header, List<Component> lines) { }
 }

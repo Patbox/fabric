@@ -65,23 +65,21 @@ public class DetailsScreen extends Screen {
 	}
 
 	protected void addContents() {
-		var list = LinearLayout.vertical().spacing(4);
+		LinearLayout body = LinearLayout.vertical().spacing(4);
 
 		for (Details.Section section : this.details.sections()) {
-			var header = FocusableTextWidget.builder(section.header(), font, 4).maxWidth(this.width - 40).alwaysShowBorder(false)
-					.backgroundFill(FocusableTextWidget.BackgroundFill.NEVER).build().setCentered(true);
-			list.addChild(header);
+			body.addChild(FocusableTextWidget.builder(section.header(), font, 4).maxWidth(this.width - 40).alwaysShowBorder(false)
+					.backgroundFill(FocusableTextWidget.BackgroundFill.NEVER).build().setCentered(true));
 
 			for (Component line : section.lines()) {
-				var body = FocusableTextWidget.builder(line, font, 2).maxWidth(this.width - 40).alwaysShowBorder(false)
-						.backgroundFill(FocusableTextWidget.BackgroundFill.NEVER).build().setCentered(false);
-				list.addChild(body);
+				body.addChild(FocusableTextWidget.builder(line, font, 2).maxWidth(this.width - 40).alwaysShowBorder(false)
+						.backgroundFill(FocusableTextWidget.BackgroundFill.NEVER).build().setCentered(false));
 			}
 		}
 
-		var scrl = new ScrollableLayout(minecraft, list, this.layout.getContentHeight());
-		list.arrangeElements();
-		this.layout.addToContents(scrl);
+		var scrollable = new ScrollableLayout(minecraft, body, this.layout.getContentHeight());
+		body.arrangeElements();
+		this.layout.addToContents(scrollable);
 	}
 
 	protected void addFooter() {
