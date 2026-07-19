@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.FocusableTextWidget;
-import net.minecraft.client.gui.components.ScrollableLayout;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
@@ -77,7 +76,7 @@ public class DetailsScreen extends Screen {
 			}
 		}
 
-		var scrollable = new ScrollableLayout(minecraft, body, this.layout.getContentHeight());
+		var scrollable = new OptimizedScrollableLayout(minecraft, body, this.layout.getContentHeight());
 		body.arrangeElements();
 		this.layout.addToContents(scrollable);
 	}

@@ -16,7 +16,8 @@
 
 package net.fabricmc.fabric.impl.client.registry.sync.validate;
 
-import java.util.function.Supplier;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.BackupConfirmScreen;
@@ -30,7 +31,7 @@ public class DetailedBackupConfirmScreen extends BackupConfirmScreen {
 
 	public DetailedBackupConfirmScreen(Runnable onCancel, Listener onProceed, Component title, Component description, Supplier<Details> detailsSupplier) {
 		super(onCancel, onProceed, title, description, false);
-		this.detailsSupplier = detailsSupplier;
+		this.detailsSupplier = Suppliers.memoize(detailsSupplier);
 	}
 
 	@Override

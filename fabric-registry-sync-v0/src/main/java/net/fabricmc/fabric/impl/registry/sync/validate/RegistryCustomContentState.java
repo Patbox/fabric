@@ -38,6 +38,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -49,6 +50,8 @@ import net.fabricmc.fabric.api.event.registry.RegistryAttributeHolder;
 
 public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entries, Status status) {
 	private static final Logger LOGGER = LogUtils.getLogger();
+
+	private static final int MAX_ENTRIES_PER_NAMESPACE = 50;
 
 	public static final RegistryCustomContentState EMPTY = new RegistryCustomContentState(Map.of(), Status.VALID);
 
@@ -201,8 +204,15 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 					var group = new ArrayList<Component>();
 					group.add(Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_for_namespace", id.getValue().size(), id.getKey()));
 
-					for (String path : id.getValue()) {
-						group.add(Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_for_namespace.entry", path).withColor(TextColor.GRAY));
+					int i = 0;
+					int finalEntry = Math.min(MAX_ENTRIES_PER_NAMESPACE, id.getValue().size());
+
+					for (; i < finalEntry; i++) {
+						group.add(Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_for_namespace.entry", id.getValue().get(i)).withColor(TextColor.GRAY));
+					}
+
+					if (i < id.getValue().size()) {
+						group.add(Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_for_namespace.too_many", id.getValue().size() - i).withStyle(Style.EMPTY.withItalic(true).withColor(TextColor.GRAY)));
 					}
 
 					body.add(ComponentUtils.formatList(group, CommonComponents.NEW_LINE));
