@@ -32,6 +32,10 @@ import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.LevelResource;
@@ -136,9 +140,9 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		return tag;
 	}
 
-	/// @return Missing entries.
-	public Map<Identifier, List<Identifier>> validate(RegistryAccess.Frozen layer) {
+	public Missing validate(RegistryAccess.Frozen layer) {
 		var map = new HashMap<Identifier, List<Identifier>>();
+		var registries = new ArrayList<Identifier>();
 
 		for (Map.Entry<Identifier, List<Identifier>> entry : this.entries.entrySet()) {
 			Optional<Registry<Object>> registry = layer.lookup(ResourceKey.createRegistryKey(entry.getKey()));
@@ -150,10 +154,62 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 					}
 				}
 			} else {
-				map.put(entry.getKey(), entry.getValue());
+				registries.add(entry.getKey());
 			}
 		}
 
-		return map;
+		return new Missing(map, registries);
+	}
+
+	public record Missing(Map<Identifier, List<Identifier>> entries, List<Identifier> registries) {
+		public static final Missing NONE = new Missing(Map.of(), List.of());
+
+		public Details asDetails() {
+			var list = new ArrayList<Details.Section>();
+
+			for (Map.Entry<Identifier, List<Identifier>> entry : this.entries.entrySet()) {
+				var m = new HashMap<String, List<String>>();
+				var body = new ArrayList<Component>();
+
+				for (Identifier id : entry.getValue()) {
+					m.computeIfAbsent(id.getNamespace(), _ -> new ArrayList<>()).add(id.getPath());
+				}
+
+				for (Map.Entry<String, List<String>> id : m.entrySet()) {
+					var group = new ArrayList<Component>();
+					group.add(Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_for_namespace", id.getValue().size(), id.getKey()));
+
+					for (String path : id.getValue()) {
+						group.add(Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_for_namespace.entry", path).withColor(TextColor.GRAY));
+					}
+
+					body.add(ComponentUtils.formatList(group, CommonComponents.NEW_LINE));
+				}
+
+				list.add(new Details.Section(
+						Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_registry_entry", entry.getKey().toString(), entry.getValue().size()).withColor(TextColor.YELLOW),
+						body
+				));
+			}
+
+			if (!this.registries.isEmpty()) {
+				var body = new ArrayList<Component>();
+
+				for (Identifier registry : this.registries) {
+					body.add(Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_registry.entry", registry.toString()).withColor(TextColor.GRAY));
+				}
+
+				list.add(new Details.Section(
+						Component.translatable("fabric-registry-sync-v0.missing-entries.details.missing_registry", this.registries.size()).withColor(TextColor.YELLOW),
+						List.of(ComponentUtils.formatList(body, CommonComponents.NEW_LINE))
+				));
+			}
+
+			return new Details(list);
+		}
+
+		public boolean isEmpty() {
+			return this.entries.isEmpty() && this.registries.isEmpty();
+		}
 	}
 }
