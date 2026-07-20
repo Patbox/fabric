@@ -1,5 +1,5 @@
 {
-  "fabric-registry-sync-v0.missing-entries.description": "Some of the content that was used in this world is no longer present. This means that once the game tries to load it, it will be lost and you won't be able to restore it without loading older version of the world. This usually happens if you removed or changed version of the mods you used with this world. You can check the details below to see what is missing!",
+  "fabric-registry-sync-v0.missing-entries.description": "Some of the content that was used in this world is no longer present. This means that once the game tries to load it, it will be lost and you won't be able to restore it without loading an older version of the world. This usually happens if you removed or changed versions of the mods you used with this world. You can check the details below to see what is missing!",
   "fabric-registry-sync-v0.missing-entries.details.missing_for_namespace": "%s entries from '%s' namespace:",
   "fabric-registry-sync-v0.missing-entries.details.missing_for_namespace.entry": " - %s",
   "fabric-registry-sync-v0.missing-entries.details.missing_for_namespace.too_many": "And %d more...",
