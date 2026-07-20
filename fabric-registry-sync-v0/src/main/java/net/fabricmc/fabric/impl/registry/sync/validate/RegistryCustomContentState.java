@@ -42,6 +42,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.LevelStorageSource;
 
@@ -69,8 +70,12 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		return new RegistryCustomContentState(map, Status.VALID);
 	}
 
-	private static Path getPath(LevelStorageSource.LevelStorageAccess worldAccess) {
+	public static Path getPath(LevelStorageSource.LevelStorageAccess worldAccess) {
 		return worldAccess.getLevelPath(LevelResource.DATA).resolve("fabric").resolve("registry_entries.dat");
+	}
+
+	public static Path getPath(MinecraftServer server) {
+		return server.getWorldPath(LevelResource.DATA).resolve("fabric").resolve("registry_entries.dat");
 	}
 
 	public static void writeFile(LevelStorageSource.LevelStorageAccess storageSource, RegistryAccess registryAccess) {
@@ -103,7 +108,7 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		return new RegistryCustomContentState(Map.of(), Status.INVALID_FILE);
 	}
 
-	private static RegistryCustomContentState fromNbt(CompoundTag tag) {
+	public static RegistryCustomContentState fromNbt(CompoundTag tag) {
 		Status status = Status.VALID;
 
 		if (tag.getIntOr("format_version", -1) != 0) {
@@ -133,7 +138,7 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		return new RegistryCustomContentState(map, status);
 	}
 
-	private CompoundTag toNbt() {
+	public CompoundTag toNbt() {
 		var tag = new CompoundTag();
 		tag.putInt("format_version", 0);
 
@@ -153,12 +158,12 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		return tag;
 	}
 
-	public Missing validate(RegistryAccess.Frozen layer) {
+	public Missing validate(RegistryAccess registryAccess) {
 		var map = new HashMap<Identifier, List<Identifier>>();
 		var registries = new ArrayList<Identifier>();
 
 		for (Map.Entry<Identifier, List<Identifier>> entry : this.entries.entrySet()) {
-			Optional<Registry<Object>> registry = layer.lookup(ResourceKey.createRegistryKey(entry.getKey()));
+			Optional<Registry<Object>> registry = registryAccess.lookup(ResourceKey.createRegistryKey(entry.getKey()));
 
 			if (registry.isPresent()) {
 				for (Identifier identifier : entry.getValue()) {
