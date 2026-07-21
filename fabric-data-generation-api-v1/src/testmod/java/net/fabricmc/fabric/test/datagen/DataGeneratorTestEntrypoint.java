@@ -52,6 +52,7 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.codec.RegistryCodecs;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeProvider;
@@ -61,7 +62,6 @@ import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.network.chat.Component;
 import net.minecraft.references.BlockItemIds;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.RegistryFixedCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -555,7 +555,7 @@ public class DataGeneratorTestEntrypoint implements DataGeneratorEntrypoint {
 
 		private record Entry(Holder<Biome> biome) {
 			private static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-					RegistryFixedCodec.create(Registries.BIOME).fieldOf("biome").forGetter(Entry::biome)
+					RegistryCodecs.holder(Registries.BIOME).fieldOf("biome").forGetter(Entry::biome)
 			).apply(instance, Entry::new));
 		}
 	}

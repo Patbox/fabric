@@ -353,7 +353,7 @@ transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData O
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData ORE_VEIN_IRON_DENSITY Lnet/minecraft/resources/ResourceKey;
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData ORE_VEIN_GAP Lnet/minecraft/resources/ResourceKey;
 # private and protected methods of NoiseRouterData
-transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData registerTerrainNoises (Lnet/minecraft/data/worldgen/BootstrapContext;Lnet/minecraft/core/HolderGetter;Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/OverworldFunctionSet;Z)V
+transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData registerTerrainNoises (Lnet/minecraft/data/worldgen/BootstrapContext;Lnet/minecraft/core/HolderGetter;Lnet/minecraft/core/HolderGetter;Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/OverworldFunctionSet;Z)V
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData offsetToDepth (Lnet/minecraft/world/level/levelgen/DensityFunction;)Lnet/minecraft/world/level/levelgen/DensityFunction;
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData registerAndWrap (Lnet/minecraft/data/worldgen/BootstrapContext;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/world/level/levelgen/DensityFunction;)Lnet/minecraft/world/level/levelgen/DensityFunction;
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData getFunction (Lnet/minecraft/core/HolderGetter;Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/levelgen/DensityFunction;
@@ -365,7 +365,7 @@ transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData 
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData spaghetti2D (Lnet/minecraft/core/HolderGetter;Lnet/minecraft/core/HolderGetter;)Lnet/minecraft/world/level/levelgen/DensityFunction;
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData underground (Lnet/minecraft/core/HolderGetter;Lnet/minecraft/core/HolderGetter;Lnet/minecraft/world/level/levelgen/DensityFunction;)Lnet/minecraft/world/level/levelgen/DensityFunction;
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData postProcess (Lnet/minecraft/world/level/levelgen/DensityFunction;)Lnet/minecraft/world/level/levelgen/DensityFunction;
-transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData overworld (Lnet/minecraft/core/HolderGetter;Lnet/minecraft/core/HolderGetter;Lnet/minecraft/world/level/levelgen/OverworldFunctionSet;Z)Lnet/minecraft/world/level/levelgen/NoiseRouter;
+transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData overworld (Lnet/minecraft/core/HolderGetter;Lnet/minecraft/world/level/levelgen/OverworldFunctionSet;)Lnet/minecraft/world/level/levelgen/NoiseRouter;
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData overworldAquifers (Lnet/minecraft/core/HolderGetter;Lnet/minecraft/core/HolderGetter;Lnet/minecraft/world/level/levelgen/OverworldFunctionSet;)Lnet/minecraft/world/level/levelgen/Aquifer$Config;
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData registerOreVeins (Lnet/minecraft/data/worldgen/BootstrapContext;)V
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData overworldOreVeins (Lnet/minecraft/core/HolderGetter;)Ljava/util/List;
@@ -429,6 +429,7 @@ transitive-accessible field net/minecraft/client/renderer/RenderPipelines ENERGY
 transitive-accessible field net/minecraft/client/renderer/RenderPipelines ENTITY_SHADOW_SNIPPET Lcom/mojang/renderpearl/api/pipeline/RenderPipeline$Snippet;
 transitive-accessible method net/minecraft/client/renderer/RenderPipelines register (Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;)Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;
 transitive-accessible method net/minecraft/client/renderer/RenderPipelines register (Lnet/minecraft/client/renderer/oit/OitPipelineSet;)Lnet/minecraft/client/renderer/oit/OitPipelineSet;
+transitive-accessible method net/minecraft/client/renderer/RenderPipelines lambda$static$10 (Lcom/mojang/renderpearl/api/pipeline/RenderPipeline$Builder;)V
 transitive-accessible method net/minecraft/client/renderer/RenderPipelines lambda$static$9 (Lcom/mojang/renderpearl/api/pipeline/RenderPipeline$Builder;)V
 transitive-accessible method net/minecraft/client/renderer/RenderPipelines lambda$static$8 (Lcom/mojang/renderpearl/api/pipeline/RenderPipeline$Builder;)V
 transitive-accessible method net/minecraft/client/renderer/RenderPipelines lambda$static$7 (Lcom/mojang/renderpearl/api/pipeline/RenderPipeline$Builder;)V
