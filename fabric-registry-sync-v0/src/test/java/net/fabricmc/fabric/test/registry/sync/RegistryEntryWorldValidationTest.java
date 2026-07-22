@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -99,10 +100,9 @@ public class RegistryEntryWorldValidationTest {
 
 	@Test
 	void fileReadWriteTest() throws IOException {
-		RegistryAccess access = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
 		Path testPath = FabricLoader.getInstance().getGameDir().resolve("fabric", "registry_entries.dat");
 
-		RegistryCustomContentState writeState = RegistryCustomContentState.construct(access);
+		RegistryCustomContentState writeState = new RegistryCustomContentState(new HashMap<>(), RegistryCustomContentState.Status.VALID);
 
 		generateFakeEntries(writeState, Registries.BLOCK.identifier(), 50, 10000);
 		generateFakeEntries(writeState, Registries.ITEM.identifier(), 55, 10000);
