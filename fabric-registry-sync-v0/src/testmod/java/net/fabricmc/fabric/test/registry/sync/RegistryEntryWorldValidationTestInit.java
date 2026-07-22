@@ -19,14 +19,19 @@ package net.fabricmc.fabric.test.registry.sync;
 import static net.minecraft.commands.Commands.literal;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.mojang.logging.LogUtils;
+
+import net.minecraft.core.registries.Registries;
+
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.RandomSource;
+
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 
 import net.minecraft.network.chat.Component;
@@ -52,11 +57,19 @@ public class RegistryEntryWorldValidationTestInit implements ModInitializer {
 					}
 				}
 
-				InputStream stream = Objects.requireNonNull(RegistryEntryWorldValidationTestInit.class.getResourceAsStream("/world_validation/reference_registry_entries.dat"));
+				try {
+					RegistryCustomContentState state = RegistryCustomContentState.construct(ctx.getSource().registryAccess());
 
-				try (OutputStream output = Files.newOutputStream(path, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
-					stream.transferTo(output);
-					ctx.getSource().sendSystemMessage(Component.literal("Copied the reference registry entry file! Leave and entry this world again to test it!"));
+					generateFakeEntries(state, Registries.BLOCK.identifier(), 50,4000);
+					generateFakeEntries(state, Registries.ITEM.identifier(), 55,3000);
+					generateFakeEntries(state, Registries.ENTITY_TYPE.identifier(), 5,15);
+					generateFakeEntries(state, Registries.BLOCK_ENTITY_TYPE.identifier(), 10,15);
+					generateFakeEntries(state, Registries.VILLAGER_PROFESSION.identifier(), 2,1);
+					generateFakeEntries(state, Registries.ATTRIBUTE.identifier(), 8,3);
+
+					RegistryCustomContentState.writeFile(path, state);
+
+					ctx.getSource().sendSystemMessage(Component.literal("Created test registry entry file! Leave and entry this world again to test it!"));
 				} catch (IOException e) {
 					LOGGER.error("Failed to copy the reference registry entries file!", e);
 					ctx.getSource().sendFailure(Component.literal("Failed to copy the reference registry entries file! See logs for more info"));
@@ -65,5 +78,18 @@ public class RegistryEntryWorldValidationTestInit implements ModInitializer {
 				return 1;
 			}));
 		}));
+	}
+
+	private void generateFakeEntries(RegistryCustomContentState state, Identifier registry, int amountNamespaces, int amountEntries) {
+		RandomSource random = RandomSource.createThreadLocalInstance(registry.hashCode());
+		List<Identifier> identifiers = state.entries().computeIfAbsent(registry, _ -> new ArrayList<>());
+
+		for (int in = 0; in < amountNamespaces; in++) {
+			String namespace = "fabric_" + random.nextInt();
+
+			for (int ie = 0; ie < amountEntries; ie++) {
+				identifiers.add(Identifier.fromNamespaceAndPath(namespace, RandomStringUtils.insecure().next(16, "abcdefghijklmnopqrstuvwxyz0123456789_")));
+			}
+		}
 	}
 }

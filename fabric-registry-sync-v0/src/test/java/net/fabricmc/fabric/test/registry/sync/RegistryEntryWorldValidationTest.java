@@ -16,18 +16,18 @@
 
 package net.fabricmc.fabric.test.registry.sync;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.fabricmc.loader.api.FabricLoader;
+
+import net.minecraft.util.RandomSource;
+
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -35,13 +35,13 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.NbtAccounter;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.references.BlockItemIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import net.fabricmc.fabric.impl.registry.sync.validate.RegistryCustomContentState;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RegistryEntryWorldValidationTest {
 	@BeforeAll
@@ -95,17 +95,38 @@ public class RegistryEntryWorldValidationTest {
 	}
 
 	@Test
-	void fileReadingTest() {
-		RegistryCustomContentState state;
+	void fileReadWriteTest() throws IOException {
+		RegistryAccess access = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+		Path testPath = FabricLoader.getInstance().getGameDir().resolve("fabric", "registry_entries.dat");
 
-		try (InputStream stream = RegistryEntryWorldValidationTest.class.getResourceAsStream("/world_validation/reference_registry_entries.dat")) {
-			assertNotNull(stream);
-			state = RegistryCustomContentState.fromNbt(NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap()));
-		} catch (IOException e) {
-			state = new RegistryCustomContentState(Map.of(), RegistryCustomContentState.Status.INVALID_FILE);
+		RegistryCustomContentState writeState = RegistryCustomContentState.construct(access);
+
+		generateFakeEntries(writeState, Registries.BLOCK.identifier(), 50,10000);
+		generateFakeEntries(writeState, Registries.ITEM.identifier(), 55,10000);
+		generateFakeEntries(writeState, Registries.ENTITY_TYPE.identifier(), 5,15);
+		generateFakeEntries(writeState, Registries.BLOCK_ENTITY_TYPE.identifier(), 10,15);
+		generateFakeEntries(writeState, Registries.VILLAGER_PROFESSION.identifier(), 2,1);
+		generateFakeEntries(writeState, Registries.ATTRIBUTE.identifier(), 8,3);
+
+		assertDoesNotThrow(() -> RegistryCustomContentState.writeFile(testPath, writeState));
+
+		RegistryCustomContentState readState = RegistryCustomContentState.readFile(testPath);
+		assertEquals(RegistryCustomContentState.Status.VALID, readState.status());
+		assertEquals(writeState, readState);
+
+		Files.deleteIfExists(testPath);
+	}
+
+	private void generateFakeEntries(RegistryCustomContentState state, Identifier registry, int amountNamespaces, int amountEntries) {
+		RandomSource random = RandomSource.createThreadLocalInstance(registry.hashCode());
+		List<Identifier> identifiers = state.entries().computeIfAbsent(registry, _ -> new ArrayList<>());
+
+		for (int in = 0; in < amountNamespaces; in++) {
+			String namespace = "fabric_" + random.nextInt();
+
+			for (int ie = 0; ie < amountEntries; ie++) {
+				identifiers.add(Identifier.fromNamespaceAndPath(namespace, RandomStringUtils.insecure().next(16, "abcdefghijklmnopqrstuvwxyz0123456789_")));
+			}
 		}
-
-		assertEquals(RegistryCustomContentState.Status.VALID, state.status());
-		assertNotEquals(0, state.entries().size());
 	}
 }

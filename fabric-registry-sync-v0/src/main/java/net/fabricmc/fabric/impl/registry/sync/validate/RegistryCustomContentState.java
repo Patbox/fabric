@@ -16,8 +16,11 @@
 
 package net.fabricmc.fabric.impl.registry.sync.validate;
 
+import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,39 +65,70 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		registryAccess.listRegistries().filter(registryLookup -> RegistryAttributeHolder.get(registryLookup.key()).hasAttribute(RegistryAttribute.SAVE_DATA_VALIDATED))
 				.forEach(registry -> {
 					var list = new ArrayList<Identifier>();
-					map.put(registry.key().identifier(), list);
 
 					registry.listElementIds().map(ResourceKey::identifier).filter(id -> !id.getNamespace().equals(Identifier.DEFAULT_NAMESPACE)).forEach(list::add);
+
+					if (!list.isEmpty()) {
+						map.put(registry.key().identifier(), list);
+					}
 				});
 
-		return new RegistryCustomContentState(map, Status.VALID);
+		return map.isEmpty() ? EMPTY : new RegistryCustomContentState(map, Status.VALID);
 	}
 
-	public static Path getPath(LevelStorageSource.LevelStorageAccess worldAccess) {
-		return worldAccess.getLevelPath(LevelResource.DATA).resolve("fabric").resolve("registry_entries.dat");
+	private static Path getPath(LevelStorageSource.LevelStorageAccess worldAccess, String suffix) {
+		return getPathRelative(worldAccess.getLevelPath(LevelResource.DATA), suffix);
 	}
 
 	public static Path getPath(MinecraftServer server) {
-		return server.getWorldPath(LevelResource.DATA).resolve("fabric").resolve("registry_entries.dat");
+		return getPathRelative(server.getWorldPath(LevelResource.DATA), "");
 	}
 
-	public static void writeFile(LevelStorageSource.LevelStorageAccess storageSource, RegistryAccess registryAccess) {
-		try {
-			Path path = getPath(storageSource);
+	private static Path getPathRelative(Path path, String suffix) {
+		return path.resolve("fabric").resolve("registry_entries.dat" + suffix);
+	}
 
-			if (!Files.isDirectory(path.getParent())) {
-				Files.createDirectories(path.getParent());
+	public static void writeIfNeeded(LevelStorageSource.LevelStorageAccess storageSource, RegistryAccess registryAccess) {
+		try {
+			Path tempPath = getPath(storageSource, "_tmp");
+			Path path = getPath(storageSource, "");
+
+			RegistryCustomContentState state = RegistryCustomContentState.construct(registryAccess);
+
+			if (!Files.exists(path) && state.isEmpty()) {
+				return;
 			}
 
-			NbtIo.writeCompressed(RegistryCustomContentState.construct(registryAccess).toNbt(), path);
+			writeFile(tempPath, state);
+
+			try {
+				Files.move(tempPath, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+			} catch (AtomicMoveNotSupportedException _) {
+				// Fallback
+				Files.move(tempPath, path, StandardCopyOption.REPLACE_EXISTING);
+			}
 		} catch (Throwable e) {
-			LOGGER.warn("Failed to write the registry entries file!", e);
+			LOGGER.error("Failed to write the registry entries file!", e);
 		}
 	}
 
-	public static RegistryCustomContentState readFile(LevelStorageSource.LevelStorageAccess access) {
-		Path path = RegistryCustomContentState.getPath(access);
+	public boolean isEmpty() {
+		return this.entries.isEmpty() && this.status == Status.VALID;
+	}
 
+	public static void writeFile(Path path, RegistryCustomContentState state) throws IOException {
+		if (!Files.isDirectory(path.getParent())) {
+			Files.createDirectories(path.getParent());
+		}
+
+		NbtIo.writeCompressed(state.toNbt(), path);
+	}
+
+	public static RegistryCustomContentState readFile(LevelStorageSource.LevelStorageAccess access) {
+		return readFile(RegistryCustomContentState.getPath(access, ""));
+	}
+
+	public static RegistryCustomContentState readFile(Path path) {
 		if (!Files.exists(path)) {
 			return EMPTY;
 		}
@@ -108,7 +142,7 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 		return new RegistryCustomContentState(Map.of(), Status.INVALID_FILE);
 	}
 
-	public static RegistryCustomContentState fromNbt(CompoundTag tag) {
+	private static RegistryCustomContentState fromNbt(CompoundTag tag) {
 		Status status = Status.VALID;
 
 		if (tag.getIntOr("format_version", -1) != 0) {
@@ -117,28 +151,37 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 
 		var map = new HashMap<Identifier, List<Identifier>>();
 
-		CompoundTag registries = tag.getCompoundOrEmpty("registries");
+		Optional<CompoundTag> registries = tag.getCompound("registries");
 
-		for (String key : registries.keySet()) {
-			ListTag entries = registries.getListOrEmpty(key);
+		if (registries.isPresent()) {
+			for (String key : registries.get().keySet()) {
+				Optional<ListTag> entries = registries.get().getList(key);
 
-			var idList = new ArrayList<Identifier>();
+				Identifier registryId = Identifier.tryParse(key);
 
-			for (Tag entry : entries) {
-				if (entry instanceof StringTag(String value)) {
-					idList.add(Identifier.parse(value));
-				} else if (status == Status.VALID) {
+				if (registryId != null && entries.isPresent()) {
+					var idList = new ArrayList<Identifier>();
+
+					for (Tag entry : entries.get()) {
+						if (entry instanceof StringTag(String value)) {
+							idList.add(Identifier.parse(value));
+						} else if (status == Status.VALID) {
+							status = Status.INVALID_FILE;
+						}
+					}
+					map.put(registryId, idList);
+				} else if (status != Status.UNSUPPORTED_VERSION) {
 					status = Status.INVALID_FILE;
 				}
 			}
-
-			map.put(Identifier.parse(key), idList);
+		} else if (status != Status.UNSUPPORTED_VERSION) {
+			status = Status.INVALID_FILE;
 		}
 
 		return new RegistryCustomContentState(map, status);
 	}
 
-	public CompoundTag toNbt() {
+	private CompoundTag toNbt() {
 		var tag = new CompoundTag();
 		tag.putInt("format_version", 0);
 
