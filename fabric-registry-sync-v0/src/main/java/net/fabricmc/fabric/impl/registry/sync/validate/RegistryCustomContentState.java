@@ -169,6 +169,7 @@ public record RegistryCustomContentState(Map<Identifier, List<Identifier>> entri
 							status = Status.INVALID_FILE;
 						}
 					}
+
 					map.put(registryId, idList);
 				} else if (status != Status.UNSUPPORTED_VERSION) {
 					status = Status.INVALID_FILE;

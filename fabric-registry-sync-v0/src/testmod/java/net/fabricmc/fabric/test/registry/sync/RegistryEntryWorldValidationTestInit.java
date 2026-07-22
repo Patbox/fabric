@@ -25,16 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mojang.logging.LogUtils;
-
-import net.minecraft.core.registries.Registries;
-
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.RandomSource;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.RandomSource;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -60,12 +57,12 @@ public class RegistryEntryWorldValidationTestInit implements ModInitializer {
 				try {
 					RegistryCustomContentState state = RegistryCustomContentState.construct(ctx.getSource().registryAccess());
 
-					generateFakeEntries(state, Registries.BLOCK.identifier(), 50,4000);
-					generateFakeEntries(state, Registries.ITEM.identifier(), 55,3000);
-					generateFakeEntries(state, Registries.ENTITY_TYPE.identifier(), 5,15);
-					generateFakeEntries(state, Registries.BLOCK_ENTITY_TYPE.identifier(), 10,15);
-					generateFakeEntries(state, Registries.VILLAGER_PROFESSION.identifier(), 2,1);
-					generateFakeEntries(state, Registries.ATTRIBUTE.identifier(), 8,3);
+					generateFakeEntries(state, Registries.BLOCK.identifier(), 50, 4000);
+					generateFakeEntries(state, Registries.ITEM.identifier(), 55, 3000);
+					generateFakeEntries(state, Registries.ENTITY_TYPE.identifier(), 5, 15);
+					generateFakeEntries(state, Registries.BLOCK_ENTITY_TYPE.identifier(), 10, 15);
+					generateFakeEntries(state, Registries.VILLAGER_PROFESSION.identifier(), 2, 1);
+					generateFakeEntries(state, Registries.ATTRIBUTE.identifier(), 8, 3);
 
 					RegistryCustomContentState.writeFile(path, state);
 
