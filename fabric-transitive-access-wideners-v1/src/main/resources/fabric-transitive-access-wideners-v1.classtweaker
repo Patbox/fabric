@@ -320,16 +320,16 @@ transitive-accessible class net/minecraft/world/item/enchantment/Enchantment$Flo
 
 # private fields of NoiseRouterData
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData ORE_THICKNESS F
-transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData VEININESS_FREQUENCY D
-transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData NOODLE_SPACING_AND_STRAIGHTNESS D
-transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData SURFACE_DENSITY_THRESHOLD D
-transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData CHEESE_NOISE_TARGET D
+transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData VEININESS_FREQUENCY F
+transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData NOODLE_SPACING_AND_STRAIGHTNESS F
+transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData SURFACE_DENSITY_THRESHOLD F
+transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData CHEESE_NOISE_TARGET F
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData DENSITY_Y_ANCHOR_BOTTOM I
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData DENSITY_Y_ANCHOR_TOP I
-transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData DENSITY_Y_BOTTOM D
-transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData DENSITY_Y_TOP D
+transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData DENSITY_Y_BOTTOM F
+transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData DENSITY_Y_TOP F
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData OVERWORLD_BOTTOM_SLIDE_HEIGHT I
-transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData BASE_DENSITY_MULTIPLIER D
+transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData BASE_DENSITY_MULTIPLIER F
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData BLENDING_FACTOR Lnet/minecraft/world/level/levelgen/DensityFunction;
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData BLENDING_JAGGEDNESS Lnet/minecraft/world/level/levelgen/DensityFunction;
 transitive-accessible field net/minecraft/world/level/levelgen/NoiseRouterData ZERO Lnet/minecraft/resources/ResourceKey;
@@ -386,7 +386,7 @@ transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData 
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData noiseGradientDensity (Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/DensityFunction;)Lnet/minecraft/world/level/levelgen/DensityFunction;
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData preliminarySurfaceLevel (Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/DensityFunction;Z)Lnet/minecraft/world/level/levelgen/DensityFunction;
 transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData yLimitedInterpolatable (Lnet/minecraft/world/level/levelgen/DensityFunction;Lnet/minecraft/world/level/levelgen/DensityFunction;III)Lnet/minecraft/world/level/levelgen/DensityFunction;
-transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData slide (Lnet/minecraft/world/level/levelgen/DensityFunction;IIIIDIID)Lnet/minecraft/world/level/levelgen/DensityFunction;
+transitive-accessible method net/minecraft/world/level/levelgen/NoiseRouterData slide (Lnet/minecraft/world/level/levelgen/DensityFunction;IIIIFIIF)Lnet/minecraft/world/level/levelgen/DensityFunction;
 
 # private fields of RenderPipelines
 transitive-accessible field net/minecraft/client/renderer/RenderPipelines GLOBALS_SNIPPET Lcom/mojang/renderpearl/api/pipeline/RenderPipeline$Snippet;
