@@ -24,24 +24,24 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
-import net.minecraft.client.renderer.ScreenEffectRenderer;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.extract.LevelExtractor;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
-@Mixin(ScreenEffectRenderer.class)
-abstract class ScreenEffectRendererMixin {
+@Mixin(LevelExtractor.class)
+abstract class LevelExtractorMixin {
 	@Unique
 	@Nullable
 	private static BlockPos pos;
 
-	@WrapOperation(method = "submit", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/BlockStateModelSet;getParticleMaterial(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/resources/model/sprite/Material$Baked;"))
-	private static Material.Baked getParticleMaterialProxy(BlockStateModelSet models, BlockState state, Operation<Material.Baked> original, @Local(name = "player") Player player) {
+	@WrapOperation(method = "extractPlayerState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/BlockStateModelSet;getParticleMaterial(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/resources/model/sprite/Material$Baked;"))
+	private static Material.Baked getParticleMaterialProxy(BlockStateModelSet models, BlockState state, Operation<Material.Baked> original, @Local(name = "player") LocalPlayer player) {
 		if (pos != null && player.level() instanceof BlockAndTintGetter level) {
 			Material.Baked material = models.getParticleMaterial(state, level, pos);
 			pos = null;

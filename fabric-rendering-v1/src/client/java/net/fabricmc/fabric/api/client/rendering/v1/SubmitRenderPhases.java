@@ -26,7 +26,7 @@ public final class SubmitRenderPhases {
 	public static final SubmitRenderPhase<SubmitNode> SOLID = new SubmitRenderPhase<>(x -> x.solid);
 	public static final SubmitRenderPhase<SubmitNode> SHADOWS = new SubmitRenderPhase<>(x -> x.shadows);
 	public static final SubmitRenderPhase<SubmitNode> NAME_TAGS = new SubmitRenderPhase<>(x -> x.nameTags);
-	public static final SubmitRenderPhase<TranslucentSubmit> SEE_THROUGH_NAME_TAGS = new SubmitRenderPhase<>(x -> x.seeThroughNameTags);
+	public static final SubmitRenderPhase<TranslucentSubmit> SEE_THROUGH_NAME_TAGS = new SubmitRenderPhase<>(x -> x.seeThrough);
 	public static final SubmitRenderPhase<SubmitNode> TEXTS = new SubmitRenderPhase<>(x -> x.texts);
 	public static final SubmitRenderPhase<SubmitNode> SHAPE_OUTLINES = new SubmitRenderPhase<>(x -> x.shapeOutlines);
 	public static final SubmitRenderPhase<TranslucentSubmit> TRANSLUCENT_BLOCKS_AND_ITEMS = new SubmitRenderPhase<>(x -> x.translucentBlocksAndItems);
