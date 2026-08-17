@@ -389,8 +389,8 @@ public class DataGeneratorTestEntrypoint implements DataGeneratorEntrypoint {
 		@Override
 		public void generateAdvancement(HolderLookup.Provider registryLookup, Consumer<AdvancementHolder> consumer) {
 			AdvancementHolder root = Advancement.Builder.advancement()
-					.display(
-							SIMPLE_BLOCK,
+					.rootDisplay(
+							SIMPLE_BLOCK.asItem(),
 							Component.translatable("advancements.test.root.title"),
 							Component.translatable("advancements.test.root.description"),
 							Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/end.png"),
@@ -399,8 +399,8 @@ public class DataGeneratorTestEntrypoint implements DataGeneratorEntrypoint {
 					.addCriterion("killed_something", KilledTrigger.TriggerInstance.playerKilledEntity())
 					.save(consumer, Identifier.fromNamespaceAndPath(MOD_ID, "test/root"));
 			AdvancementHolder rootNotLoaded = Advancement.Builder.advancement()
-					.display(
-							SIMPLE_BLOCK,
+					.rootDisplay(
+							SIMPLE_BLOCK.asItem(),
 							Component.translatable("advancements.test.root_not_loaded.title"),
 							Component.translatable("advancements.test.root_not_loaded.description"),
 							Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/end.png"),
@@ -410,10 +410,9 @@ public class DataGeneratorTestEntrypoint implements DataGeneratorEntrypoint {
 					.save(withConditions(consumer, NEVER_LOADED), Identifier.fromNamespaceAndPath(MOD_ID, "test/root_not_loaded"));
 
 			AdvancementHolder adventureChild = Advancement.Builder.advancement()
-					.display(SIMPLE_BLOCK,
+					.display(SIMPLE_BLOCK.asItem(),
 							Component.translatable("advancements.test.adventure_child.title"),
 							Component.translatable("advancements.test.adventure_child.description"),
-							Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/end.png"),
 							AdvancementType.GOAL,
 							false, false, false
 					)

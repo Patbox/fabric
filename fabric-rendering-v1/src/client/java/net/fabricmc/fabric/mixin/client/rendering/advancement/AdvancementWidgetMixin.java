@@ -104,7 +104,7 @@ abstract class AdvancementWidgetMixin {
 	}
 
 	@Inject(method = "extractHover", at = @At(value = "INVOKE", target = "Ljava/util/List;isEmpty()Z"))
-	private void captureExtractTooltip(GuiGraphicsExtractor graphics, int xo, int yo, float fade, int screenxo, int screenyo, CallbackInfo ci, @Share("renderTooltip")LocalBooleanRef renderTooltip) {
+	private void captureExtractTooltip(GuiGraphicsExtractor graphics, int xo, int yo, float fade, int screenxo, int screenyo, int screenWidth, CallbackInfo ci, @Share("renderTooltip")LocalBooleanRef renderTooltip) {
 		AdvancementRenderer.FrameRenderer frameRenderer = AdvancementRendererRegistryImpl.getFrameRenderer(advancementNode.holder().id());
 		renderTooltip.set(frameRenderer == null || frameRenderer.shouldRenderTooltip());
 	}
