@@ -25,16 +25,16 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
 
 /**
- * Allowed values for {@link MutableQuadView#itemRenderType(RenderType)}.
+ * Allowed values for {@link MutableQuadView#itemGlintSpecialRenderType(RenderType)}.
  */
-enum ItemRenderType {
-	CUTOUT(Sheets.cutoutItemSheet()),
-	TRANSLUCENT(Sheets.translucentItemSheet()),
-	CUTOUT_BLOCK(Sheets.cutoutBlockItemSheet()),
-	TRANSLUCENT_BLOCK(Sheets.translucentBlockItemSheet());
+enum ItemGlintSpecialRenderType {
+	CUTOUT(Sheets.cutoutItemGlintSpecialSheet()),
+	TRANSLUCENT(Sheets.translucentItemGlintSpecialSheet()),
+	CUTOUT_BLOCK(Sheets.cutoutBlockItemGlintSpecialSheet()),
+	TRANSLUCENT_BLOCK(Sheets.translucentBlockItemGlintSpecialSheet());
 
-	static final RenderType[] RENDER_TYPES = Arrays.stream(ItemRenderType.values()).map(t -> t.renderType).toArray(RenderType[]::new);
-	static final Map<RenderType, ItemRenderType> RENDER_TYPE_TO_ENUM = Map.of(
+	static final RenderType[] RENDER_TYPES = Arrays.stream(ItemGlintSpecialRenderType.values()).map(t -> t.renderType).toArray(RenderType[]::new);
+	static final Map<RenderType, ItemGlintSpecialRenderType> RENDER_TYPE_TO_ENUM = Map.of(
 			CUTOUT.renderType, CUTOUT,
 			TRANSLUCENT.renderType, TRANSLUCENT,
 			CUTOUT_BLOCK.renderType, CUTOUT_BLOCK,
@@ -42,11 +42,11 @@ enum ItemRenderType {
 	);
 
 	// The atlas of the default render type should match the default QuadAtlas, which is currently BLOCK.
-	static final ItemRenderType DEFAULT = ItemRenderType.CUTOUT_BLOCK;
+	static final ItemGlintSpecialRenderType DEFAULT = ItemGlintSpecialRenderType.CUTOUT_BLOCK;
 
 	final RenderType renderType;
 
-	ItemRenderType(RenderType renderType) {
+	ItemGlintSpecialRenderType(RenderType renderType) {
 		this.renderType = renderType;
 	}
 }
