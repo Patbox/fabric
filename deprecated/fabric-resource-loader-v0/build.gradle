@@ -1,10 +1,16 @@
-version = getSubprojectVersion(project)
+plugins {
+	id 'fabric-api.module'
+}
 
-moduleDependencies(project, ['fabric-api-base', 'fabric-resource-loader-v1'])
+fabricApiModule {
+	moduleDependencies(
+		'fabric-api-base', 'fabric-resource-loader-v1'
+	)
 
-testDependencies(project, [
-	':fabric-lifecycle-events-v1',
-	':fabric-api-base',
-	':fabric-gametest-api-v1',
-	':deprecated:fabric-resource-loader-v0'
-])
+	testDependencies(
+		':fabric-lifecycle-events-v1',
+		':fabric-api-base',
+		':fabric-gametest-api-v1',
+		':deprecated:fabric-resource-loader-v0'
+	)
+}

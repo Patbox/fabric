@@ -1,5 +1,8 @@
+import org.gradle.api.publish.maven.MavenPublication
+
 plugins {
-	id 'version-catalog'
+	id "version-catalog"
+	id "fabric-api.base-publishing"
 }
 
 version = rootProject.version
@@ -10,12 +13,14 @@ publishing.publications {
 	}
 }
 
-tasks.withType(GenerateModuleMetadata) {
-	// todo: RemoteSignJar fails when this is false (as set by parent build script)
+remoteSign {
+	sign publishing.publications.mavenJava
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
 	enabled = true
 }
 
-// Avoid configuration ordering issues by creating the catalog entries during task execution time
 tasks.register('configureCatalog') {
 	doConfigureCatalog()
 }
@@ -26,7 +31,7 @@ tasks.named('generateCatalogAsToml') {
 
 def doConfigureCatalog() {
 	for (proj in rootProject.allprojects) {
-		if (proj == project) { // the catalog itself
+		if (proj == project) {
 			continue
 		}
 
