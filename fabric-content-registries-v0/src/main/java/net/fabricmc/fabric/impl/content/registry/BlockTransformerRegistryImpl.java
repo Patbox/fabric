@@ -16,32 +16,54 @@
 
 package net.fabricmc.fabric.impl.content.registry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.BlockTransformer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.item.component.BlockTransformerMappings;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import net.minecraft.world.level.levelgen.feature.stateproviders.CopyPropertiesProvider;
 import net.minecraft.world.level.levelgen.feature.stateproviders.RuleBasedStateProvider;
 
 public final class BlockTransformerRegistryImpl {
+	private static final List<BlockTransformer.BlockTransformData> AXE_TRANSFORMATIONS = new ArrayList<>();
+	private static final List<BlockTransformer.BlockTransformData> HOE_TRANSFORMATIONS = new ArrayList<>();
+	private static final List<BlockTransformer.BlockTransformData> SHOVEL_TRANSFORMATIONS = new ArrayList<>();
+
 	private BlockTransformerRegistryImpl() {
 	}
 
 	public static void registerAxe(BlockTransformer.BlockTransformData transformData) {
-		BlockTransformerMappings.AXE.transforms().add(transformData);
+		AXE_TRANSFORMATIONS.add(transformData);
 	}
 
 	public static void registerHoe(BlockTransformer.BlockTransformData transformData) {
-		BlockTransformerMappings.HOE.transforms().add(transformData);
+		HOE_TRANSFORMATIONS.add(transformData);
 	}
 
 	public static void registerShovel(BlockTransformer.BlockTransformData transformData) {
-		BlockTransformerMappings.SHOVEL.transforms().add(transformData);
+		SHOVEL_TRANSFORMATIONS.add(transformData);
+	}
+
+	public static List<BlockTransformer.BlockTransformData> addAxeTransformations(List<BlockTransformer.BlockTransformData> transformations) {
+		return append(transformations, AXE_TRANSFORMATIONS);
+	}
+
+	public static List<BlockTransformer.BlockTransformData> addHoeTransformations(List<BlockTransformer.BlockTransformData> transformations) {
+		return append(transformations, HOE_TRANSFORMATIONS);
+	}
+
+	public static List<BlockTransformer.BlockTransformData> addShovelTransformations(List<BlockTransformer.BlockTransformData> transformations) {
+		return append(transformations, SHOVEL_TRANSFORMATIONS);
+	}
+
+	private static List<BlockTransformer.BlockTransformData> append(List<BlockTransformer.BlockTransformData> transformations, List<BlockTransformer.BlockTransformData> additions) {
+		List<BlockTransformer.BlockTransformData> result = new ArrayList<>(transformations);
+		result.addAll(additions);
+		return result;
 	}
 
 	public static void registerStripping(BlockPredicate fromBlockPredicate, BlockStateProvider toBlockState) {

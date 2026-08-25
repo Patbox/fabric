@@ -43,6 +43,7 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
 
 public class VoidChunkGenerator extends ChunkGenerator {
 	public static final MapCodec<VoidChunkGenerator> CODEC = RecordCodecBuilder.mapCodec((instance) ->
@@ -59,14 +60,6 @@ public class VoidChunkGenerator extends ChunkGenerator {
 	}
 
 	@Override
-	public void applyCarvers(@Nullable WorldGenRegion biomeRegion, RandomState randomState, BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk, Blender blender) {
-	}
-
-	@Override
-	public void buildSurface(StructureManager structureManager, RandomState randomState, ChunkAccess chunk, BiomeManager biomeManager, Blender blender, Set<Holder<Biome>> possibleBiomes) {
-	}
-
-	@Override
 	public void spawnOriginalMobs(WorldGenRegion region) {
 	}
 
@@ -76,7 +69,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
 	}
 
 	@Override
-	public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunk) {
+	public CompletableFuture<ChunkAccess> buildTerrain(ChunkAccess chunk, Blender blender, RandomState randomState, StructureManager structureManager, BiomeManager biomeManager, @Nullable WorldGenRegion carverBiomeRegion, Set<Holder<Biome>> possibleBiomes) {
 		return CompletableFuture.completedFuture(chunk);
 	}
 
@@ -101,6 +94,6 @@ public class VoidChunkGenerator extends ChunkGenerator {
 	}
 
 	@Override
-	public void addDebugScreenInfo(List<String> list, RandomState randomState, BlockPos blockPos) {
+	public void addDebugScreenInfo(List<String> list, RandomState randomState, BlockPos blockPos, SamplerContext samplerContext) {
 	}
 }

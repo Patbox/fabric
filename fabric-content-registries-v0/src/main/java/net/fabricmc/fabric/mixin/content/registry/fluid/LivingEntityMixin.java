@@ -46,15 +46,6 @@ public abstract class LivingEntityMixin extends Entity {
 		super(type, level);
 	}
 
-	@ModifyExpressionValue(method = "shouldTravelInFluid", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isInLava()Z"))
-	private boolean isInCustomFluid(boolean original) {
-		if (original) {
-			return true;
-		}
-
-		return !((InternalEntityFluidExtension) this).fabric_api$getTouchedCustomFluids().isEmpty();
-	}
-
 	@WrapWithCondition(method = "travelInFluid", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;travelInLava(Lnet/minecraft/world/phys/Vec3;DZD)V"))
 	private boolean travelInCustomFluid(LivingEntity instance, Vec3 vec3, double input, boolean baseGravity, double isFalling) {
 		for (TagKey<Fluid> tagKey : ((InternalEntityFluidExtension) this).fabric_api$getTouchedCustomFluids()) {
