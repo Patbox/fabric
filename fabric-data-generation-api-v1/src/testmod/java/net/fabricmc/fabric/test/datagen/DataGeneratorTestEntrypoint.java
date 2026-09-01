@@ -86,7 +86,8 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.MatchBlock;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -473,7 +474,7 @@ public class DataGeneratorTestEntrypoint implements DataGeneratorEntrypoint {
 			withConditions(consumer, ALWAYS_LOADED).accept(
 					BuiltInLootTables.PIGLIN_BARTERING,
 					LootTable.lootTable().withPool(
-							LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(SIMPLE_BLOCK))
+							LootPool.lootPool().setRolls(ContextIntProviders.exactly(1)).add(LootItem.lootTableItem(SIMPLE_BLOCK))
 					)
 			);
 		}
@@ -514,7 +515,7 @@ public class DataGeneratorTestEntrypoint implements DataGeneratorEntrypoint {
 		protected void configure(HolderLookup.Provider registries, Entries entries) {
 			entries.add(
 					TEST_NUMBER_PROVIDER_KEY,
-					new ConstantValue(123.0f)
+					new ConstantValue(123)
 			);
 		}
 
