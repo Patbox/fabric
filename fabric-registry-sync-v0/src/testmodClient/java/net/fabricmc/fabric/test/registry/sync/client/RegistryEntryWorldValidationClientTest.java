@@ -38,6 +38,7 @@ public class RegistryEntryWorldValidationClientTest implements FabricClientGameT
 			singleplayer.getServer().runCommand("override_registry_entries");
 			context.waitTicks(5);
 		}
+
 		context.waitTicks(20);
 
 		context.runOnClient(client -> {
