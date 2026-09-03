@@ -19,7 +19,6 @@
     "RegistriesMixin",
     "RegistryDataLoaderMixin",
     "RegistryMixin",
-    "RegistryPatchGeneratorMixin",
     "RegistrySynchronizationMixin",
     "SerializableChunkDataMixin",
     "WorldLoaderMixin"
