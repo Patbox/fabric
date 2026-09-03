@@ -200,8 +200,29 @@ public final class FabricDataGenHelper {
 				RegistryDataLoader.RELOADABLE_REGISTRIES,
 				Util.backgroundExecutor()
 		);
+
+		RegistrySetBuilder reloadableRegistryBuilder = new RegistrySetBuilder();
+		HashSet<ResourceKey<? extends Registry<?>>> vanillaReloadableRegistries = new HashSet<>();
+		HashSet<ResourceKey<? extends Registry<?>>> moddedReloadableRegistries = new HashSet<>();
+		RegistryDataLoader.RELOADABLE_REGISTRIES.forEach(registry -> vanillaReloadableRegistries.add(registry.key()));
+
+		for (RegistryDataLoader.RegistryData<?> registry : DynamicRegistries.getReloadableRegistries()) {
+			if (!vanillaReloadableRegistries.contains(registry.key())) {
+				addEmptyRegistry(reloadableRegistryBuilder, registry.key());
+				moddedReloadableRegistries.add(registry.key());
+			}
+		}
+
+		HolderLookup.Provider reloadableRegistryLookup = reloadableRegistryBuilder.build(registryLookup);
+
 		return reloadableRegistriesFuture.thenApply(reloadableRegistries -> HolderLookup.Provider.create(
-				Stream.concat(registryLookup.listRegistries(), reloadableRegistries.listRegistries())
+				Stream.concat(
+						registryLookup.listRegistries(),
+						Stream.concat(
+								reloadableRegistryLookup.listRegistries().filter(lookup -> moddedReloadableRegistries.contains(lookup.key())),
+								reloadableRegistries.listRegistries()
+						)
+				)
 		)).whenComplete((_, _) -> resourceManager.close());
 	}
 
