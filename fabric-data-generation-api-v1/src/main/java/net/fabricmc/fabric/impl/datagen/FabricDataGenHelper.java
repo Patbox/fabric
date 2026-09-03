@@ -163,7 +163,7 @@ public final class FabricDataGenHelper {
 				.flatMap(RegistrySetBuilder.RegistryStub::requiredRegistries)
 				.forEach(vanillaWorldRegistries::add);
 
-		for (RegistryDataLoader.RegistryData<?> registry : DynamicRegistries.getBootstrappingRegistries()) {
+		for (RegistryDataLoader.RegistryData<?> registry : DynamicRegistries.getWorldRegistries()) {
 			if (!vanillaWorldRegistries.contains(registry.key())) {
 				addEmptyRegistry(registryBuilder, registry.key());
 			}
@@ -183,15 +183,12 @@ public final class FabricDataGenHelper {
 
 	private static HolderLookup.Provider createReloadableLookupProvider(HolderLookup.Provider registryLookup) {
 		RegistrySetBuilder reloadableRegistryBuilder = new RegistrySetBuilder();
-		addEmptyRegistries(reloadableRegistryBuilder, VanillaRegistries.RELOADABLE_BUILDER);
-		return reloadableRegistryBuilder.build(registryLookup);
-	}
 
-	private static void addEmptyRegistries(RegistrySetBuilder target, RegistrySetBuilder source) {
-		source.entries.stream()
-				.flatMap(RegistrySetBuilder.RegistryStub::requiredRegistries)
-				.distinct()
-				.forEach(key -> addEmptyRegistry(target, key));
+		for (RegistryDataLoader.RegistryData<?> registry : DynamicRegistries.getReloadableRegistries()) {
+			addEmptyRegistry(reloadableRegistryBuilder, registry.key());
+		}
+
+		return reloadableRegistryBuilder.build(registryLookup);
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
