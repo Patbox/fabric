@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
@@ -119,7 +118,7 @@ public final class FabricDataGenHelper {
 		// Ensure that the DataGeneratorEntrypoint is constructed on the main thread.
 		final List<DataGeneratorEntrypoint> entrypoints = dataGeneratorInitializers.stream().map(EntrypointContainer::getEntrypoint).toList();
 		CompletableFuture<HolderLookup.Provider> worldRegistriesFuture = CompletableFuture.supplyAsync(() -> createWorldLookupProvider(entrypoints), Util.backgroundExecutor());
-		CompletableFuture<HolderLookup.Provider> registriesFuture = worldRegistriesFuture.thenComposeAsync(FabricDataGenHelper::createReloadableLookupProvider, Util.backgroundExecutor());
+		CompletableFuture<HolderLookup.Provider> registriesFuture = worldRegistriesFuture.thenComposeAsync(provider -> createReloadableLookupProvider(entrypoints, provider), Util.backgroundExecutor());
 
 		Object2IntOpenHashMap<String> jsonKeySortOrders = (Object2IntOpenHashMap<String>) DataProvider.FIXED_ORDER_FIELDS;
 		Object2IntOpenHashMap<String> defaultJsonKeySortOrders = new Object2IntOpenHashMap<>(jsonKeySortOrders);
@@ -188,7 +187,7 @@ public final class FabricDataGenHelper {
 		return registryLookup;
 	}
 
-	private static CompletableFuture<HolderLookup.Provider> createReloadableLookupProvider(HolderLookup.Provider registryLookup) {
+	private static CompletableFuture<HolderLookup.Provider> createReloadableLookupProvider(List<DataGeneratorEntrypoint> dataGeneratorInitializers, HolderLookup.Provider registryLookup) {
 		PackRepository packRepository = ServerPacksSource.createVanillaTrustedRepository();
 		packRepository.reload();
 		packRepository.setSelected(List.of(BuiltInPackSource.VANILLA_ID));
@@ -213,17 +212,23 @@ public final class FabricDataGenHelper {
 			}
 		}
 
-		HolderLookup.Provider reloadableRegistryLookup = reloadableRegistryBuilder.build(registryLookup);
+		for (DataGeneratorEntrypoint entrypoint : dataGeneratorInitializers) {
+			entrypoint.buildReloadableRegistry(reloadableRegistryBuilder);
+		}
 
-		return reloadableRegistriesFuture.thenApply(reloadableRegistries -> HolderLookup.Provider.create(
-				Stream.concat(
-						registryLookup.listRegistries(),
-						Stream.concat(
-								reloadableRegistryLookup.listRegistries().filter(lookup -> moddedReloadableRegistries.contains(lookup.key())),
-								reloadableRegistries.listRegistries()
-						)
-				)
-		)).whenComplete((_, _) -> resourceManager.close());
+		return reloadableRegistriesFuture.thenApply(reloadableRegistries -> {
+			reloadableRegistries.listRegistries().forEach(registry -> {
+				//noinspection unchecked
+				reloadableRegistryBuilder.add((ResourceKey<Registry<Object>>) registry.key(), bootstrap -> {
+					//noinspection unchecked
+					((HolderLookup.RegistryLookup<Object>) registry).listElements().forEach(reference -> {
+						bootstrap.register(reference.key(), reference.value());
+					});
+				});
+			});
+
+			return reloadableRegistryBuilder.build(registryLookup);
+		}).whenComplete((_, _) -> resourceManager.close());
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
