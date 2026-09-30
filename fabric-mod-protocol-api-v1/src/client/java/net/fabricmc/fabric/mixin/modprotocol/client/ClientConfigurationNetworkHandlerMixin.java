@@ -16,31 +16,35 @@
 
 package net.fabricmc.fabric.mixin.modprotocol.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
+import net.minecraft.client.multiplayer.ClientConfigurationPacketListenerImpl;
+
+import net.minecraft.client.multiplayer.CommonListenerCookie;
+import net.minecraft.network.Connection;
+
+import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientCommonNetworkHandler;
-import net.minecraft.client.network.ClientConfigurationNetworkHandler;
-import net.minecraft.client.network.ClientConnectionState;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.packet.s2c.config.SelectKnownPacksS2CPacket;
+
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
 import net.fabricmc.fabric.impl.modprotocol.RemoteProtocolStorage;
 
-@Mixin(ClientConfigurationNetworkHandler.class)
-public abstract class ClientConfigurationNetworkHandlerMixin extends ClientCommonNetworkHandler {
-	protected ClientConfigurationNetworkHandlerMixin(MinecraftClient client, ClientConnection connection, ClientConnectionState connectionState) {
-		super(client, connection, connectionState);
+@Mixin(ClientConfigurationPacketListenerImpl.class)
+public abstract class ClientConfigurationNetworkHandlerMixin extends ClientCommonPacketListenerImpl {
+	protected ClientConfigurationNetworkHandlerMixin(Minecraft minecraft, Connection connection, CommonListenerCookie cookie) {
+		super(minecraft, connection, cookie);
 	}
 
-	@Inject(method = "onSelectKnownPacks", at = @At("HEAD"), cancellable = true)
-	private void preventJoiningIncompatibleServers(SelectKnownPacksS2CPacket packet, CallbackInfo ci) {
+	@Inject(method = "handleSelectKnownPacks", at = @At("HEAD"), cancellable = true)
+	private void preventJoiningIncompatibleServers(ClientboundSelectKnownPacks packet, CallbackInfo ci) {
 		if (((RemoteProtocolStorage) this.connection).fabric$getRemoteProtocol() == null && !ModProtocolManager.SERVER_REQUIRED.isEmpty()) {
-			this.client.execute(() -> this.connection.disconnect(ModProtocolManager.constructMessage(ModProtocolManager.SERVER_REQUIRED, ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID)));
+			this.minecraft.execute(() -> this.connection.disconnect(ModProtocolManager.constructMessage(ModProtocolManager.SERVER_REQUIRED, ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID)));
 			ci.cancel();
 		}
 	}

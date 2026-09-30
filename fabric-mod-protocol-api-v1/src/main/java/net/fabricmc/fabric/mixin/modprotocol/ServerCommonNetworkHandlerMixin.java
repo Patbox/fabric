@@ -17,21 +17,22 @@
 package net.fabricmc.fabric.mixin.modprotocol;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+
+import net.minecraft.network.Connection;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.network.ClientConnection;
-import net.minecraft.server.network.ServerCommonNetworkHandler;
-import net.minecraft.util.Identifier;
-
 import net.fabricmc.fabric.impl.modprotocol.RemoteProtocolStorage;
 
-@Mixin(ServerCommonNetworkHandler.class)
+@Mixin(ServerCommonPacketListenerImpl.class)
 public class ServerCommonNetworkHandlerMixin implements RemoteProtocolStorage {
 	@Shadow
 	@Final
-	protected ClientConnection connection;
+	protected Connection connection;
 
 	@Override
 	public Object2IntMap<Identifier> fabric$getRemoteProtocol() {

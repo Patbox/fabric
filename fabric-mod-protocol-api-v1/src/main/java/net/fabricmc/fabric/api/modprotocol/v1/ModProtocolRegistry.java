@@ -20,9 +20,11 @@ import java.util.Collection;
 import java.util.Collections;
 
 import it.unimi.dsi.fastutil.ints.IntList;
+
+import net.minecraft.resources.Identifier;
+
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolImpl;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;

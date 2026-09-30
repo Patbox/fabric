@@ -16,6 +16,7 @@
 
 package net.fabricmc.fabric.impl.modprotocol;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -25,17 +26,20 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import net.minecraft.resources.Identifier;
+
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerConfigurationNetworkHandler;
-import net.minecraft.server.network.ServerPlayerConfigurationTask;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+
+import net.minecraft.server.network.ConfigurationTask;
+import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload;
@@ -54,8 +58,8 @@ public final class ModProtocolManager {
 	public static final List<ModProtocolImpl> CLIENT_REQUIRED = new ArrayList<>();
 	public static final List<ModProtocolImpl> SERVER_REQUIRED = new ArrayList<>();
 
-	public static void setupClient(ServerConfigurationNetworkHandler handler, MinecraftServer server) {
-		if (!ServerConfigurationNetworking.canSend(handler, ModProtocolRequestS2CPayload.ID)) {
+	public static void setupClient(ServerConfigurationPacketListenerImpl handler, MinecraftServer server) {
+		if (!ServerConfigurationNetworking.canSend(handler, ModProtocolRequestS2CPayload.TYPE)) {
 			if (CLIENT_REQUIRED.isEmpty()) {
 				return;
 			} else {
@@ -66,16 +70,16 @@ public final class ModProtocolManager {
 		handler.addTask(new SyncConfigurationTask());
 	}
 
-	public static Text constructMessage(List<ModProtocolImpl> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols) {
-		MutableText text = Text.empty();
-		text.append(TextUtil.translatable("text.fabric.mod_protocol.mismatched.title").formatted(Formatting.GOLD)).append("\n");
-		text.append(TextUtil.translatable("text.fabric.mod_protocol.mismatched.desc").formatted(Formatting.YELLOW)).append("\n\n");
-		text.append(TextUtil.translatable("text.fabric.mod_protocol.mismatched.entries.title").formatted(Formatting.RED)).append("\n");
-		appendTextEntries(missingProtocols, localProtocols, 6, text::append);
+	public static Component constructMessage(List<ModProtocolImpl> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols) {
+		MutableComponent text = Component.empty();
+		text.append(TextUtil.translatable("text.fabric.mod_protocol.mismatched.title").withStyle(ChatFormatting.GOLD)).append("\n");
+		text.append(TextUtil.translatable("text.fabric.mod_protocol.mismatched.desc").withStyle(ChatFormatting.YELLOW)).append("\n\n");
+		text.append(TextUtil.translatable("text.fabric.mod_protocol.mismatched.entries.title").withStyle(ChatFormatting.RED)).append("\n");
+		appendComponentEntries(missingProtocols, localProtocols, 6, text::append);
 		return text;
 	}
 
-	public static void appendTextEntries(List<ModProtocolImpl> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols, int limit, Consumer<Text> consumer) {
+	public static void appendComponentEntries(List<ModProtocolImpl> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols, int limit, Consumer<Component> consumer) {
 		missingProtocols.sort(MOD_PROTOCOL_COMPARATOR);
 
 		if (limit == -1) {
@@ -87,13 +91,13 @@ public final class ModProtocolManager {
 		for (int i = 0; i < size; i++) {
 			ModProtocolImpl protocol = missingProtocols.get(i);
 			ModProtocolImpl local = localProtocols.get(protocol.id());
-			Text localVersion = local == null ? TextUtil.translatable("text.fabric.mod_protocol.missing").formatted(Formatting.DARK_RED)
-					: Text.literal(local.version()).formatted(Formatting.YELLOW);
-			Text remoteVersion = local == protocol ? TextUtil.translatable("text.fabric.mod_protocol.missing").formatted(Formatting.DARK_RED)
-					: Text.literal(protocol.version()).formatted(Formatting.YELLOW);
+			Component localVersion = local == null ? TextUtil.translatable("text.fabric.mod_protocol.missing").withStyle(ChatFormatting.DARK_RED)
+					: Component.literal(local.version()).withStyle(ChatFormatting.YELLOW);
+			Component remoteVersion = local == protocol ? TextUtil.translatable("text.fabric.mod_protocol.missing").withStyle(ChatFormatting.DARK_RED)
+					: Component.literal(protocol.version()).withStyle(ChatFormatting.YELLOW);
 
-			MutableText text = TextUtil.translatable("text.fabric.mod_protocol.entry",
-					Text.literal(protocol.name()).formatted(Formatting.WHITE), localVersion, remoteVersion).formatted(Formatting.GRAY);
+			MutableComponent text = TextUtil.translatable("text.fabric.mod_protocol.entry",
+					Component.literal(protocol.name()).withStyle(ChatFormatting.WHITE), localVersion, remoteVersion).withStyle(ChatFormatting.GRAY);
 
 			if (i + 1 < size) {
 				text.append("\n");
@@ -103,7 +107,7 @@ public final class ModProtocolManager {
 		}
 
 		if (limit < missingProtocols.size()) {
-			consumer.accept(Text.literal("\n").append(TextUtil.translatable("text.fabric.mod_protocol.and_x_more", missingProtocols.size() - size).formatted(Formatting.GRAY, Formatting.ITALIC)));
+			consumer.accept(Component.literal("\n").append(TextUtil.translatable("text.fabric.mod_protocol.and_x_more", missingProtocols.size() - size).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
 		}
 	}
 
@@ -204,17 +208,17 @@ public final class ModProtocolManager {
 		return true;
 	}
 
-	public static class SyncConfigurationTask implements ServerPlayerConfigurationTask {
-		public static final Key KEY = new Key("fabric:mod_protocol_sync");
+	public static class SyncConfigurationTask implements ConfigurationTask {
+		public static final Type TYPE = new Type("fabric:mod_protocol_sync");
 
 		@Override
-		public void sendPacket(Consumer<Packet<?>> sender) {
-			sender.accept(new CustomPayloadS2CPacket(new ModProtocolRequestS2CPayload(LOCAL_MOD_PROTOCOLS)));
+		public void start(Consumer<Packet<?>> connection) {
+			connection.accept(new ClientboundCustomPayloadPacket(new ModProtocolRequestS2CPayload(LOCAL_MOD_PROTOCOLS)));
 		}
 
 		@Override
-		public Key getKey() {
-			return KEY;
+		public Type type() {
+			return TYPE;
 		}
 	}
 

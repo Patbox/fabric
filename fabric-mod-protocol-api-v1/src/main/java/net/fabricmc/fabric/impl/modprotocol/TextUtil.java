@@ -25,11 +25,12 @@ import java.util.Optional;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 public class TextUtil {
 	private static final Map<String, String> FALLBACK_TRANSLATIONS = new HashMap<>();
@@ -48,11 +49,11 @@ public class TextUtil {
 		}
 	}
 
-	public static MutableText translatable(String key, Object... args) {
-		return Text.translatableWithFallback(key, FALLBACK_TRANSLATIONS.get(key), args);
+	public static MutableComponent translatable(String key, Object... args) {
+		return Component.translatableWithFallback(key, FALLBACK_TRANSLATIONS.get(key), args);
 	}
 
-	public static MutableText translatable(String key) {
-		return Text.translatableWithFallback(key, FALLBACK_TRANSLATIONS.get(key));
+	public static MutableComponent translatable(String key) {
+		return Component.translatableWithFallback(key, FALLBACK_TRANSLATIONS.get(key));
 	}
 }

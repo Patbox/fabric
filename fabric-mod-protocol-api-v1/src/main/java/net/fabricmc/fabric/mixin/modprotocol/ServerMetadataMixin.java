@@ -23,17 +23,18 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+
+import net.minecraft.network.protocol.status.ServerStatus;
+
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
-import net.minecraft.server.ServerMetadata;
-
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolHolder;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolImpl;
 
-@Mixin(ServerMetadata.class)
+@Mixin(ServerStatus.class)
 public class ServerMetadataMixin implements ModProtocolHolder {
 	@Unique
 	@Nullable
@@ -50,11 +51,11 @@ public class ServerMetadataMixin implements ModProtocolHolder {
 	}
 
 	@ModifyExpressionValue(method = "<clinit>", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/codecs/RecordCodecBuilder;create(Ljava/util/function/Function;)Lcom/mojang/serialization/Codec;"))
-	private static Codec<ServerMetadata> extendCodec(Codec<ServerMetadata> original) {
+	private static Codec<ServerStatus> extendCodec(Codec<ServerStatus> original) {
 		return new Codec<>() {
 			@Override
-			public <T> DataResult<Pair<ServerMetadata, T>> decode(DynamicOps<T> ops, T input) {
-				DataResult<Pair<ServerMetadata, T>> decoded = original.decode(ops, input);
+			public <T> DataResult<Pair<ServerStatus, T>> decode(DynamicOps<T> ops, T input) {
+				DataResult<Pair<ServerStatus, T>> decoded = original.decode(ops, input);
 
 				if (decoded.isSuccess()) {
 					DataResult<T> protocol = ops.get(input, "fabric:mod_protocol");
@@ -72,7 +73,7 @@ public class ServerMetadataMixin implements ModProtocolHolder {
 			}
 
 			@Override
-			public <T> DataResult<T> encode(ServerMetadata input, DynamicOps<T> ops, T prefix) {
+			public <T> DataResult<T> encode(ServerStatus input, DynamicOps<T> ops, T prefix) {
 				DataResult<T> encode = original.encode(input, ops, prefix);
 
 				if (encode.isSuccess() && ModProtocolHolder.of(input).fabric$getModProtocol() != null) {

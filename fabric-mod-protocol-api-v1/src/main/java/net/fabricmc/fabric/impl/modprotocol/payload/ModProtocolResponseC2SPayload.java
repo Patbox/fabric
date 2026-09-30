@@ -19,24 +19,25 @@ package net.fabricmc.fabric.impl.modprotocol.payload;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record ModProtocolResponseC2SPayload(Object2IntMap<Identifier> supported) implements CustomPayload {
-	public static final Id<ModProtocolResponseC2SPayload> ID = new Id<>(Identifier.of("fabric", "mod_protocol/response"));
-	public static final PacketCodec<PacketByteBuf, ModProtocolResponseC2SPayload> PACKET_CODEC =
-			PacketCodecs.map(ModProtocolResponseC2SPayload::createMap, Identifier.PACKET_CODEC, PacketCodecs.INTEGER)
-			.xmap(ModProtocolResponseC2SPayload::new, ModProtocolResponseC2SPayload::supported).cast();
+
+public record ModProtocolResponseC2SPayload(Object2IntMap<Identifier> supported) implements CustomPacketPayload {
+	public static final Type<ModProtocolResponseC2SPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol/response"));
+	public static final StreamCodec<FriendlyByteBuf, ModProtocolResponseC2SPayload> PACKET_CODEC =
+			ByteBufCodecs.map(ModProtocolResponseC2SPayload::createMap, Identifier.STREAM_CODEC, ByteBufCodecs.INT)
+			.map(ModProtocolResponseC2SPayload::new, ModProtocolResponseC2SPayload::supported).cast();
 
 	private static Object2IntMap<Identifier> createMap(int i) {
 		return new Object2IntOpenHashMap<>(i);
 	}
 
 	@Override
-	public Id<? extends CustomPayload> getId() {
-		return ID;
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

@@ -18,12 +18,13 @@ package net.fabricmc.fabric.impl.modprotocol;
 
 import java.util.List;
 
+import net.minecraft.network.protocol.status.ServerStatus;
+
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.server.ServerMetadata;
 
 public interface ModProtocolHolder {
-	static ModProtocolHolder of(ServerMetadata input) {
+	static ModProtocolHolder of(ServerStatus input) {
 		return (ModProtocolHolder) (Object) input;
 	}
 

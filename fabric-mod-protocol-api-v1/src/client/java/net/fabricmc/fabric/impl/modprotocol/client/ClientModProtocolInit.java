@@ -18,7 +18,6 @@ package net.fabricmc.fabric.impl.modprotocol.client;
 
 import java.util.HashMap;
 
-import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
@@ -29,9 +28,11 @@ import net.fabricmc.fabric.impl.modprotocol.RemoteProtocolStorage;
 import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload;
 import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolResponseC2SPayload;
 
+import net.minecraft.resources.Identifier;
+
 public final class ClientModProtocolInit implements ClientModInitializer {
 	public void onInitializeClient() {
-		ClientConfigurationNetworking.registerGlobalReceiver(ModProtocolRequestS2CPayload.ID, (payload, context) -> {
+		ClientConfigurationNetworking.registerGlobalReceiver(ModProtocolRequestS2CPayload.TYPE, (payload, context) -> {
 			var map = new HashMap<Identifier, ModProtocolImpl>(payload.modProtocol().size());
 
 			for (ModProtocolImpl protocol : payload.modProtocol()) {
@@ -41,7 +42,7 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 			ModProtocolManager.ValidationResult validate = ModProtocolManager.validateClient(map);
 
 			if (validate.isSuccess()) {
-				((RemoteProtocolStorage) context.networkHandler()).fabric$setRemoteProtocol(validate.supportedProtocols());
+				((RemoteProtocolStorage) context.packetListener()).fabric$setRemoteProtocol(validate.supportedProtocols());
 				context.responseSender().sendPacket(new ModProtocolResponseC2SPayload(validate.supportedProtocols()));
 				return;
 			}
@@ -49,7 +50,7 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 			var b = new StringBuilder();
 			b.append("Disconnected due to mismatched protocols!").append('\n');
 			b.append("Missing entries:").append('\n');
-			ModProtocolManager.appendTextEntries(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID, -1, text -> b.append(" - ").append(text.getString()));
+			ModProtocolManager.appendComponentEntries(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID, -1, text -> b.append(" - ").append(text.getString()));
 
 			context.responseSender().disconnect(ModProtocolManager.constructMessage(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID));
 			ModProtocolInit.LOGGER.warn(b.toString());

@@ -18,12 +18,12 @@ package net.fabricmc.fabric.api.modprotocol.v1;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 
-import net.minecraft.network.ClientConnection;
-import net.minecraft.server.network.ServerCommonNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-
 import net.fabricmc.fabric.impl.modprotocol.RemoteProtocolStorage;
+
+import net.minecraft.network.Connection;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 
 /**
  * Utility methods allowing to get protocol versions supported by the player.
@@ -47,8 +47,8 @@ public final class ServerModProtocolLookup {
 	 * @param protocolId protocol's id
 	 * @return Protocol version supported by the player
 	 */
-	public static int getSupportedProtocol(ServerPlayerEntity player, Identifier protocolId) {
-		return RemoteProtocolStorage.getProtocol(player.networkHandler, protocolId);
+	public static int getSupportedProtocol(ServerPlayer player, Identifier protocolId) {
+		return RemoteProtocolStorage.getProtocol(player.connection, protocolId);
 	}
 
 	/**
@@ -58,7 +58,7 @@ public final class ServerModProtocolLookup {
 	 * @param protocolId protocol's id
 	 * @return Protocol version supported by the player
 	 */
-	public static int getSupportedProtocol(ServerCommonNetworkHandler handler, Identifier protocolId) {
+	public static int getSupportedProtocol(ServerCommonPacketListenerImpl handler, Identifier protocolId) {
 		return RemoteProtocolStorage.getProtocol(handler, protocolId);
 	}
 
@@ -69,7 +69,7 @@ public final class ServerModProtocolLookup {
 	 * @param protocolId protocol's id
 	 * @return Protocol version supported by the server
 	 */
-	public static int getSupportedProtocol(ClientConnection connection, Identifier protocolId) {
+	public static int getSupportedProtocol(Connection connection, Identifier protocolId) {
 		return RemoteProtocolStorage.getProtocol(connection, protocolId);
 	}
 
@@ -80,8 +80,8 @@ public final class ServerModProtocolLookup {
 	 * @param protocol protocol to check against
 	 * @return Protocol version supported by the player
 	 */
-	public static int getSupportedProtocol(ServerPlayerEntity player, ModProtocol protocol) {
-		return RemoteProtocolStorage.getProtocol(player.networkHandler, protocol.id());
+	public static int getSupportedProtocol(ServerPlayer player, ModProtocol protocol) {
+		return RemoteProtocolStorage.getProtocol(player.connection, protocol.id());
 	}
 
 	/**
@@ -91,7 +91,7 @@ public final class ServerModProtocolLookup {
 	 * @param protocol protocol to check against
 	 * @return Protocol version supported by the player
 	 */
-	public static int getSupportedProtocol(ServerCommonNetworkHandler handler, ModProtocol protocol) {
+	public static int getSupportedProtocol(ServerCommonPacketListenerImpl handler, ModProtocol protocol) {
 		return RemoteProtocolStorage.getProtocol(handler, protocol.id());
 	}
 
@@ -102,7 +102,7 @@ public final class ServerModProtocolLookup {
 	 * @param protocol protocol to check against
 	 * @return Protocol version supported by the server
 	 */
-	public static int getSupportedProtocol(ClientConnection connection, ModProtocol protocol) {
+	public static int getSupportedProtocol(Connection connection, ModProtocol protocol) {
 		return RemoteProtocolStorage.getProtocol(connection, protocol.id());
 	}
 
@@ -112,8 +112,8 @@ public final class ServerModProtocolLookup {
 	 * @param player the player
 	 * @return Map of protocols supported by the player
 	 */
-	public static Object2IntMap<Identifier> getAllSupportedProtocols(ServerPlayerEntity player) {
-		return RemoteProtocolStorage.getMap(player.networkHandler);
+	public static Object2IntMap<Identifier> getAllSupportedProtocols(ServerPlayer player) {
+		return RemoteProtocolStorage.getMap(player.connection);
 	}
 
 	/**
@@ -122,7 +122,7 @@ public final class ServerModProtocolLookup {
 	 * @param handler the network handler owned by the player you want to check protocol for
 	 * @return Map of protocols supported by the player
 	 */
-	public static Object2IntMap<Identifier> getAllSupportedProtocols(ServerCommonNetworkHandler handler) {
+	public static Object2IntMap<Identifier> getAllSupportedProtocols(ServerCommonPacketListenerImpl handler) {
 		return RemoteProtocolStorage.getMap(handler);
 	}
 
@@ -132,7 +132,7 @@ public final class ServerModProtocolLookup {
 	 * @param connection the ClientConnection connected to the server
 	 * @return Map of protocols supported by the player
 	 */
-	public static Object2IntMap<Identifier> getAllSupportedProtocols(ClientConnection connection) {
+	public static Object2IntMap<Identifier> getAllSupportedProtocols(Connection connection) {
 		return RemoteProtocolStorage.getMap(connection);
 	}
 }

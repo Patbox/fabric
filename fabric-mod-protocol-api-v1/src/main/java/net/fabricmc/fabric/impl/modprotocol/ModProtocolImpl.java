@@ -23,11 +23,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
-
 import net.fabricmc.fabric.api.modprotocol.v1.ModProtocol;
+
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 
 public record ModProtocolImpl(Identifier id, String name, String version, IntList protocol, boolean requireClient, boolean requireServer) implements ModProtocol {
 	public static final int UNSUPPORTED = -1;
@@ -40,24 +40,24 @@ public record ModProtocolImpl(Identifier id, String name, String version, IntLis
 			Codec.BOOL.fieldOf("require_server").forGetter(ModProtocolImpl::requireServer)
 	).apply(instance, ModProtocolImpl::new));
 	public static final Codec<List<ModProtocolImpl>> LIST_CODEC = CODEC.listOf();
-	public static final PacketCodec<PacketByteBuf, ModProtocolImpl> PACKET_CODEC = PacketCodec.ofStatic(ModProtocolImpl::encode, ModProtocolImpl::decode);
+	public static final StreamCodec<FriendlyByteBuf, ModProtocolImpl> PACKET_CODEC = StreamCodec.of(ModProtocolImpl::encode, ModProtocolImpl::decode);
 
-	private static ModProtocolImpl decode(PacketByteBuf buf) {
+	private static ModProtocolImpl decode(FriendlyByteBuf buf) {
 		Identifier id = buf.readIdentifier();
-		String name = buf.readString();
-		String version = buf.readString();
-		IntList protocols = IntList.of(buf.readIntArray());
+		String name = buf.readUtf();
+		String version = buf.readUtf();
+		IntList protocols = IntList.of(buf.readVarIntArray());
 		byte b = buf.readByte();
 		boolean requireClient = (b & 0b10) != 0;
 		boolean requireServer = (b & 0b01) != 0;
 		return new ModProtocolImpl(id, name, version, protocols, requireClient, requireServer);
 	}
 
-	private static void encode(PacketByteBuf buf, ModProtocolImpl protocol) {
+	private static void encode(FriendlyByteBuf buf, ModProtocolImpl protocol) {
 		buf.writeIdentifier(protocol.id);
-		buf.writeString(protocol.name);
-		buf.writeString(protocol.version);
-		buf.writeIntArray(protocol.protocol.toIntArray());
+		buf.writeUtf(protocol.name);
+		buf.writeUtf(protocol.version);
+		buf.writeVarIntArray(protocol.protocol.toIntArray());
 		buf.writeByte((protocol.requireClient ? 0b10 : 0) | (protocol.requireServer ? 0b01 : 0));
 	}
 

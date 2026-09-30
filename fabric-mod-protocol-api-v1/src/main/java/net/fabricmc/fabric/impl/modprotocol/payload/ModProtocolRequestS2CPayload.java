@@ -18,21 +18,22 @@ package net.fabricmc.fabric.impl.modprotocol.payload;
 
 import java.util.List;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolImpl;
 
-public record ModProtocolRequestS2CPayload(List<ModProtocolImpl> modProtocol) implements CustomPayload {
-	public static final Id<ModProtocolRequestS2CPayload> ID = new Id<>(Identifier.of("fabric", "mod_protocol_request"));
-	public static final PacketCodec<PacketByteBuf, ModProtocolRequestS2CPayload> PACKET_CODEC = ModProtocolImpl.PACKET_CODEC.collect(PacketCodecs.toList())
-			.xmap(ModProtocolRequestS2CPayload::new, ModProtocolRequestS2CPayload::modProtocol);
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+
+public record ModProtocolRequestS2CPayload(List<ModProtocolImpl> modProtocol) implements CustomPacketPayload {
+	public static final Type<ModProtocolRequestS2CPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol_request"));
+	public static final StreamCodec<FriendlyByteBuf, ModProtocolRequestS2CPayload> PACKET_CODEC = ModProtocolImpl.PACKET_CODEC.apply(ByteBufCodecs.list())
+			.map(ModProtocolRequestS2CPayload::new, ModProtocolRequestS2CPayload::modProtocol);
 
 	@Override
-	public Id<? extends CustomPayload> getId() {
-		return ID;
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

@@ -17,9 +17,11 @@
 package net.fabricmc.fabric.api.modprotocol.v1;
 
 import it.unimi.dsi.fastutil.ints.IntList;
+
+import net.minecraft.resources.Identifier;
+
 import org.jetbrains.annotations.ApiStatus;
 
-import net.minecraft.util.Identifier;
 
 /**
  * Interface representing registered ModProtocol. Can be used for further lookups.

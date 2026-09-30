@@ -16,10 +16,11 @@
 
 package net.fabricmc.fabric.impl.modprotocol;
 
+import net.minecraft.resources.Identifier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.Event;
@@ -35,18 +36,18 @@ public final class ModProtocolInit implements ModInitializer {
 	public static boolean frozen = false;
 
 	public void onInitialize() {
-		Identifier phase = Identifier.of("fabric", "mod_protocol");
-		Identifier registrySync = Identifier.of("fabric", "registry_sync");
+		Identifier phase = Identifier.fromNamespaceAndPath("fabric", "mod_protocol");
+		Identifier registrySync = Identifier.fromNamespaceAndPath("fabric", "registry_sync");
 
 		ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.addPhaseOrdering(phase, Event.DEFAULT_PHASE);
 		ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.addPhaseOrdering(phase, registrySync);
 		ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.register(phase, ModProtocolManager::setupClient);
 
-		PayloadTypeRegistry.configurationC2S().register(ModProtocolResponseC2SPayload.ID, ModProtocolResponseC2SPayload.PACKET_CODEC);
-		PayloadTypeRegistry.configurationS2C().register(ModProtocolRequestS2CPayload.ID, ModProtocolRequestS2CPayload.PACKET_CODEC);
-		ServerConfigurationNetworking.registerGlobalReceiver(ModProtocolResponseC2SPayload.ID, (payload, context) -> {
-			((RemoteProtocolStorage) context.networkHandler()).fabric$setRemoteProtocol(payload.supported());
-			context.networkHandler().completeTask(ModProtocolManager.SyncConfigurationTask.KEY);
+		PayloadTypeRegistry.serverboundConfiguration().register(ModProtocolResponseC2SPayload.TYPE, ModProtocolResponseC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.clientboundConfiguration().register(ModProtocolRequestS2CPayload.TYPE, ModProtocolRequestS2CPayload.PACKET_CODEC);
+		ServerConfigurationNetworking.registerGlobalReceiver(ModProtocolResponseC2SPayload.TYPE, (payload, context) -> {
+			((RemoteProtocolStorage) context.packetListener()).fabric$setRemoteProtocol(payload.supported());
+			context.packetListener().completeTask(ModProtocolManager.SyncConfigurationTask.TYPE);
 		});
 
 		ModProtocolManager.collectModProtocols();

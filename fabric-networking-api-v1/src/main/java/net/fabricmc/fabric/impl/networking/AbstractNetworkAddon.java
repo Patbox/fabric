@@ -155,9 +155,6 @@ public abstract class AbstractNetworkAddon<H> {
 
 	protected abstract void handleUnregistration(Identifier channelName);
 
-	@Nullable
-	public abstract String getBrand();
-
 	public final void handleDisconnect() {
 		if (disconnected.compareAndSet(false, true)) {
 			invokeDisconnectEvent();

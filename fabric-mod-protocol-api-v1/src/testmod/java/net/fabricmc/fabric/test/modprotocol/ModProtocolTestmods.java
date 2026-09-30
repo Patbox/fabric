@@ -18,10 +18,12 @@ package net.fabricmc.fabric.test.modprotocol;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+
+import net.minecraft.resources.Identifier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.modprotocol.v1.ModProtocolIds;
@@ -38,7 +40,7 @@ public final class ModProtocolTestmods implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(ID);
 
 	public static Identifier id(String name) {
-		return Identifier.of(ID, name);
+		return Identifier.fromNamespaceAndPath(ID, name);
 	}
 
 	public void onInitialize() {
@@ -57,7 +59,7 @@ public final class ModProtocolTestmods implements ModInitializer {
 
 		ServerPlayConnectionEvents.JOIN.register(((handler, sender, server) -> {
 			Object2IntMap<Identifier> protocols = ServerModProtocolLookup.getAllSupportedProtocols(handler);
-			LOGGER.info("Protocols supported by {}", handler.getDebugProfile().getName());
+			LOGGER.info("Protocols supported by {}", handler.player.getPlainTextName());
 
 			for (Object2IntMap.Entry<Identifier> entry : protocols.object2IntEntrySet()) {
 				LOGGER.info(" - {}: {}", entry.getKey(), entry.getIntValue());

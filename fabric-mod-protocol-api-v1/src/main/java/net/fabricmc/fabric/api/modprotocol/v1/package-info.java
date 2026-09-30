@@ -69,7 +69,9 @@
  * </dl>
  * </p>
  */
+@NullMarked
 @ApiStatus.Experimental
 package net.fabricmc.fabric.api.modprotocol.v1;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;

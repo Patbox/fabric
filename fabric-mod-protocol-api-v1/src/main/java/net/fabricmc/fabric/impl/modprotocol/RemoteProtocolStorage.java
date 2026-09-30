@@ -18,9 +18,11 @@ package net.fabricmc.fabric.impl.modprotocol;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+
+import net.minecraft.resources.Identifier;
+
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.util.Identifier;
 
 public interface RemoteProtocolStorage {
 	static int getProtocol(Object object, Identifier identifier) {

@@ -16,7 +16,8 @@
 
 package net.fabricmc.fabric.api.modprotocol.v1;
 
-import net.minecraft.util.Identifier;
+
+import net.minecraft.resources.Identifier;
 
 /**
  * Utility methods allowing to create Identifiers targeting default protocols.
@@ -28,14 +29,14 @@ public final class ModProtocolIds {
 	private ModProtocolIds() { }
 
 	public static Identifier mod(String modId) {
-		return Identifier.of(MOD, modId);
+		return Identifier.fromNamespaceAndPath(MOD, modId);
 	}
 
 	public static Identifier special(String path) {
-		return Identifier.of(SPECIAL, path);
+		return Identifier.fromNamespaceAndPath(SPECIAL, path);
 	}
 
 	public static Identifier feature(String path) {
-		return Identifier.of(FEATURE, path);
+		return Identifier.fromNamespaceAndPath(FEATURE, path);
 	}
 }
