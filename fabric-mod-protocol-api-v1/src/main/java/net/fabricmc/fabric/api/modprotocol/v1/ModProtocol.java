@@ -16,12 +16,11 @@
 
 package net.fabricmc.fabric.api.modprotocol.v1;
 
-import it.unimi.dsi.fastutil.ints.IntList;
-
-import net.minecraft.resources.Identifier;
+import java.util.Optional;
 
 import org.jetbrains.annotations.ApiStatus;
 
+import net.minecraft.resources.Identifier;
 
 /**
  * Interface representing registered ModProtocol. Can be used for further lookups.
@@ -32,24 +31,24 @@ public interface ModProtocol {
 	 * @return Identifier associated with this Mod Protocol
 	 */
 	Identifier id();
+
 	/**
 	 * @return Display name of this protocol
 	 */
 	String name();
+
 	/**
-	 * @return Display version of this protocol
+	 * @return Version of this protocol
 	 */
 	String version();
+
 	/**
-	 * @return Protocol versions supported by this protocol
+	 * @return A version predicate for client-side version requirement
 	 */
-	IntList protocol();
+	Optional<String> requireOnClient();
+
 	/**
-	 * @return Client requirement of this protocol
+	 * @return A version predicate for server-side version requirement
 	 */
-	boolean requireClient();
-	/**
-	 * @return Server requirement of this protocol
-	 */
-	boolean requireServer();
+	Optional<String> requireOnServer();
 }

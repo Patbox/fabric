@@ -18,10 +18,9 @@ package net.fabricmc.fabric.impl.modprotocol;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import net.minecraft.network.protocol.status.ServerStatus;
-
-import org.jetbrains.annotations.Nullable;
-
 
 public interface ModProtocolHolder {
 	static ModProtocolHolder of(ServerStatus input) {
@@ -29,6 +28,6 @@ public interface ModProtocolHolder {
 	}
 
 	@Nullable
-	List<ModProtocolImpl> fabric$getModProtocol();
-	void fabric$setModProtocol(List<ModProtocolImpl> protocol);
+	List<RemoteModProtocol> fabric$getModProtocol();
+	void fabric$setModProtocol(List<RemoteModProtocol> protocol);
 }

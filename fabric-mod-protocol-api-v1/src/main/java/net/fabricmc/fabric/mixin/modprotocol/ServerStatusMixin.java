@@ -23,30 +23,29 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-
-import net.minecraft.network.protocol.status.ServerStatus;
-
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
+import net.minecraft.network.protocol.status.ServerStatus;
+
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolHolder;
-import net.fabricmc.fabric.impl.modprotocol.ModProtocolImpl;
+import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 
 @Mixin(ServerStatus.class)
-public class ServerMetadataMixin implements ModProtocolHolder {
+public class ServerStatusMixin implements ModProtocolHolder {
 	@Unique
 	@Nullable
-	private List<ModProtocolImpl> modProtocol;
+	private List<RemoteModProtocol> modProtocol;
 
 	@Override
-	public List<ModProtocolImpl> fabric$getModProtocol() {
+	public List<RemoteModProtocol> fabric$getModProtocol() {
 		return this.modProtocol;
 	}
 
 	@Override
-	public void fabric$setModProtocol(List<ModProtocolImpl> protocol) {
+	public void fabric$setModProtocol(List<RemoteModProtocol> protocol) {
 		this.modProtocol = protocol;
 	}
 
@@ -61,7 +60,7 @@ public class ServerMetadataMixin implements ModProtocolHolder {
 					DataResult<T> protocol = ops.get(input, "fabric:mod_protocol");
 
 					if (protocol.isSuccess()) {
-						DataResult<Pair<List<ModProtocolImpl>, T>> result = ModProtocolImpl.LIST_CODEC.decode(ops, protocol.getOrThrow());
+						DataResult<Pair<List<RemoteModProtocol>, T>> result = RemoteModProtocol.LIST_CODEC.decode(ops, protocol.getOrThrow());
 
 						if (result.isSuccess()) {
 							ModProtocolHolder.of(decoded.getOrThrow().getFirst()).fabric$setModProtocol(result.getOrThrow().getFirst());
@@ -77,7 +76,7 @@ public class ServerMetadataMixin implements ModProtocolHolder {
 				DataResult<T> encode = original.encode(input, ops, prefix);
 
 				if (encode.isSuccess() && ModProtocolHolder.of(input).fabric$getModProtocol() != null) {
-					DataResult<T> protocol = ModProtocolImpl.LIST_CODEC.encodeStart(ops, ModProtocolHolder.of(input).fabric$getModProtocol());
+					DataResult<T> protocol = RemoteModProtocol.LIST_CODEC.encodeStart(ops, ModProtocolHolder.of(input).fabric$getModProtocol());
 
 					if (protocol.isSuccess()) {
 						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol"), protocol.getOrThrow());

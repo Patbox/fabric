@@ -18,19 +18,18 @@ package net.fabricmc.fabric.impl.modprotocol.payload;
 
 import java.util.List;
 
-
-import net.fabricmc.fabric.impl.modprotocol.ModProtocolImpl;
-
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-public record ModProtocolRequestS2CPayload(List<ModProtocolImpl> modProtocol) implements CustomPacketPayload {
+import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
+
+public record ModProtocolRequestS2CPayload(List<RemoteModProtocol> entries) implements CustomPacketPayload {
 	public static final Type<ModProtocolRequestS2CPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol_request"));
-	public static final StreamCodec<FriendlyByteBuf, ModProtocolRequestS2CPayload> PACKET_CODEC = ModProtocolImpl.PACKET_CODEC.apply(ByteBufCodecs.list())
-			.map(ModProtocolRequestS2CPayload::new, ModProtocolRequestS2CPayload::modProtocol);
+	public static final StreamCodec<FriendlyByteBuf, ModProtocolRequestS2CPayload> PACKET_CODEC = RemoteModProtocol.STREAM_CODEC.apply(ByteBufCodecs.list())
+			.map(ModProtocolRequestS2CPayload::new, ModProtocolRequestS2CPayload::entries);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

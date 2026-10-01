@@ -16,24 +16,19 @@
 
 package net.fabricmc.fabric.mixin.modprotocol.client;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
-import net.minecraft.client.multiplayer.ClientConfigurationPacketListenerImpl;
-
-import net.minecraft.client.multiplayer.CommonListenerCookie;
-import net.minecraft.network.Connection;
-
-import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
+import net.minecraft.client.multiplayer.ClientConfigurationPacketListenerImpl;
+import net.minecraft.client.multiplayer.CommonListenerCookie;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks;
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
-import net.fabricmc.fabric.impl.modprotocol.RemoteProtocolStorage;
 
 @Mixin(ClientConfigurationPacketListenerImpl.class)
 public abstract class ClientConfigurationNetworkHandlerMixin extends ClientCommonPacketListenerImpl {
@@ -43,8 +38,8 @@ public abstract class ClientConfigurationNetworkHandlerMixin extends ClientCommo
 
 	@Inject(method = "handleSelectKnownPacks", at = @At("HEAD"), cancellable = true)
 	private void preventJoiningIncompatibleServers(ClientboundSelectKnownPacks packet, CallbackInfo ci) {
-		if (((RemoteProtocolStorage) this.connection).fabric$getRemoteProtocol() == null && !ModProtocolManager.SERVER_REQUIRED.isEmpty()) {
-			this.minecraft.execute(() -> this.connection.disconnect(ModProtocolManager.constructMessage(ModProtocolManager.SERVER_REQUIRED, ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID)));
+		if (this.getPacketContext().get(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY) == null && !ModProtocolManager.REQUIRED_ON_SERVER.isEmpty()) {
+			this.minecraft.execute(() -> this.connection.disconnect(ModProtocolManager.constructMessage(ModProtocolManager.REQUIRED_ON_SERVER, ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID)));
 			ci.cancel();
 		}
 	}

@@ -16,7 +16,6 @@
 
 package net.fabricmc.fabric.api.modprotocol.v1;
 
-
 import net.minecraft.resources.Identifier;
 
 /**

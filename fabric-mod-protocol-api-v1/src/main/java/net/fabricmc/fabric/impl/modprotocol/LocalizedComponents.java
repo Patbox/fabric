@@ -25,14 +25,13 @@ import java.util.Optional;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-
-public class TextUtil {
+public class LocalizedComponents {
 	private static final Map<String, String> FALLBACK_TRANSLATIONS = new HashMap<>();
 
 	static {

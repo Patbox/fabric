@@ -18,31 +18,29 @@ package net.fabricmc.fabric.impl.modprotocol.client;
 
 import java.util.HashMap;
 
+import net.minecraft.resources.Identifier;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
-import net.fabricmc.fabric.impl.modprotocol.ModProtocolImpl;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolInit;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
-import net.fabricmc.fabric.impl.modprotocol.RemoteProtocolStorage;
+import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload;
 import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolResponseC2SPayload;
-
-import net.minecraft.resources.Identifier;
 
 public final class ClientModProtocolInit implements ClientModInitializer {
 	public void onInitializeClient() {
 		ClientConfigurationNetworking.registerGlobalReceiver(ModProtocolRequestS2CPayload.TYPE, (payload, context) -> {
-			var map = new HashMap<Identifier, ModProtocolImpl>(payload.modProtocol().size());
+			var map = new HashMap<Identifier, RemoteModProtocol>(payload.entries().size());
 
-			for (ModProtocolImpl protocol : payload.modProtocol()) {
+			for (RemoteModProtocol protocol : payload.entries()) {
 				map.put(protocol.id(), protocol);
 			}
 
 			ModProtocolManager.ValidationResult validate = ModProtocolManager.validateClient(map);
 
 			if (validate.isSuccess()) {
-				((RemoteProtocolStorage) context.packetListener()).fabric$setRemoteProtocol(validate.supportedProtocols());
+				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, validate.supportedProtocols());
 				context.responseSender().sendPacket(new ModProtocolResponseC2SPayload(validate.supportedProtocols()));
 				return;
 			}

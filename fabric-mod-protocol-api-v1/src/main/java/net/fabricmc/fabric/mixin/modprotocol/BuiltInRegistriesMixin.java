@@ -16,18 +16,17 @@
 
 package net.fabricmc.fabric.mixin.modprotocol;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolInit;
 
 @Mixin(BuiltInRegistries.class)
-public class RegistriesMixin {
+public class BuiltInRegistriesMixin {
 	@Inject(method = "freeze", at = @At("TAIL"))
 	private static void onRegistryFrozen(CallbackInfo ci) {
 		ModProtocolInit.frozen = true;

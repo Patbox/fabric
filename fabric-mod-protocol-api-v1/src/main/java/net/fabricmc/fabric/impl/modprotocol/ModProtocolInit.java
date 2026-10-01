@@ -16,11 +16,10 @@
 
 package net.fabricmc.fabric.impl.modprotocol;
 
-import net.minecraft.resources.Identifier;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.minecraft.resources.Identifier;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.Event;
@@ -46,7 +45,7 @@ public final class ModProtocolInit implements ModInitializer {
 		PayloadTypeRegistry.serverboundConfiguration().register(ModProtocolResponseC2SPayload.TYPE, ModProtocolResponseC2SPayload.PACKET_CODEC);
 		PayloadTypeRegistry.clientboundConfiguration().register(ModProtocolRequestS2CPayload.TYPE, ModProtocolRequestS2CPayload.PACKET_CODEC);
 		ServerConfigurationNetworking.registerGlobalReceiver(ModProtocolResponseC2SPayload.TYPE, (payload, context) -> {
-			((RemoteProtocolStorage) context.packetListener()).fabric$setRemoteProtocol(payload.supported());
+			context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, payload.supported());
 			context.packetListener().completeTask(ModProtocolManager.SyncConfigurationTask.TYPE);
 		});
 

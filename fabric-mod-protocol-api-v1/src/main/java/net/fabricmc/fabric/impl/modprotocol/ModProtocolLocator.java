@@ -16,18 +16,16 @@
 
 package net.fabricmc.fabric.impl.modprotocol;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-
+import net.minecraft.resources.Identifier;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-
-import net.minecraft.resources.Identifier;
+import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 public class ModProtocolLocator {
 	public static void provide(BiConsumer<ModContainer, ModProtocolImpl> consumer) {
@@ -38,7 +36,7 @@ public class ModProtocolLocator {
 
 	private static void create(ModContainer container, BiConsumer<ModContainer, ModProtocolImpl> consumer) {
 		ModMetadata meta = container.getMetadata();
-		CustomValue definition = meta.getCustomValue("fabric:mod_protocol");
+		CustomValue definition = meta.getCustomValue("fabric:mod_protocol_v1");
 
 		if (definition == null) {
 			return;
@@ -48,8 +46,9 @@ public class ModProtocolLocator {
 			for (CustomValue entry : definition.getAsArray()) {
 				consumer.accept(container, decodeFullDefinition(entry, meta, true));
 			}
-		} else if (definition.getType() == CustomValue.CvType.NUMBER) {
-			consumer.accept(container, new ModProtocolImpl(Identifier.fromNamespaceAndPath("mod", meta.getId()), meta.getName(), meta.getVersion().getFriendlyString(), IntList.of(definition.getAsNumber().intValue()), true, true));
+		} else if (definition.getType() == CustomValue.CvType.STRING) {
+			Optional<String> requirement = Optional.of(definition.getAsString());
+			consumer.accept(container, new ModProtocolImpl(Identifier.fromNamespaceAndPath("mod", meta.getId()), meta.getName(), meta.getVersion().getFriendlyString(), requirement, requirement));
 		} else {
 			consumer.accept(container, decodeFullDefinition(definition, meta, false));
 		}
@@ -64,14 +63,13 @@ public class ModProtocolLocator {
 		Identifier id;
 		String name;
 		String version;
-		boolean requiredClient;
-		boolean requiredServer;
-		IntList protocols = new IntArrayList();
+		Optional<String> requiredClient = Optional.empty();
+		Optional<String> requiredServer = Optional.empty();
 
 		CustomValue idField = object.get("id");
 		CustomValue nameField = object.get("name");
 		CustomValue versionField = object.get("version");
-		CustomValue protocolField = object.get("protocol");
+		CustomValue requiredField = object.get("require");
 		CustomValue requiredClientField = object.get("require_client");
 		CustomValue requiredServerField = object.get("require_server");
 
@@ -79,20 +77,6 @@ public class ModProtocolLocator {
 			id = Identifier.fromNamespaceAndPath("mod", meta.getId());
 		} else if (idField != null && idField.getType() == CustomValue.CvType.STRING) {
 			id = Identifier.parse(idField.getAsString());
-		} else {
-			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
-		}
-
-		if (protocolField != null && protocolField.getType() == CustomValue.CvType.NUMBER) {
-			protocols.add(protocolField.getAsNumber().intValue());
-		} else if (protocolField != null && protocolField.getType() == CustomValue.CvType.ARRAY) {
-			for (CustomValue value : protocolField.getAsArray()) {
-				if (value.getType() == CustomValue.CvType.NUMBER) {
-					protocols.add(value.getAsNumber().intValue());
-				} else {
-					throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
-				}
-			}
 		} else {
 			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
 		}
@@ -113,22 +97,39 @@ public class ModProtocolLocator {
 			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
 		}
 
-		if (requiredClientField == null) {
-			requiredClient = true;
-		} else if (requiredClientField.getType() == CustomValue.CvType.BOOLEAN) {
-			requiredClient = requiredClientField.getAsBoolean();
-		} else {
-			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
+		if (requiredField != null) {
+			Optional<String> value = Optional.of(requiredField.getAsString());
+
+			try {
+				VersionPredicateParser.parse(value.get());
+			} catch (Throwable e) {
+				throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!", e);
+			}
+
+			requiredClient = value;
+			requiredServer = value;
 		}
 
-		if (requiredServerField == null) {
-			requiredServer = true;
-		} else if (requiredServerField.getType() == CustomValue.CvType.BOOLEAN) {
-			requiredServer = requiredServerField.getAsBoolean();
-		} else {
-			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
+		if (requiredClientField != null && requiredClientField.getType() == CustomValue.CvType.BOOLEAN) {
+			requiredClient = Optional.of(requiredClientField.getAsString());
+
+			try {
+				VersionPredicateParser.parse(requiredClient.get());
+			} catch (Throwable e) {
+				throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!", e);
+			}
 		}
 
-		return new ModProtocolImpl(id, name, version, IntList.of(protocols.toIntArray()), requiredClient, requiredServer);
+		if (requiredServerField != null && requiredServerField.getType() == CustomValue.CvType.BOOLEAN) {
+			requiredServer = Optional.of(requiredServerField.getAsString());
+
+			try {
+				VersionPredicateParser.parse(requiredServer.get());
+			} catch (Throwable e) {
+				throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!", e);
+			}
+		}
+
+		return new ModProtocolImpl(id, name, version, requiredClient, requiredServer);
 	}
 }

@@ -14,17 +14,16 @@
     ]
   },
   "custom": {
-    "fabric:mod_protocol": 5,
+    "fabric:mod_protocol_v1": "1.0.x",
     "test_fabric:mod_protocol": {
       "name": "Name",
       "id": "special:id",
       "protocol": [0, 1, 2, 3],
-      "version": "Tater",
-      "require_client": false,
-      "require_server": false
+      "version": "Tater"
     },
     "test2_fabric:mod_protocol": {
-      "protocol": [0, 1, 2, 3]
+      "version": "1.2.3",
+      "require": ">=1.0"
     }
   }
 }

@@ -17,12 +17,10 @@
 package net.fabricmc.fabric.mixin.modprotocol;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-
-import net.minecraft.network.protocol.status.ServerStatus;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
+import net.minecraft.network.protocol.status.ServerStatus;
 import net.minecraft.server.MinecraftServer;
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolHolder;
@@ -32,8 +30,8 @@ import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
 public class MinecraftServerMixin {
 	@ModifyReturnValue(method = "buildServerStatus", at = @At("RETURN"))
 	private ServerStatus addModProtocol(ServerStatus original) {
-		if (!ModProtocolManager.PING_SYNCED_PROTOCOLS.isEmpty()) {
-			ModProtocolHolder.of(original).fabric$setModProtocol(ModProtocolManager.PING_SYNCED_PROTOCOLS);
+		if (!ModProtocolManager.SYNCED_PROTOCOLS.isEmpty()) {
+			ModProtocolHolder.of(original).fabric$setModProtocol(ModProtocolManager.SYNCED_PROTOCOLS);
 		}
 
 		return original;

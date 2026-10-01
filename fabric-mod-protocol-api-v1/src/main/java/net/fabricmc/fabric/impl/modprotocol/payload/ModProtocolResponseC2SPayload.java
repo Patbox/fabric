@@ -16,8 +16,8 @@
 
 package net.fabricmc.fabric.impl.modprotocol.payload;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -25,15 +25,15 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-
-public record ModProtocolResponseC2SPayload(Object2IntMap<Identifier> supported) implements CustomPacketPayload {
+public record ModProtocolResponseC2SPayload(
+		Map<Identifier, String> supported) implements CustomPacketPayload {
 	public static final Type<ModProtocolResponseC2SPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol/response"));
 	public static final StreamCodec<FriendlyByteBuf, ModProtocolResponseC2SPayload> PACKET_CODEC =
-			ByteBufCodecs.map(ModProtocolResponseC2SPayload::createMap, Identifier.STREAM_CODEC, ByteBufCodecs.INT)
-			.map(ModProtocolResponseC2SPayload::new, ModProtocolResponseC2SPayload::supported).cast();
+			ByteBufCodecs.map(ModProtocolResponseC2SPayload::createMap, Identifier.STREAM_CODEC, ByteBufCodecs.STRING_UTF8)
+					.map(ModProtocolResponseC2SPayload::new, ModProtocolResponseC2SPayload::supported).cast();
 
-	private static Object2IntMap<Identifier> createMap(int i) {
-		return new Object2IntOpenHashMap<>(i);
+	private static Map<Identifier, String> createMap(int i) {
+		return new HashMap<>(i);
 	}
 
 	@Override

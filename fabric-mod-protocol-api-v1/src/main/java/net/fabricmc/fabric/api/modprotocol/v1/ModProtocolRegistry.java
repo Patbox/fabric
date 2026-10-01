@@ -18,13 +18,11 @@ package net.fabricmc.fabric.api.modprotocol.v1;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
-import it.unimi.dsi.fastutil.ints.IntList;
+import org.jspecify.annotations.Nullable;
 
 import net.minecraft.resources.Identifier;
-
-import org.jetbrains.annotations.Nullable;
-
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolImpl;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
@@ -60,13 +58,25 @@ public final class ModProtocolRegistry {
 	 * @param identifier the identifier of protocol
 	 * @param name display name in protocol, shown if it's missing
 	 * @param version display version of the protocol, shown if it's missing
-	 * @param protocol list of protocol versions
-	 * @param requireClient marks protocol as required on client
-	 * @param requireServer marks protocol as required on server
+	 * @param requireOnClient defines a predicate to check version requirement on client
+	 * @param requireOnServer defines a predicate to check version requirement on server
 	 * @return registered Mod Protocol
 	 */
-	public static ModProtocol register(Identifier identifier, String name, String version, IntList protocol, boolean requireClient, boolean requireServer) {
-		return ModProtocolManager.add(null, new ModProtocolImpl(identifier, name, version, IntList.of(protocol.toIntArray()), requireClient, requireServer));
+	public static ModProtocol register(Identifier identifier, String name, String version, Optional<String> requireOnClient, Optional<String> requireOnServer) {
+		return ModProtocolManager.add(null, new ModProtocolImpl(identifier, name, version, requireOnClient, requireOnServer));
+	}
+
+	/**
+	 * Registers new mod protocol with its own unique settings.
+	 *
+	 * @param identifier the identifier of protocol
+	 * @param name display name in protocol, shown if it's missing
+	 * @param version display version of the protocol, shown if it's missing
+	 * @param require defines a predicate to check version requirement
+	 * @return registered Mod Protocol
+	 */
+	public static ModProtocol register(Identifier identifier, String name, String version, Optional<String> require) {
+		return ModProtocolManager.add(null, new ModProtocolImpl(identifier, name, version, require, require));
 	}
 
 	/**

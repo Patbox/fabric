@@ -1,10 +1,7 @@
 {
   "required": true,
   "package": "net.fabricmc.fabric.mixin.modprotocol.client",
-  "compatibilityLevel": "JAVA_17",
-  "mixins": [
-    "ClientCommonNetworkHandlerMixin"
-  ],
+  "compatibilityLevel": "JAVA_25",
   "injectors": {
     "defaultRequire": 1
   },

@@ -16,19 +16,18 @@
 
 package net.fabricmc.fabric.test.modprotocol;
 
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-
-import net.minecraft.resources.Identifier;
+import java.util.Collection;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.minecraft.resources.Identifier;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.modprotocol.v1.ModProtocolIds;
 import net.fabricmc.fabric.api.modprotocol.v1.ModProtocolRegistry;
-import net.fabricmc.fabric.api.modprotocol.v1.ServerModProtocolLookup;
+import net.fabricmc.fabric.api.modprotocol.v1.RemoteModVersionLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolLocator;
 import net.fabricmc.loader.api.FabricLoader;
@@ -46,23 +45,25 @@ public final class ModProtocolTestmods implements ModInitializer {
 	public void onInitialize() {
 		ModContainer modContainer = FabricLoader.getInstance().getModContainer(ID).get();
 
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification"), "Hello there", "1.12.2", IntList.of(1, 2, 3), true, false);
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification2"), "Test2", "1.0", IntList.of(1), false, true);
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification3"), "Test3", "2.0", IntList.of(2), true, true);
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification4"), "Test4", "2.0", IntList.of(2), true, true);
-		//ModProtocolRegistry.register(ModProtocolIds.special("test_modification5"), "Test5", "1.0", IntList.of(1), true, true);
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification6"), "Test6", "1.0", IntList.of(1), true, true);
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification7"), "Test7", "1.0", IntList.of(1), true, true);
+		boolean altVersion = false;
+
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification"), "Hello there", altVersion ? "1.12.4" : "1.12.2", Optional.of("~1.12"), Optional.empty());
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification2"), "Test2", "1.0", Optional.empty(), Optional.of("1.0"));
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification3"), "Test3", "2.0", Optional.of("*"));
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification4"), "Test4", altVersion ? "2.1.3" : "2.0", Optional.of(altVersion ? "2.1.x" : "2.0.x"));
+		// ModProtocolRegistry.register(ModProtocolIds.special("test_modification5"), "Test5", "1.0", Optional.empty());
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification6"), "Test6", altVersion ? "4.5" : "1.0", Optional.of(altVersion ? "4.x" : ">=1.0 <3.0"));
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification7"), "Test7", "1.0", Optional.of(">=0.0"));
 
 		CustomValue testificate = modContainer.getMetadata().getCustomValue("test_fabric:mod_protocol");
 		CustomValue defaulted = modContainer.getMetadata().getCustomValue("test2_fabric:mod_protocol");
 
 		ServerPlayConnectionEvents.JOIN.register(((handler, sender, server) -> {
-			Object2IntMap<Identifier> protocols = ServerModProtocolLookup.getAllSupportedProtocols(handler);
+			Collection<Identifier> protocols = RemoteModVersionLookup.getRemoteMods(handler);
 			LOGGER.info("Protocols supported by {}", handler.player.getPlainTextName());
 
-			for (Object2IntMap.Entry<Identifier> entry : protocols.object2IntEntrySet()) {
-				LOGGER.info(" - {}: {}", entry.getKey(), entry.getIntValue());
+			for (Identifier entry : protocols) {
+				LOGGER.info(" - {}: {}", entry, RemoteModVersionLookup.getRemoteVersion(handler, entry));
 			}
 		}));
 
