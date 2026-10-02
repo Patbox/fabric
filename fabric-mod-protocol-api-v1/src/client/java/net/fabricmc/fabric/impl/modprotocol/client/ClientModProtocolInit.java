@@ -22,6 +22,7 @@ import net.minecraft.resources.Identifier;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolInit;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
 import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
@@ -29,6 +30,9 @@ import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload
 import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolResponseC2SPayload;
 
 public final class ClientModProtocolInit implements ClientModInitializer {
+	public static final PacketContext.Key<ModProtocolManager.ValidationResult> VALIDATION_RESULT_KEY = PacketContext.key(Identifier.fromNamespaceAndPath("fabric-mod-protocol-v1", "validation_result"));
+	public static final ScopedValue<ModProtocolManager.ValidationResult> VALIDATION_RESULT_SCOPED_VALUE = ScopedValue.newInstance();
+
 	public void onInitializeClient() {
 		ClientConfigurationNetworking.registerGlobalReceiver(ModProtocolRequestS2CPayload.TYPE, (payload, context) -> {
 			var map = new HashMap<Identifier, RemoteModProtocol>(payload.entries().size());
@@ -48,9 +52,10 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 			var b = new StringBuilder();
 			b.append("Disconnected due to mismatched protocols!").append('\n');
 			b.append("Missing entries:").append('\n');
-			ModProtocolManager.appendComponentEntries(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID, -1, text -> b.append(" - ").append(text.getString()));
+			ModProtocolManager.appendComponentEntries(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID, -1, text -> b.append(" - ").append(text.getString()), false);
 
-			context.responseSender().disconnect(ModProtocolManager.constructMessage(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID));
+			context.responseSender().disconnect(ModProtocolManager.getMismatchedVersionsMessage(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID));
+			context.packetContext().set(VALIDATION_RESULT_KEY, validate);
 			ModProtocolInit.LOGGER.warn(b.toString());
 		});
 	}

@@ -28,8 +28,10 @@ import java.util.function.Consumer;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.resources.Identifier;
@@ -40,6 +42,7 @@ import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload;
+import net.fabricmc.fabric.impl.networking.server.ServerNetworkingImpl;
 import net.fabricmc.loader.api.ModContainer;
 
 public final class ModProtocolManager {
@@ -48,6 +51,8 @@ public final class ModProtocolManager {
 		int out = NAMESPACE_PRIORITY.indexOf(x.id().getNamespace());
 		return out == -1 ? NAMESPACE_PRIORITY.size() : out;
 	}).thenComparing(RemoteModProtocol::id);
+
+	public static final int INLINE_VERSION_COUNT = 5;
 
 	public static final Map<Identifier, ModProtocolImpl> LOCAL_MOD_PROTOCOLS_BY_ID = new HashMap<>();
 	public static final List<ModProtocolImpl> LOCAL_MOD_PROTOCOLS = new ArrayList<>();
@@ -63,23 +68,53 @@ public final class ModProtocolManager {
 			if (REQUIRED_ON_CLIENT.isEmpty()) {
 				return;
 			} else {
-				handler.disconnect(constructMessage(new ArrayList<>(REQUIRED_ON_CLIENT), Map.of()));
+				handler.disconnect(getIncompatibleClientMessage(ServerNetworkingImpl.getAddon(handler).getClientBrand(), new ArrayList<>(REQUIRED_ON_CLIENT), Map.of()));
 			}
 		}
 
 		handler.addTask(new SyncConfigurationTask());
 	}
 
-	public static Component constructMessage(List<RemoteModProtocol> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols) {
+	public static Component getIncompatibleClientMessage(@Nullable String brand, List<RemoteModProtocol> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols) {
+		MutableComponent brandText = switch (brand) {
+			case "fabric" -> LocalizedComponents.translatable("text.fabric-mod-protocol-v1.fabric_api");
+			case null, default -> LocalizedComponents.translatable("text.fabric-mod-protocol-v1.loader_and_fabric_api");
+		};
+
 		MutableComponent text = Component.empty();
-		text.append(LocalizedComponents.translatable("text.fabric.mod_protocol.mismatched.title").withStyle(ChatFormatting.GOLD)).append("\n");
-		text.append(LocalizedComponents.translatable("text.fabric.mod_protocol.mismatched.desc").withStyle(ChatFormatting.YELLOW)).append("\n\n");
-		text.append(LocalizedComponents.translatable("text.fabric.mod_protocol.mismatched.entries.title").withStyle(ChatFormatting.RED)).append("\n");
-		appendComponentEntries(missingProtocols, localProtocols, 6, text::append);
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.vanilla_client.title", brandText.withColor(TextColor.GREEN))).append(CommonComponents.NEW_LINE);
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.vanilla_client.desc")).append("\n\n");
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.entries.title").withStyle(ChatFormatting.RED)).append(CommonComponents.NEW_LINE);
+		appendComponentEntries(missingProtocols, localProtocols, INLINE_VERSION_COUNT, text::append, false);
+
+		text.append("\n\n").append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.contact").withColor(TextColor.GOLD));
 		return text;
 	}
 
-	public static void appendComponentEntries(List<RemoteModProtocol> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols, int limit, Consumer<Component> consumer) {
+	public static Component getIncompatibleServerMessage(@Nullable String brand, List<RemoteModProtocol> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols) {
+		MutableComponent text = Component.empty();
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.vanilla_server.title")).append(CommonComponents.NEW_LINE);
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.vanilla_server.desc")).append("\n\n");
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.entries.title").withStyle(ChatFormatting.RED)).append(CommonComponents.NEW_LINE);
+		appendComponentEntries(missingProtocols, localProtocols, INLINE_VERSION_COUNT, text::append, true);
+
+		text.append("\n\n").append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.contact").withColor(TextColor.GOLD));
+		return text;
+	}
+
+	public static Component getMismatchedVersionsMessage(List<RemoteModProtocol> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols) {
+		MutableComponent text = Component.empty();
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.title")).append(CommonComponents.NEW_LINE);
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.desc")).append("\n\n");
+		text.append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.entries.title").withStyle(ChatFormatting.RED)).append(CommonComponents.NEW_LINE);
+
+		appendComponentEntries(missingProtocols, localProtocols, INLINE_VERSION_COUNT, text::append, false);
+
+		text.append("\n\n").append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.mismatched.contact").withColor(TextColor.GOLD));
+		return text;
+	}
+
+	public static void appendComponentEntries(List<RemoteModProtocol> missingProtocols, Map<Identifier, ModProtocolImpl> localProtocols, int limit, Consumer<Component> consumer, boolean remoteMissing) {
 		missingProtocols.sort(MOD_PROTOCOL_COMPARATOR);
 
 		if (limit == -1) {
@@ -91,23 +126,23 @@ public final class ModProtocolManager {
 		for (int i = 0; i < size; i++) {
 			RemoteModProtocol protocol = missingProtocols.get(i);
 			ModProtocolImpl local = localProtocols.get(protocol.id());
-			Component localVersion = local == null ? LocalizedComponents.translatable("text.fabric.mod_protocol.missing").withStyle(ChatFormatting.DARK_RED)
+			Component localVersion = local == null ? LocalizedComponents.translatable("text.fabric-mod-protocol-v1.missing").withStyle(ChatFormatting.DARK_RED)
 					: Component.literal(local.version()).withStyle(ChatFormatting.YELLOW);
-			Component remoteVersion = protocol.version().isEmpty() ? LocalizedComponents.translatable("text.fabric.mod_protocol.missing").withStyle(ChatFormatting.DARK_RED)
+			Component remoteVersion = protocol.version().isEmpty() || remoteMissing ? LocalizedComponents.translatable("text.fabric-mod-protocol-v1.missing").withStyle(ChatFormatting.DARK_RED)
 					: Component.literal(protocol.version()).withStyle(ChatFormatting.YELLOW);
 
-			MutableComponent text = LocalizedComponents.translatable("text.fabric.mod_protocol.entry",
+			MutableComponent text = LocalizedComponents.translatable("text.fabric-mod-protocol-v1.entry",
 					Component.literal(protocol.name()).withStyle(ChatFormatting.WHITE), localVersion, remoteVersion).withStyle(ChatFormatting.GRAY);
 
 			if (i + 1 < size) {
-				text.append("\n");
+				text.append(CommonComponents.NEW_LINE);
 			}
 
 			consumer.accept(text);
 		}
 
 		if (limit < missingProtocols.size()) {
-			consumer.accept(Component.literal("\n").append(LocalizedComponents.translatable("text.fabric.mod_protocol.and_x_more", missingProtocols.size() - size).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
+			consumer.accept(CommonComponents.NEW_LINE.copy().append(LocalizedComponents.translatable("text.fabric-mod-protocol-v1.and_x_more", missingProtocols.size() - size).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
 		}
 	}
 
@@ -146,7 +181,7 @@ public final class ModProtocolManager {
 			}
 		}
 
-		return new ValidationResult(supported, missingLocal, missingRemote);
+		return new ValidationResult(supported, missingLocal, missingRemote, false);
 	}
 
 	public static void collectModProtocols() {
@@ -167,19 +202,18 @@ public final class ModProtocolManager {
 		LOCAL_MOD_PROTOCOLS_BY_ID.put(protocol.id(), protocol);
 		LOCAL_MOD_PROTOCOLS.add(protocol);
 
-		if (protocol.requireOnClient().isPresent()) {
-			REQUIRED_ON_CLIENT.add(protocol.asClientbound());
+		RemoteModProtocol clientboundProtocol = protocol.asClientbound();
+		SYNCED_PROTOCOLS.add(clientboundProtocol);
+
+		if (clientboundProtocol.require().isPresent()) {
+			REQUIRED_ON_CLIENT.add(clientboundProtocol);
 		}
 
 		if (protocol.requireOnServer().isPresent()) {
 			REQUIRED_ON_SERVER.add(protocol.asServerbound());
 		}
 
-		if (protocol.hasAnyRequirement()) {
-			SYNCED_PROTOCOLS.add(protocol.asClientbound());
-		}
-
-		return null;
+		return protocol;
 	}
 
 	@SuppressWarnings("ConstantValue")
@@ -224,7 +258,7 @@ public final class ModProtocolManager {
 		}
 	}
 
-	public record ValidationResult(Map<Identifier, String> supportedProtocols, List<RemoteModProtocol> missingLocal, List<RemoteModProtocol> missingRemote) {
+	public record ValidationResult(Map<Identifier, String> supportedProtocols, List<RemoteModProtocol> missingLocal, List<RemoteModProtocol> missingRemote, boolean forceNoRemote) {
 		public boolean isSuccess() {
 			return missingLocal.isEmpty() && missingRemote.isEmpty();
 		}
@@ -234,6 +268,10 @@ public final class ModProtocolManager {
 			arr.addAll(missingLocal);
 			arr.addAll(missingRemote);
 			return arr;
+		}
+
+		public int missingCount() {
+			return this.missingLocal.size() + this.missingRemote.size();
 		}
 	}
 }

@@ -16,6 +16,9 @@
 
 package net.fabricmc.fabric.mixin.modprotocol.client;
 
+import java.util.List;
+import java.util.Map;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -29,17 +32,19 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks;
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
+import net.fabricmc.fabric.impl.modprotocol.client.ClientModProtocolInit;
 
 @Mixin(ClientConfigurationPacketListenerImpl.class)
-public abstract class ClientConfigurationNetworkHandlerMixin extends ClientCommonPacketListenerImpl {
-	protected ClientConfigurationNetworkHandlerMixin(Minecraft minecraft, Connection connection, CommonListenerCookie cookie) {
+public abstract class ClientConfigurationPacketListenerImplMixin extends ClientCommonPacketListenerImpl {
+	protected ClientConfigurationPacketListenerImplMixin(Minecraft minecraft, Connection connection, CommonListenerCookie cookie) {
 		super(minecraft, connection, cookie);
 	}
 
 	@Inject(method = "handleSelectKnownPacks", at = @At("HEAD"), cancellable = true)
 	private void preventJoiningIncompatibleServers(ClientboundSelectKnownPacks packet, CallbackInfo ci) {
 		if (this.getPacketContext().get(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY) == null && !ModProtocolManager.REQUIRED_ON_SERVER.isEmpty()) {
-			this.minecraft.execute(() -> this.connection.disconnect(ModProtocolManager.constructMessage(ModProtocolManager.REQUIRED_ON_SERVER, ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID)));
+			this.getPacketContext().set(ClientModProtocolInit.VALIDATION_RESULT_KEY, new ModProtocolManager.ValidationResult(Map.of(), List.of(), ModProtocolManager.REQUIRED_ON_SERVER, true));
+			this.minecraft.execute(() -> this.connection.disconnect(ModProtocolManager.getIncompatibleServerMessage(this.serverBrand, ModProtocolManager.REQUIRED_ON_SERVER, ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID)));
 			ci.cancel();
 		}
 	}
