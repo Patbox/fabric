@@ -17,57 +17,57 @@
 /**
  * The Mod Protocol API, version 1.
  *
- * <p>Mod Protocol is an additional syncing system allowing mods to define their protocol, with simple utilities
- * allowing to check supported version and use it for networking or safeguards against using mismatched/incompatible
- * mod versions on client and server. Exact configuration can differ from mod to mod.</p>
+ * <p>Mod Protocol is an additional syncing system allowing mods to easily prevent players from connecting with
+ * incompatible or missing mod versions, when they are fully required. It also provides a way of checking the remote
+ * version of mods that opted it into this system.</p>
  *
  * <p>The mod protocol can be defined in two ways:
  * <dl>
  *     <dt>fabric.mod.json</dt>
  *     <dd>This is the simplest way to define it. Can be useful when you don't need to change it depending on mods configuration
- *     or external dependencies. It is set within custom field of that file under "fabric:mod_protocol" key.
+ *     or external dependencies. It is set within custom field of that file under "fabric:mod_protocol_v1" key.
  *
  *     It can be defined in multiple ways:
  *     <dl>
- *     		<dt>"fabric:mod_protocol": 1</dt>
- *     		<dd><p>This will automatically use mods id with "mod" namespace as the protocol identifier, as a single supported protocol version,
- *     		with display name and version being copied form mods metadata. It also marks the protocol as required on both client and server.</p>
+ *     		<dt>"fabric:mod_protocol_v1": "1.2.x"</dt>
+ *     		<dd><p>This will automatically use mods id with "mod" namespace as the protocol identifier. It makes it so the mod is required
+ *     		on both client and server to match provided version predicate. The predicate itself uses the same format as dependency declarations.</p>
  *     		</dd>
- *     		<dt>"fabric:mod_protocol": {
- *     		 "protocol": [1, 2],
+ *     		<dt>"fabric:mod_protocol_v1": {
  *     		 "id: "custom:id",
  *     		 "name": "Mod Name",
- *     		 "version": "v1.2.3",
- *     		 "require_client": false,
- *     		 "require_server": true
+ *     		 "version": "1.2.3",
+ *     		 "require": "1.2.x",
+ *     		 "require_client": ">=1.2.3",
+ *     		 "require_server": "~1.2.0"
  *     		}</dt>
- *      	<dd><p>Full object. Only required value is "protocol", which can be set directly for single version or as an array for multiple.</p>
+ *      	<dd><p>Full object. All fields are optional, defaulting to existing properties in fabric.mods.json or in case of require to allow all</p>
  *      	<p>"id" is the protocols identifier, which can have any namespace and path, as long as it's valid.
  *      	It is optional and defaults to an ID with "mod" namespace and path equal to mod's id.
  *      	</p>
  *     		<p>"name" is a name displayed if protocol doesn't match. It's optional and by default it uses one from mod's metadata.</p>
  *          <p>"version" is a version displayed if protocol doesn't match. It's optional and by default it uses one from mod's metadata.</p>
- *          <p>"require_client" controls if clients without this protocol can join the server, defaults to true, preventing joining</p>
- *          <p>"require_server" controls if clients can join servers without this mod, defaults to true, preventing joining</p>
+ *          <p>"require" controls the version requirement for both client and server, setting this is equal to setting both require_client and require_server"</p>
+ *          <p>"require_client" controls the required versions for the clients, defaults to allowing all connections</p>
+ *          <p>"require_server" controls the required versions for the servers, defaults to allowing all connections</p>
  *       	</dd>
- *       	<dt>"fabric:mod_protocol": [{
- *       		 "protocol": [1, 2],
+ *       	<dt>"fabric:mod_protocol_v1": [{
  *       		 "id: "custom:id",
  *       		 "name": "Mod Name",
- *       		 "version": "v1.2.3",
- *       		 "require_client": false,
- *       		 "require_server": true
- *       		}]</dt>
+ *       		 "version": "1.2.3",
+ *       		 "require": "1.2.x",
+ *       		 "require_client": ">=1.2.3",
+ *       		 "require_server": "~1.2.0"
+ *      		}]</dt>
  *        	<dd><p>Array of full objects. Allows to define multiple versions of the protocol. The inner objects use the same format as single-full object format,
  *        	with main exception being that fields "id", "name" and "version" aren't defaulted and need to be always set</p></dd>
  *     </dl>
  *     </dd>
  *     <dt>{@link net.fabricmc.fabric.api.modprotocol.v1.ModProtocolRegistry}</dt>
  *     <dd>This is the simplest way to define it. Can be useful when you don't need to change it depending on mods configuration
- *     or external dependencies. It is set within custom field of that file under "fabric:mod_protocol" key.
+ *     or external dependencies. It is set within custom field of that file under "fabric:mod_protocol_v1" key.
  *     </dd>
  * </dl>
- * </p>
  */
 @NullMarked
 @ApiStatus.Experimental
