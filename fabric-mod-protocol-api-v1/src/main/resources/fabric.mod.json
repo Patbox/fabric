@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "fabric-mod-protocol-api-v1",
   "name": "Fabric Mod Protocol API (v1)",
-  "description": "Versioned network protocol sync, validation and requirement system.",
+  "description": "Required mod version sync, validation and requirement system.",
   "version": "${version}",
   "environment": "*",
   "license": "Apache-2.0",
@@ -10,8 +10,8 @@
   "contact": {
     "homepage": "https://fabricmc.net",
     "irc": "irc://irc.esper.net:6667/fabric",
-    "issues": "https://github.com/FabricMC/fabric/issues",
-    "sources": "https://github.com/FabricMC/fabric"
+    "issues": "https://github.com/FabricMC/fabric-api/issues",
+    "sources": "https://github.com/FabricMC/fabric-api"
   },
   "authors": [
     "FabricMC"
@@ -32,7 +32,7 @@
     }
   ],
   "depends": {
-    "fabricloader": ">=0.15.11",
+    "fabricloader": ">=0.19.3",
     "fabric-api-base": "*",
     "fabric-networking-api-v1": "*"
   },
