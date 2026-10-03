@@ -52,6 +52,8 @@ public final class ModProtocolManager {
 		return out == -1 ? NAMESPACE_PRIORITY.size() : out;
 	}).thenComparing(RemoteModProtocol::id);
 
+	public static Component MISSING = LocalizedComponents.translatable("text.fabric-mod-protocol-v1.missing").withStyle(ChatFormatting.DARK_RED);
+
 	public static final int INLINE_VERSION_COUNT = 5;
 
 	public static final Map<Identifier, ModProtocolImpl> LOCAL_MOD_PROTOCOLS_BY_ID = new HashMap<>();
@@ -126,9 +128,9 @@ public final class ModProtocolManager {
 		for (int i = 0; i < size; i++) {
 			RemoteModProtocol protocol = missingProtocols.get(i);
 			ModProtocolImpl local = localProtocols.get(protocol.id());
-			Component localVersion = local == null ? LocalizedComponents.translatable("text.fabric-mod-protocol-v1.missing").withStyle(ChatFormatting.DARK_RED)
+			Component localVersion = local == null ? ModProtocolManager.MISSING
 					: Component.literal(local.version()).withStyle(ChatFormatting.YELLOW);
-			Component remoteVersion = protocol.version().isEmpty() || remoteMissing ? LocalizedComponents.translatable("text.fabric-mod-protocol-v1.missing").withStyle(ChatFormatting.DARK_RED)
+			Component remoteVersion = protocol.version().isEmpty() || remoteMissing ? ModProtocolManager.MISSING
 					: Component.literal(protocol.version()).withStyle(ChatFormatting.YELLOW);
 
 			MutableComponent text = LocalizedComponents.translatable("text.fabric-mod-protocol-v1.entry",

@@ -16,6 +16,7 @@
 
 package net.fabricmc.fabric.mixin.modprotocol.client;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +31,10 @@ import net.minecraft.client.multiplayer.ClientConfigurationPacketListenerImpl;
 import net.minecraft.client.multiplayer.CommonListenerCookie;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks;
+import net.minecraft.resources.Identifier;
 
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
+import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 import net.fabricmc.fabric.impl.modprotocol.client.ClientModProtocolInit;
 
 @Mixin(ClientConfigurationPacketListenerImpl.class)
@@ -43,6 +46,17 @@ public abstract class ClientConfigurationPacketListenerImplMixin extends ClientC
 	@Inject(method = "handleSelectKnownPacks", at = @At("HEAD"), cancellable = true)
 	private void preventJoiningIncompatibleServers(ClientboundSelectKnownPacks packet, CallbackInfo ci) {
 		if (this.getPacketContext().get(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY) == null && !ModProtocolManager.REQUIRED_ON_SERVER.isEmpty()) {
+			if (ClientModProtocolInit.FORCE_ALWAYS_COMPATIBLE_CLIENT) {
+				var versions = new HashMap<Identifier, String>(ModProtocolManager.REQUIRED_ON_SERVER.size());
+
+				for (RemoteModProtocol protocol : ModProtocolManager.REQUIRED_ON_SERVER) {
+					versions.put(protocol.id(), protocol.version());
+				}
+
+				this.getPacketContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, versions);
+				return;
+			}
+
 			this.getPacketContext().set(ClientModProtocolInit.VALIDATION_RESULT_KEY, new ModProtocolManager.ValidationResult(Map.of(), List.of(), ModProtocolManager.REQUIRED_ON_SERVER, true));
 			this.minecraft.execute(() -> this.connection.disconnect(ModProtocolManager.getIncompatibleServerMessage(this.serverBrand, ModProtocolManager.REQUIRED_ON_SERVER, ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID)));
 			ci.cancel();

@@ -3,6 +3,7 @@
   "text.fabric-mod-protocol-v1.entry": "%s (Local: %s, Remote: %s)",
   "text.fabric-mod-protocol-v1.fabric_api": "Fabric API",
   "text.fabric-mod-protocol-v1.loader_and_fabric_api": "Fabric Loader and Fabric API",
+  "text.fabric-mod-protocol-v1.local": "Local",
   "text.fabric-mod-protocol-v1.mismatched.contact": "Contact the server's administrator for more information!",
   "text.fabric-mod-protocol-v1.mismatched.desc": "This usually means mods on your client don't match ones on the server!",
   "text.fabric-mod-protocol-v1.mismatched.entries.title": "== Mismatched entries ==",
@@ -13,5 +14,7 @@
   "text.fabric-mod-protocol-v1.mismatched.vanilla_server.title": "This server doesn't support your current mod set!",
   "text.fabric-mod-protocol-v1.mismatched_versions.button": "Mismatched Mod Versions...",
   "text.fabric-mod-protocol-v1.mismatched_versions.title": "Mismatched Mod Versions",
-  "text.fabric-mod-protocol-v1.missing": "Missing!"
+  "text.fabric-mod-protocol-v1.missing": "Missing!",
+  "text.fabric-mod-protocol-v1.mod_name": "Mod Name",
+  "text.fabric-mod-protocol-v1.remote": "Remote"
 }

@@ -16,24 +16,36 @@
 
 package net.fabricmc.fabric.impl.modprotocol.client;
 
+import java.util.List;
+
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.FocusableTextWidget;
 import net.minecraft.client.gui.components.ScrollableLayout;
+import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
+import net.minecraft.client.gui.layouts.SpacerElement;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 
+import net.fabricmc.fabric.impl.modprotocol.ModProtocolImpl;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
+import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 
 public class MismatchedVersionScreen extends Screen {
 	private static final Identifier SCREEN_BACKGROUND = Identifier.withDefaultNamespace("textures/gui/inworld_menu_list_background.png");
 	private static final Component TITLE = Component.translatable("text.fabric-mod-protocol-v1.mismatched_versions.title");
+	private static final Component LOCAL = Component.translatable("text.fabric-mod-protocol-v1.local");
+	private static final Component REMOTE = Component.translatable("text.fabric-mod-protocol-v1.remote");
+	private static final Component MOD_NAME = Component.translatable("text.fabric-mod-protocol-v1.mod_name");
 
 	private final Screen lastScreen;
 	private final ModProtocolManager.ValidationResult validationResult;
@@ -61,17 +73,66 @@ public class MismatchedVersionScreen extends Screen {
 	}
 
 	protected void addTitle() {
-		this.layout.addTitleHeader(this.title, this.font);
+		LinearLayout body = LinearLayout.vertical().spacing(4);
+		body.defaultCellSetting().alignHorizontallyCenter();
+
+		body.addChild(new SpacerElement(0, 3));
+		body.addChild(new StringWidget(this.title, font));
+		body.addChild(new SpacerElement(0, 3));
+
+		int versionWidth = Mth.clamp(this.width * 20 / 100 - 30, 50, 100);
+		int nameWidth = Mth.clamp(this.width - versionWidth * 2 - 30, 120, 200);
+
+		LinearLayout part = LinearLayout.horizontal().spacing(4);
+		part.defaultCellSetting().alignVerticallyMiddle().alignHorizontallyCenter();
+
+		part.addChild(new CenteredStringWidget(nameWidth, 10, MOD_NAME, font));
+		part.addChild(new CenteredStringWidget(versionWidth, 10, LOCAL, font));
+		part.addChild(new CenteredStringWidget(versionWidth, 10, REMOTE, font));
+
+		body.addChild(part);
+
+		body.arrangeElements();
+
+		this.layout.setHeaderHeight(body.getHeight() + 6);
+
+		this.layout.addToHeader(body);
 	}
 
 	protected void addContents() {
-		LinearLayout body = LinearLayout.vertical().spacing(4);
+		LinearLayout body = LinearLayout.vertical().spacing(2);
+		body.defaultCellSetting().alignHorizontallyCenter();
 
-		MutableComponent component = Component.empty();
-		ModProtocolManager.appendComponentEntries(this.validationResult.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID, Integer.MAX_VALUE, component::append, this.validationResult.forceNoRemote());
+		List<RemoteModProtocol> missingProtocols = this.validationResult.missing();
 
-		body.addChild(FocusableTextWidget.builder(component, font, 4).maxWidth(this.width - 40).alwaysShowBorder(false)
-				.backgroundFill(FocusableTextWidget.BackgroundFill.NEVER).build().setCentered(true));
+		missingProtocols.sort(ModProtocolManager.MOD_PROTOCOL_COMPARATOR);
+
+		int versionWidth = Mth.clamp(this.width * 20 / 100 - 30, 50, 100);
+		int nameWidth = Mth.clamp(this.width - versionWidth * 2 - 30, 120, 200);
+
+		for (RemoteModProtocol protocol : missingProtocols) {
+			ModProtocolImpl local = ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID.get(protocol.id());
+
+			Component localVersion = local == null ? ModProtocolManager.MISSING
+					: Component.literal(local.version()).withStyle(ChatFormatting.YELLOW);
+			Component remoteVersion = protocol.version().isEmpty() || this.validationResult.forceNoRemote() ? ModProtocolManager.MISSING
+					: Component.literal(protocol.version()).withStyle(ChatFormatting.YELLOW);
+
+			Component name = Component.literal(protocol.name()).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Component.literal(protocol.id().toString()))));
+
+			LinearLayout part = LinearLayout.horizontal().spacing(2);
+			part.defaultCellSetting().alignVerticallyMiddle().alignHorizontallyCenter();
+
+			part.addChild(FocusableTextWidget.builder(name, font, 3).maxWidth(nameWidth).alwaysShowBorder(false)
+					.backgroundFill(FocusableTextWidget.BackgroundFill.NEVER).build().setCentered(true));
+
+			part.addChild(FocusableTextWidget.builder(localVersion, font, 3).maxWidth(versionWidth).alwaysShowBorder(false)
+					.backgroundFill(FocusableTextWidget.BackgroundFill.NEVER).build().setCentered(true));
+
+			part.addChild(FocusableTextWidget.builder(remoteVersion, font, 3).maxWidth(versionWidth).alwaysShowBorder(false)
+					.backgroundFill(FocusableTextWidget.BackgroundFill.NEVER).build().setCentered(true));
+			body.addChild(part);
+		}
 
 		var scrollable = new ScrollableLayout(minecraft, body, this.layout.getContentHeight());
 		body.arrangeElements();

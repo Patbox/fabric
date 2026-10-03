@@ -30,18 +30,32 @@ import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload
 import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolResponseC2SPayload;
 
 public final class ClientModProtocolInit implements ClientModInitializer {
+	public static final boolean FORCE_ALWAYS_COMPATIBLE_CLIENT = System.getProperty("fabric-mod-protocol-v1.forceCompatibleClient") != null;
+
 	public static final PacketContext.Key<ModProtocolManager.ValidationResult> VALIDATION_RESULT_KEY = PacketContext.key(Identifier.fromNamespaceAndPath("fabric-mod-protocol-v1", "validation_result"));
 	public static final ScopedValue<ModProtocolManager.ValidationResult> VALIDATION_RESULT_SCOPED_VALUE = ScopedValue.newInstance();
 
 	public void onInitializeClient() {
 		ClientConfigurationNetworking.registerGlobalReceiver(ModProtocolRequestS2CPayload.TYPE, (payload, context) -> {
-			var map = new HashMap<Identifier, RemoteModProtocol>(payload.entries().size());
+			if (FORCE_ALWAYS_COMPATIBLE_CLIENT) {
+				var versions = new HashMap<Identifier, String>(payload.entries().size());
 
-			for (RemoteModProtocol protocol : payload.entries()) {
-				map.put(protocol.id(), protocol);
+				for (RemoteModProtocol protocol : payload.entries()) {
+					versions.put(protocol.id(), protocol.version());
+				}
+
+				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, versions);
+				context.responseSender().sendPacket(new ModProtocolResponseC2SPayload(versions));
+				return;
 			}
 
-			ModProtocolManager.ValidationResult validate = ModProtocolManager.validateClient(map);
+			var receivedById = new HashMap<Identifier, RemoteModProtocol>(payload.entries().size());
+
+			for (RemoteModProtocol protocol : payload.entries()) {
+				receivedById.put(protocol.id(), protocol);
+			}
+
+			ModProtocolManager.ValidationResult validate = ModProtocolManager.validateClient(receivedById);
 
 			if (validate.isSuccess()) {
 				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, validate.supportedProtocols());
