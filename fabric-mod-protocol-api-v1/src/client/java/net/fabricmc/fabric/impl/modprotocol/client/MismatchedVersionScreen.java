@@ -83,7 +83,7 @@ public class MismatchedVersionScreen extends Screen {
 		int versionWidth = Mth.clamp(this.width * 20 / 100 - 30, 50, 100);
 		int nameWidth = Mth.clamp(this.width - versionWidth * 2 - 30, 120, 200);
 
-		LinearLayout part = LinearLayout.horizontal().spacing(4);
+		LinearLayout part = LinearLayout.horizontal().spacing(2);
 		part.defaultCellSetting().alignVerticallyMiddle().alignHorizontallyCenter();
 
 		part.addChild(new CenteredStringWidget(nameWidth, 10, MOD_NAME, font));
@@ -135,6 +135,7 @@ public class MismatchedVersionScreen extends Screen {
 		}
 
 		var scrollable = new ScrollableLayout(minecraft, body, this.layout.getContentHeight());
+
 		body.arrangeElements();
 		this.layout.addToContents(scrollable);
 	}
