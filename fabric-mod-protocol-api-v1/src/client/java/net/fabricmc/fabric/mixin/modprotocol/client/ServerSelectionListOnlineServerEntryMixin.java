@@ -35,7 +35,7 @@ import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
 import net.fabricmc.fabric.impl.modprotocol.client.FabricServerData;
 
 @Mixin(ServerSelectionList.OnlineServerEntry.class)
-public class OnlineServerEntryMixin {
+public class ServerSelectionListOnlineServerEntryMixin {
 	@Unique
 	private static final Component INCOMPATIBLE_MODS = Component.translatable("text.fabric-mod-protocol-v1.status.incompatible_mods");
 
