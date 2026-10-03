@@ -55,6 +55,10 @@ public final class ModProtocolTestmods implements ModInitializer {
 		ModProtocolRegistry.register(ModProtocolIds.special("test_modification6"), "Test6", altVersion ? "4.5" : "1.0", Optional.of(altVersion ? "4.x" : ">=1.0 <3.0"));
 		ModProtocolRegistry.register(ModProtocolIds.special("test_modification7"), "Test7", "1.0", Optional.of(">=0.0"));
 
+		for (int i = 0; i < 200; i++) {
+			ModProtocolRegistry.register(ModProtocolIds.feature("fake_mod_id_" + i), "Fabulous Mod v" + i, "1.2.3", Optional.of(">=0.0.0"));
+		}
+
 		CustomValue testificate = modContainer.getMetadata().getCustomValue("test_fabric:mod_protocol");
 		CustomValue defaulted = modContainer.getMetadata().getCustomValue("test2_fabric:mod_protocol");
 

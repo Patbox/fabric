@@ -16,5 +16,6 @@
   "text.fabric-mod-protocol-v1.mismatched_versions.title": "Mismatched Mod Versions",
   "text.fabric-mod-protocol-v1.missing": "Missing!",
   "text.fabric-mod-protocol-v1.mod_name": "Mod Name",
-  "text.fabric-mod-protocol-v1.remote": "Remote"
+  "text.fabric-mod-protocol-v1.remote": "Remote",
+  "text.fabric-mod-protocol-v1.status.incompatible_mods": "Incompatible mods!"
 }

@@ -7,9 +7,10 @@
   },
   "client": [
     "ClientCommonPacketListenerImplMixin",
-    "ClientConfigurationPacketListenerImplMixin"
-  ],
-  "mixins": [
-    "DisconnectedScreenMixin"
+    "ClientConfigurationPacketListenerImplMixin",
+    "DisconnectedScreenMixin",
+    "OnlineServerEntryMixin",
+    "ServerDataMixin",
+    "ServerStatusPingerClientStatusPacketListenerMixin"
   ]
 }

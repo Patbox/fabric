@@ -26,8 +26,8 @@ import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolInit;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
 import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
-import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload;
-import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolResponseC2SPayload;
+import net.fabricmc.fabric.impl.modprotocol.payload.ClientboundModProtocolRequestPayload;
+import net.fabricmc.fabric.impl.modprotocol.payload.ServerboundModProtocolResponsePayload;
 
 public final class ClientModProtocolInit implements ClientModInitializer {
 	public static final boolean FORCE_ALWAYS_COMPATIBLE_CLIENT = System.getProperty("fabric-mod-protocol-v1.forceCompatibleClient") != null;
@@ -36,7 +36,7 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 	public static final ScopedValue<ModProtocolManager.ValidationResult> VALIDATION_RESULT_SCOPED_VALUE = ScopedValue.newInstance();
 
 	public void onInitializeClient() {
-		ClientConfigurationNetworking.registerGlobalReceiver(ModProtocolRequestS2CPayload.TYPE, (payload, context) -> {
+		ClientConfigurationNetworking.registerGlobalReceiver(ClientboundModProtocolRequestPayload.TYPE, (payload, context) -> {
 			if (FORCE_ALWAYS_COMPATIBLE_CLIENT) {
 				var versions = new HashMap<Identifier, String>(payload.entries().size());
 
@@ -45,21 +45,15 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 				}
 
 				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, versions);
-				context.responseSender().sendPacket(new ModProtocolResponseC2SPayload(versions));
+				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(versions));
 				return;
 			}
 
-			var receivedById = new HashMap<Identifier, RemoteModProtocol>(payload.entries().size());
-
-			for (RemoteModProtocol protocol : payload.entries()) {
-				receivedById.put(protocol.id(), protocol);
-			}
-
-			ModProtocolManager.ValidationResult validate = ModProtocolManager.validateClient(receivedById);
+			ModProtocolManager.ValidationResult validate = ModProtocolManager.validateClient(payload.entries());
 
 			if (validate.isSuccess()) {
 				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, validate.supportedProtocols());
-				context.responseSender().sendPacket(new ModProtocolResponseC2SPayload(validate.supportedProtocols()));
+				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(validate.supportedProtocols()));
 				return;
 			}
 

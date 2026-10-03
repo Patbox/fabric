@@ -57,10 +57,10 @@ public class ServerStatusMixin implements ModProtocolHolder {
 				DataResult<Pair<ServerStatus, T>> decoded = original.decode(ops, input);
 
 				if (decoded.isSuccess()) {
-					DataResult<T> protocol = ops.get(input, "fabric:mod_protocol");
+					DataResult<T> protocol = ops.get(input, "fabric:mod_protocol_v1");
 
 					if (protocol.isSuccess()) {
-						DataResult<Pair<List<RemoteModProtocol>, T>> result = RemoteModProtocol.LIST_CODEC.decode(ops, protocol.getOrThrow());
+						DataResult<Pair<List<RemoteModProtocol>, T>> result = RemoteModProtocol.COMPRESSED_LIST_CODEC.decode(ops, protocol.getOrThrow());
 
 						if (result.isSuccess()) {
 							ModProtocolHolder.of(decoded.getOrThrow().getFirst()).fabric$setModProtocol(result.getOrThrow().getFirst());
@@ -76,10 +76,10 @@ public class ServerStatusMixin implements ModProtocolHolder {
 				DataResult<T> encode = original.encode(input, ops, prefix);
 
 				if (encode.isSuccess() && ModProtocolHolder.of(input).fabric$getModProtocol() != null) {
-					DataResult<T> protocol = RemoteModProtocol.LIST_CODEC.encodeStart(ops, ModProtocolHolder.of(input).fabric$getModProtocol());
+					DataResult<T> protocol = RemoteModProtocol.COMPRESSED_LIST_CODEC.encodeStart(ops, ModProtocolHolder.of(input).fabric$getModProtocol());
 
 					if (protocol.isSuccess()) {
-						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol"), protocol.getOrThrow());
+						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol_v1"), protocol.getOrThrow());
 					}
 				}
 

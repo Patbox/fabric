@@ -16,7 +16,8 @@
 
 package net.fabricmc.fabric.impl.modprotocol.payload;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -24,12 +25,16 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
+public record ServerboundModProtocolResponsePayload(
+		Map<Identifier, String> supported) implements CustomPacketPayload {
+	public static final Type<ServerboundModProtocolResponsePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol/response"));
+	public static final StreamCodec<FriendlyByteBuf, ServerboundModProtocolResponsePayload> PACKET_CODEC =
+			ByteBufCodecs.map(ServerboundModProtocolResponsePayload::createMap, Identifier.STREAM_CODEC, ByteBufCodecs.STRING_UTF8)
+					.map(ServerboundModProtocolResponsePayload::new, ServerboundModProtocolResponsePayload::supported).cast();
 
-public record ModProtocolRequestS2CPayload(List<RemoteModProtocol> entries) implements CustomPacketPayload {
-	public static final Type<ModProtocolRequestS2CPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol_request"));
-	public static final StreamCodec<FriendlyByteBuf, ModProtocolRequestS2CPayload> PACKET_CODEC = RemoteModProtocol.STREAM_CODEC.apply(ByteBufCodecs.list())
-			.map(ModProtocolRequestS2CPayload::new, ModProtocolRequestS2CPayload::entries);
+	private static Map<Identifier, String> createMap(int i) {
+		return new HashMap<>(i);
+	}
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

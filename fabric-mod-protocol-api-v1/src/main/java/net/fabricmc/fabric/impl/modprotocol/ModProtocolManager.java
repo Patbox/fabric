@@ -41,7 +41,7 @@ import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
-import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload;
+import net.fabricmc.fabric.impl.modprotocol.payload.ClientboundModProtocolRequestPayload;
 import net.fabricmc.fabric.impl.networking.server.ServerNetworkingImpl;
 import net.fabricmc.loader.api.ModContainer;
 
@@ -66,7 +66,7 @@ public final class ModProtocolManager {
 	public static final PacketContext.Key<Map<Identifier, String>> REMOTE_MOD_VERSIONS_KEY = PacketContext.key(Identifier.fromNamespaceAndPath("fabric-mod-protocol-v1", "remote_mod_versions"));
 
 	public static void setupClient(ServerConfigurationPacketListenerImpl handler, MinecraftServer server) {
-		if (!ServerConfigurationNetworking.canSend(handler, ModProtocolRequestS2CPayload.TYPE)) {
+		if (!ServerConfigurationNetworking.canSend(handler, ClientboundModProtocolRequestPayload.TYPE)) {
 			if (REQUIRED_ON_CLIENT.isEmpty()) {
 				return;
 			} else {
@@ -148,8 +148,14 @@ public final class ModProtocolManager {
 		}
 	}
 
-	public static ValidationResult validateClient(Map<Identifier, RemoteModProtocol> received) {
-		return validate(LOCAL_MOD_PROTOCOLS_BY_ID, received, REQUIRED_ON_SERVER);
+	public static ValidationResult validateClient(List<RemoteModProtocol> received) {
+		var receivedById = new HashMap<Identifier, RemoteModProtocol>(received.size());
+
+		for (RemoteModProtocol protocol : received) {
+			receivedById.put(protocol.id(), protocol);
+		}
+
+		return validate(LOCAL_MOD_PROTOCOLS_BY_ID, receivedById, REQUIRED_ON_SERVER);
 	}
 
 	public static ValidationResult validate(Map<Identifier, ModProtocolImpl> localById, Map<Identifier, RemoteModProtocol> received, List<RemoteModProtocol> requiredRemote) {
@@ -251,7 +257,7 @@ public final class ModProtocolManager {
 
 		@Override
 		public void start(Consumer<Packet<?>> connection) {
-			connection.accept(new ClientboundCustomPayloadPacket(new ModProtocolRequestS2CPayload(SYNCED_PROTOCOLS)));
+			connection.accept(new ClientboundCustomPayloadPacket(new ClientboundModProtocolRequestPayload(SYNCED_PROTOCOLS)));
 		}
 
 		@Override

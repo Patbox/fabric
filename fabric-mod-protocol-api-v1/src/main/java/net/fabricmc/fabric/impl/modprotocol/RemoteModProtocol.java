@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -48,6 +49,29 @@ public record RemoteModProtocol(Identifier id, String name, String version,
 	).apply(instance, RemoteModProtocol::new));
 
 	public static final Codec<List<RemoteModProtocol>> LIST_CODEC = CODEC.listOf();
+
+	public static final Codec<RemoteModProtocol> COMPRESSED_CODEC = Codec.STRING.flatXmap(string -> {
+		int split1 = string.indexOf(0);
+		int split2 = string.lastIndexOf(0);
+
+		if (split1 == -1) {
+			return DataResult.error(() -> "Invalid format! No null codepoint detected!");
+		}
+
+		DataResult<Identifier> id = Identifier.read(string.substring(0, split1));
+
+		if (id.isError()) {
+			return DataResult.error(id.error().orElseThrow().messageSupplier());
+		}
+
+		if (split1 == split2) {
+			return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "???", string.substring(split1 + 1), Optional.empty()));
+		}
+
+		return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "???", string.substring(split1 + 1, split2), Optional.of(string.substring(split2 + 1))));
+	}, protocol -> DataResult.success(protocol.id().toString() + '\u0000' + protocol.version + (protocol.require().isPresent() ? '\u0000' + protocol.require.get() : "")));
+
+	public static final Codec<List<RemoteModProtocol>> COMPRESSED_LIST_CODEC = COMPRESSED_CODEC.listOf();
 
 	public boolean matches(String version) {
 		if (this.require.isEmpty()) {

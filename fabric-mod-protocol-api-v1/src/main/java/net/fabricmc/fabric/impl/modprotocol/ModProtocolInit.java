@@ -26,8 +26,8 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
-import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolRequestS2CPayload;
-import net.fabricmc.fabric.impl.modprotocol.payload.ModProtocolResponseC2SPayload;
+import net.fabricmc.fabric.impl.modprotocol.payload.ClientboundModProtocolRequestPayload;
+import net.fabricmc.fabric.impl.modprotocol.payload.ServerboundModProtocolResponsePayload;
 
 public final class ModProtocolInit implements ModInitializer {
 	public static final String MOD_ID = "fabric-mod-protocol-api-v1";
@@ -42,9 +42,9 @@ public final class ModProtocolInit implements ModInitializer {
 		ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.addPhaseOrdering(phase, registrySync);
 		ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.register(phase, ModProtocolManager::setupClient);
 
-		PayloadTypeRegistry.serverboundConfiguration().register(ModProtocolResponseC2SPayload.TYPE, ModProtocolResponseC2SPayload.PACKET_CODEC);
-		PayloadTypeRegistry.clientboundConfiguration().register(ModProtocolRequestS2CPayload.TYPE, ModProtocolRequestS2CPayload.PACKET_CODEC);
-		ServerConfigurationNetworking.registerGlobalReceiver(ModProtocolResponseC2SPayload.TYPE, (payload, context) -> {
+		PayloadTypeRegistry.serverboundConfiguration().register(ServerboundModProtocolResponsePayload.TYPE, ServerboundModProtocolResponsePayload.PACKET_CODEC);
+		PayloadTypeRegistry.clientboundConfiguration().register(ClientboundModProtocolRequestPayload.TYPE, ClientboundModProtocolRequestPayload.PACKET_CODEC);
+		ServerConfigurationNetworking.registerGlobalReceiver(ServerboundModProtocolResponsePayload.TYPE, (payload, context) -> {
 			context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, payload.supported());
 			context.packetListener().completeTask(ModProtocolManager.SyncConfigurationTask.TYPE);
 		});
