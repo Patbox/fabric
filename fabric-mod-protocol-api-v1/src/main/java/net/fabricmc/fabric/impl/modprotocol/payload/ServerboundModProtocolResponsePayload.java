@@ -17,6 +17,7 @@
 package net.fabricmc.fabric.impl.modprotocol.payload;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -25,12 +26,13 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-public record ServerboundModProtocolResponsePayload(
-		Map<Identifier, String> supported) implements CustomPacketPayload {
+public record ServerboundModProtocolResponsePayload(Map<Identifier, String> supported, List<Identifier> missingServer) implements CustomPacketPayload {
 	public static final Type<ServerboundModProtocolResponsePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol/response"));
-	public static final StreamCodec<FriendlyByteBuf, ServerboundModProtocolResponsePayload> PACKET_CODEC =
-			ByteBufCodecs.map(ServerboundModProtocolResponsePayload::createMap, Identifier.STREAM_CODEC, ByteBufCodecs.STRING_UTF8)
-					.map(ServerboundModProtocolResponsePayload::new, ServerboundModProtocolResponsePayload::supported).cast();
+	public static final StreamCodec<FriendlyByteBuf, ServerboundModProtocolResponsePayload> PACKET_CODEC = StreamCodec.composite(
+			ByteBufCodecs.map(ServerboundModProtocolResponsePayload::createMap, Identifier.STREAM_CODEC, ByteBufCodecs.STRING_UTF8), ServerboundModProtocolResponsePayload::supported,
+			Identifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ServerboundModProtocolResponsePayload::missingServer,
+			ServerboundModProtocolResponsePayload::new
+	);
 
 	private static Map<Identifier, String> createMap(int i) {
 		return new HashMap<>(i);

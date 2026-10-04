@@ -39,6 +39,9 @@ public class ServerStatusMixin implements ModProtocolHolder {
 	@Nullable
 	private List<RemoteModProtocol> modProtocol;
 
+	@Unique
+	private boolean alwaysCompatible = false;
+
 	@Override
 	public List<RemoteModProtocol> fabric$getModProtocol() {
 		return this.modProtocol;
@@ -49,6 +52,16 @@ public class ServerStatusMixin implements ModProtocolHolder {
 		this.modProtocol = protocol;
 	}
 
+	@Override
+	public boolean fabric$getAlwaysCompatible() {
+		return this.alwaysCompatible;
+	}
+
+	@Override
+	public void fabric$setAlwaysCompatible(boolean value) {
+		this.alwaysCompatible = value;
+	}
+
 	@ModifyExpressionValue(method = "<clinit>", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/codecs/RecordCodecBuilder;create(Ljava/util/function/Function;)Lcom/mojang/serialization/Codec;"))
 	private static Codec<ServerStatus> extendCodec(Codec<ServerStatus> original) {
 		return new Codec<>() {
@@ -57,14 +70,22 @@ public class ServerStatusMixin implements ModProtocolHolder {
 				DataResult<Pair<ServerStatus, T>> decoded = original.decode(ops, input);
 
 				if (decoded.isSuccess()) {
-					DataResult<T> protocol = ops.get(input, "fabric:mod_protocol_v1");
+					ModProtocolHolder holder = ModProtocolHolder.of(decoded.getOrThrow().getFirst());
 
-					if (protocol.isSuccess()) {
-						DataResult<Pair<List<RemoteModProtocol>, T>> result = RemoteModProtocol.COMPRESSED_LIST_CODEC.decode(ops, protocol.getOrThrow());
+					DataResult<T> versions = ops.get(input, "fabric:mod_protocol_v1/versions");
+
+					if (versions.isSuccess()) {
+						DataResult<Pair<List<RemoteModProtocol>, T>> result = RemoteModProtocol.COMPRESSED_LIST_CODEC.decode(ops, versions.getOrThrow());
 
 						if (result.isSuccess()) {
-							ModProtocolHolder.of(decoded.getOrThrow().getFirst()).fabric$setModProtocol(result.getOrThrow().getFirst());
+							holder.fabric$setModProtocol(result.getOrThrow().getFirst());
 						}
+					}
+
+					DataResult<Boolean> alwaysCompatible = ops.get(input, "fabric:mod_protocol_v1/always_compatible").flatMap(ops::getBooleanValue);
+
+					if (alwaysCompatible.isSuccess()) {
+						holder.fabric$setAlwaysCompatible(alwaysCompatible.getOrThrow());
 					}
 				}
 
@@ -75,11 +96,17 @@ public class ServerStatusMixin implements ModProtocolHolder {
 			public <T> DataResult<T> encode(ServerStatus input, DynamicOps<T> ops, T prefix) {
 				DataResult<T> encode = original.encode(input, ops, prefix);
 
-				if (encode.isSuccess() && ModProtocolHolder.of(input).fabric$getModProtocol() != null) {
-					DataResult<T> protocol = RemoteModProtocol.COMPRESSED_LIST_CODEC.encodeStart(ops, ModProtocolHolder.of(input).fabric$getModProtocol());
+				ModProtocolHolder holder = ModProtocolHolder.of(input);
+
+				if (encode.isSuccess() && holder.fabric$getModProtocol() != null) {
+					DataResult<T> protocol = RemoteModProtocol.COMPRESSED_LIST_CODEC.encodeStart(ops, holder.fabric$getModProtocol());
 
 					if (protocol.isSuccess()) {
-						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol_v1"), protocol.getOrThrow());
+						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol_v1/versions"), protocol.getOrThrow());
+					}
+
+					if (holder.fabric$getAlwaysCompatible()) {
+						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol_v1/always_compatible"), ops.createBoolean(true));
 					}
 				}
 

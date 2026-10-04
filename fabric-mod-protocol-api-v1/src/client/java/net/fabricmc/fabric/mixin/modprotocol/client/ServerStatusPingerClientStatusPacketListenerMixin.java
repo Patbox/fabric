@@ -42,9 +42,15 @@ public class ServerStatusPingerClientStatusPacketListenerMixin {
 
 	@Inject(method = "handleStatusResponse", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/status/ServerStatus;players()Ljava/util/Optional;"))
 	private void handleModdedVersionChecks(ClientboundStatusResponsePacket packet, CallbackInfo ci) {
-		List<RemoteModProtocol> protocols = Objects.requireNonNullElse(ModProtocolHolder.of(packet.status()).fabric$getModProtocol(), List.of());
+		ModProtocolHolder holder = ModProtocolHolder.of(packet.status());
+
+		List<RemoteModProtocol> protocols = Objects.requireNonNullElse(holder.fabric$getModProtocol(), List.of());
 		ModProtocolManager.ValidationResult result = ModProtocolManager.validateClient(protocols);
 
-		((FabricServerData) this.val$data).fabric$setModProtocolsState(protocols, result);
+		if (result.isSuccess() || !holder.fabric$getAlwaysCompatible()) {
+			((FabricServerData) this.val$data).fabric$setModProtocolsState(protocols, result);
+		} else {
+			((FabricServerData) this.val$data).fabric$setModProtocolsState(protocols, new ModProtocolManager.ValidationResult(result.supportedProtocols(), List.of(), List.of(), false));
+		}
 	}
 }

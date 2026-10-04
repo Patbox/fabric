@@ -29,7 +29,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
+import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 
 public record RemoteModProtocol(Identifier id, String name, String version,
 								Optional<String> require) {
@@ -65,10 +65,10 @@ public record RemoteModProtocol(Identifier id, String name, String version,
 		}
 
 		if (split1 == split2) {
-			return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "???", string.substring(split1 + 1), Optional.empty()));
+			return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "<?>", string.substring(split1 + 1), Optional.empty()));
 		}
 
-		return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "???", string.substring(split1 + 1, split2), Optional.of(string.substring(split2 + 1))));
+		return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "<?>", string.substring(split1 + 1, split2), Optional.of(string.substring(split2 + 1))));
 	}, protocol -> DataResult.success(protocol.id().toString() + '\u0000' + protocol.version + (protocol.require().isPresent() ? '\u0000' + protocol.require.get() : "")));
 
 	public static final Codec<List<RemoteModProtocol>> COMPRESSED_LIST_CODEC = COMPRESSED_CODEC.listOf();
@@ -79,7 +79,7 @@ public record RemoteModProtocol(Identifier id, String name, String version,
 		}
 
 		try {
-			return VersionPredicateParser.parse(this.require.get()).test(Version.parse(version));
+			return VersionPredicate.parse(this.require.get()).test(Version.parse(version));
 		} catch (Throwable e) {
 			return false;
 		}

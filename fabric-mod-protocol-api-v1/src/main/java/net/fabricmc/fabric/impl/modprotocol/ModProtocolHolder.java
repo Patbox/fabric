@@ -30,4 +30,6 @@ public interface ModProtocolHolder {
 	@Nullable
 	List<RemoteModProtocol> fabric$getModProtocol();
 	void fabric$setModProtocol(List<RemoteModProtocol> protocol);
+	boolean fabric$getAlwaysCompatible();
+	void fabric$setAlwaysCompatible(boolean value);
 }

@@ -16,7 +16,9 @@
 
 package net.fabricmc.fabric.impl.modprotocol.client;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import net.minecraft.resources.Identifier;
 
@@ -45,7 +47,7 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 				}
 
 				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, versions);
-				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(versions));
+				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(versions, List.of()));
 				return;
 			}
 
@@ -53,18 +55,31 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 
 			if (validate.isSuccess()) {
 				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, validate.supportedProtocols());
-				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(validate.supportedProtocols()));
+				context.packetContext().set(VALIDATION_RESULT_KEY, null);
+				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(validate.supportedProtocols(), List.of()));
 				return;
 			}
 
-			var b = new StringBuilder();
-			b.append("Disconnected due to mismatched protocols!").append('\n');
-			b.append("Missing entries:").append('\n');
-			ModProtocolManager.appendComponentEntries(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID, -1, text -> b.append(" - ").append(text.getString()), false);
+			if (payload.disconnect()) {
+				var b = new StringBuilder();
+				b.append("Disconnected due to mismatched protocols!").append('\n');
+				b.append("Missing entries:").append('\n');
+				ModProtocolManager.appendComponentEntries(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID, -1, text -> b.append(" - ").append(text.getString()), false);
 
-			context.responseSender().disconnect(ModProtocolManager.getMismatchedVersionsMessage(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID));
-			context.packetContext().set(VALIDATION_RESULT_KEY, validate);
-			ModProtocolInit.LOGGER.warn(b.toString());
+				context.responseSender().disconnect(ModProtocolManager.getMismatchedVersionsMessage(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID));
+				context.packetContext().set(VALIDATION_RESULT_KEY, validate);
+				ModProtocolInit.LOGGER.warn(b.toString());
+			} else {
+				List<Identifier> missingServer = new ArrayList<>();
+
+				for (RemoteModProtocol remoteModProtocol : validate.missingRemote()) {
+					Identifier id = remoteModProtocol.id();
+					missingServer.add(id);
+				}
+
+				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(validate.supportedProtocols(), missingServer));
+				context.packetContext().set(VALIDATION_RESULT_KEY, validate);
+			}
 		});
 	}
 }

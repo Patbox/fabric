@@ -257,7 +257,7 @@ public final class ModProtocolManager {
 
 		@Override
 		public void start(Consumer<Packet<?>> connection) {
-			connection.accept(new ClientboundCustomPayloadPacket(new ClientboundModProtocolRequestPayload(SYNCED_PROTOCOLS)));
+			connection.accept(new ClientboundCustomPayloadPacket(new ClientboundModProtocolRequestPayload(SYNCED_PROTOCOLS, true)));
 		}
 
 		@Override

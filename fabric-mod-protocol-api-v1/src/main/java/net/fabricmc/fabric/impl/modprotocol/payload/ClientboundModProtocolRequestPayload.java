@@ -26,10 +26,13 @@ import net.minecraft.resources.Identifier;
 
 import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 
-public record ClientboundModProtocolRequestPayload(List<RemoteModProtocol> entries) implements CustomPacketPayload {
+public record ClientboundModProtocolRequestPayload(List<RemoteModProtocol> entries, boolean disconnect) implements CustomPacketPayload {
 	public static final Type<ClientboundModProtocolRequestPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol_request"));
-	public static final StreamCodec<FriendlyByteBuf, ClientboundModProtocolRequestPayload> PACKET_CODEC = RemoteModProtocol.STREAM_CODEC.apply(ByteBufCodecs.list())
-			.map(ClientboundModProtocolRequestPayload::new, ClientboundModProtocolRequestPayload::entries);
+	public static final StreamCodec<FriendlyByteBuf, ClientboundModProtocolRequestPayload> PACKET_CODEC = StreamCodec.composite(
+			RemoteModProtocol.STREAM_CODEC.apply(ByteBufCodecs.list()), ClientboundModProtocolRequestPayload::entries,
+			ByteBufCodecs.BOOL, ClientboundModProtocolRequestPayload::disconnect,
+			ClientboundModProtocolRequestPayload::new
+	);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
