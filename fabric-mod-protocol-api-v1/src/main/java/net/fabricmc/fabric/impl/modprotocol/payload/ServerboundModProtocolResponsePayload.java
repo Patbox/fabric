@@ -29,7 +29,7 @@ import net.minecraft.resources.Identifier;
 public record ServerboundModProtocolResponsePayload(Map<Identifier, String> supported, List<Identifier> missingServer) implements CustomPacketPayload {
 	private static final int MAX_ENTRIES = 2048;
 
-	public static final Type<ServerboundModProtocolResponsePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol_v1/response"));
+	public static final Type<ServerboundModProtocolResponsePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath("fabric", "mod_protocol/response/v1"));
 	public static final StreamCodec<FriendlyByteBuf, ServerboundModProtocolResponsePayload> PACKET_CODEC = StreamCodec.composite(
 			ByteBufCodecs.map(ServerboundModProtocolResponsePayload::createMap, Identifier.STREAM_CODEC, ByteBufCodecs.STRING_UTF8, MAX_ENTRIES), ServerboundModProtocolResponsePayload::supported,
 			Identifier.STREAM_CODEC.apply(ByteBufCodecs.list(MAX_ENTRIES)), ServerboundModProtocolResponsePayload::missingServer,
