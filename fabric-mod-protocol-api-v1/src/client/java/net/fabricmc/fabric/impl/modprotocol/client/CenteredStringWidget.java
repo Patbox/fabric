@@ -42,15 +42,14 @@ public class CenteredStringWidget extends StringWidget {
 	@Override
 	public void visitLines(final ActiveTextCollector output) {
 		Component message = this.getMessage();
-		Font font = this.getFont();
+		Font font = Objects.requireNonNull(this.getFont());
+
 		int maxWidth = this.maxWidth > 0 ? this.maxWidth : this.getWidth();
 		int textWidth = font.width(message);
-		int x = this.getX();
-		int var10000 = this.getY();
-		int var10001 = this.getHeight();
-		Objects.requireNonNull(font);
-		int y = var10000 + (var10001 - 9) / 2;
 		boolean textOverflow = textWidth > maxWidth;
+
+		int x = this.getX();
+		int y = this.getY() + (this.getHeight() - 9) / 2;
 
 		if (textOverflow) {
 			switch (this.textOverflow) {
