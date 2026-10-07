@@ -78,7 +78,7 @@ public class ModProtocolLocator {
 		} else if (idField != null && idField.getType() == CustomValue.CvType.STRING) {
 			id = Identifier.parse(idField.getAsString());
 		} else {
-			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
+			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid! The 'id' field is " + (idField == null ? "missing!" : "not a string!"));
 		}
 
 		if (!requireFullData && nameField == null) {
@@ -86,18 +86,18 @@ public class ModProtocolLocator {
 		} else if (nameField != null && nameField.getType() == CustomValue.CvType.STRING) {
 			name = nameField.getAsString();
 		} else {
-			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
+			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid! The 'name' field is " + (nameField == null ? "missing!" : "not a string!"));
 		}
 
 		if (!requireFullData && versionField == null) {
-			version = meta.getName();
+			version = meta.getVersion().getFriendlyString();
 		} else if (versionField != null && versionField.getType() == CustomValue.CvType.STRING) {
 			version = versionField.getAsString();
 		} else {
-			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!");
+			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid! The 'version' field is " + (versionField == null ? "missing!" : "not a string!"));
 		}
 
-		if (requiredField != null) {
+		if (requiredField != null && requiredField.getType() == CustomValue.CvType.STRING) {
 			Optional<String> value = Optional.of(requiredField.getAsString());
 
 			try {
@@ -108,9 +108,11 @@ public class ModProtocolLocator {
 
 			requiredClient = value;
 			requiredServer = value;
+		} else if (requiredField != null) {
+			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid! The 'required' field is not a string!");
 		}
 
-		if (requiredClientField != null && requiredClientField.getType() == CustomValue.CvType.BOOLEAN) {
+		if (requiredClientField != null && requiredClientField.getType() == CustomValue.CvType.STRING) {
 			requiredClient = Optional.of(requiredClientField.getAsString());
 
 			try {
@@ -118,9 +120,11 @@ public class ModProtocolLocator {
 			} catch (Throwable e) {
 				throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!", e);
 			}
+		} else if (requiredClientField != null) {
+			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid! The 'required_client' field is not a string!");
 		}
 
-		if (requiredServerField != null && requiredServerField.getType() == CustomValue.CvType.BOOLEAN) {
+		if (requiredServerField != null && requiredServerField.getType() == CustomValue.CvType.STRING) {
 			requiredServer = Optional.of(requiredServerField.getAsString());
 
 			try {
@@ -128,6 +132,8 @@ public class ModProtocolLocator {
 			} catch (Throwable e) {
 				throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!", e);
 			}
+		} else if (requiredServerField != null) {
+			throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid! The 'required_server' field is not a string!");
 		}
 
 		return new ModProtocolImpl(id, name, version, requiredClient, requiredServer);
