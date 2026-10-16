@@ -36,7 +36,7 @@ import net.fabricmc.fabric.impl.modprotocol.client.ClientModProtocolInit;
 import net.fabricmc.fabric.impl.modprotocol.client.MismatchedVersionScreen;
 
 @Mixin(DisconnectedScreen.class)
-public abstract class DisconnectedScreenMixin extends Screen {
+abstract class DisconnectedScreenMixin extends Screen {
 	@Unique
 	private static final Component MISMATCHED_VERSIONS_BUTTON = Component.translatable("text.fabric-mod-protocol-v1.mismatched_versions.button");
 

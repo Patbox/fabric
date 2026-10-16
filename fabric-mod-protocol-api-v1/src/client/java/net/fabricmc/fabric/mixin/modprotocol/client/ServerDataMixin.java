@@ -29,15 +29,11 @@ import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 import net.fabricmc.fabric.impl.modprotocol.client.FabricServerData;
 
 @Mixin(ServerData.class)
-public class ServerDataMixin implements FabricServerData {
+class ServerDataMixin implements FabricServerData {
 	@Unique
 	private ModProtocolManager.@Nullable ValidationResult validationResult;
 	@Unique
 	private List<RemoteModProtocol> modProtocols = List.of();
-
-	public ServerDataMixin(ModProtocolManager.@Nullable ValidationResult validationResult) {
-		this.validationResult = validationResult;
-	}
 
 	@Override
 	public List<RemoteModProtocol> fabric$getModProtocols() {

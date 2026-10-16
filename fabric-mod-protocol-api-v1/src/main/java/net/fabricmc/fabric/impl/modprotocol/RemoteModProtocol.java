@@ -17,7 +17,6 @@
 package net.fabricmc.fabric.impl.modprotocol;
 
 import java.util.List;
-import java.util.Optional;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -31,13 +30,12 @@ import net.minecraft.resources.Identifier;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 
-public record RemoteModProtocol(Identifier id, String name, String version,
-								Optional<String> require) {
+public record RemoteModProtocol(Identifier id, String name, String version, String require) {
 	public static final StreamCodec<FriendlyByteBuf, RemoteModProtocol> STREAM_CODEC = StreamCodec.composite(
 			Identifier.STREAM_CODEC, RemoteModProtocol::id,
 			ByteBufCodecs.STRING_UTF8, RemoteModProtocol::name,
 			ByteBufCodecs.STRING_UTF8, RemoteModProtocol::version,
-			ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8), RemoteModProtocol::require,
+			ByteBufCodecs.STRING_UTF8, RemoteModProtocol::require,
 			RemoteModProtocol::new
 	);
 
@@ -45,7 +43,7 @@ public record RemoteModProtocol(Identifier id, String name, String version,
 			Identifier.CODEC.fieldOf("id").forGetter(RemoteModProtocol::id),
 			Codec.STRING.fieldOf("name").forGetter(RemoteModProtocol::name),
 			Codec.STRING.fieldOf("version").forGetter(RemoteModProtocol::version),
-			Codec.STRING.optionalFieldOf("require").forGetter(RemoteModProtocol::require)
+			Codec.STRING.optionalFieldOf("require", "").forGetter(RemoteModProtocol::require)
 	).apply(instance, RemoteModProtocol::new));
 
 	public static final Codec<List<RemoteModProtocol>> LIST_CODEC = CODEC.listOf();
@@ -65,11 +63,11 @@ public record RemoteModProtocol(Identifier id, String name, String version,
 		}
 
 		if (split1 == split2) {
-			return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "<?>", string.substring(split1 + 1), Optional.empty()));
+			return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "<?>", string.substring(split1 + 1), ""));
 		}
 
-		return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "<?>", string.substring(split1 + 1, split2), Optional.of(string.substring(split2 + 1))));
-	}, protocol -> DataResult.success(protocol.id().toString() + '\u0000' + protocol.version + (protocol.require().isPresent() ? '\u0000' + protocol.require.get() : "")));
+		return DataResult.success(new RemoteModProtocol(id.getOrThrow(), "<?>", string.substring(split1 + 1, split2), string.substring(split2 + 1)));
+	}, protocol -> DataResult.success(protocol.id().toString() + '\u0000' + protocol.version + (protocol.hasRequirement() ? '\u0000' + protocol.require : "")));
 
 	public static final Codec<List<RemoteModProtocol>> COMPRESSED_LIST_CODEC = COMPRESSED_CODEC.listOf();
 
@@ -79,9 +77,13 @@ public record RemoteModProtocol(Identifier id, String name, String version,
 		}
 
 		try {
-			return VersionPredicate.parse(this.require.get()).test(Version.parse(version));
+			return VersionPredicate.parse(this.require).test(Version.parse(version));
 		} catch (Throwable e) {
 			return false;
 		}
+	}
+
+	public boolean hasRequirement() {
+		return !this.require.isEmpty();
 	}
 }

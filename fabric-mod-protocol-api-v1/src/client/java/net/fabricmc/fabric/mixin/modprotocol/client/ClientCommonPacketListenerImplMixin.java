@@ -29,7 +29,7 @@ import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
 import net.fabricmc.fabric.impl.modprotocol.client.ClientModProtocolInit;
 
 @Mixin(ClientCommonPacketListenerImpl.class)
-public abstract class ClientCommonPacketListenerImplMixin {
+abstract class ClientCommonPacketListenerImplMixin {
 	@WrapOperation(method = "onDisconnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientCommonPacketListenerImpl;createDisconnectScreen(Lnet/minecraft/network/DisconnectionDetails;)Lnet/minecraft/client/gui/screens/Screen;"))
 	private Screen provideInfoForExtraButton(ClientCommonPacketListenerImpl instance, DisconnectionDetails details, Operation<Screen> original) {
 		ModProtocolManager.ValidationResult result = instance.getPacketContext().get(ClientModProtocolInit.VALIDATION_RESULT_KEY);

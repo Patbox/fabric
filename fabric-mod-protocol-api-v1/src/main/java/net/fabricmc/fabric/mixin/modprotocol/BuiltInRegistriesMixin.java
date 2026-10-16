@@ -26,7 +26,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolInit;
 
 @Mixin(BuiltInRegistries.class)
-public class BuiltInRegistriesMixin {
+class BuiltInRegistriesMixin {
 	@Inject(method = "freeze", at = @At("TAIL"))
 	private static void onRegistryFrozen(CallbackInfo ci) {
 		ModProtocolInit.frozen = true;

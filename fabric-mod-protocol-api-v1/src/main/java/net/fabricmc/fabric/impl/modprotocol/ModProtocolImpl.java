@@ -30,10 +30,10 @@ public record ModProtocolImpl(Identifier id, String name, String version,
 	}
 
 	public RemoteModProtocol asClientbound() {
-		return new RemoteModProtocol(this.id, this.name, this.version, this.requireOnClient);
+		return new RemoteModProtocol(this.id, this.name, this.version, this.requireOnClient.orElse(""));
 	}
 
 	public RemoteModProtocol asServerbound() {
-		return new RemoteModProtocol(this.id, this.name, this.version, this.requireOnServer);
+		return new RemoteModProtocol(this.id, this.name, this.version, this.requireOnServer.orElse(""));
 	}
 }

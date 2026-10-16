@@ -34,7 +34,7 @@ import net.fabricmc.fabric.impl.modprotocol.ModProtocolHolder;
 import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 
 @Mixin(ServerStatus.class)
-public class ServerStatusMixin implements ModProtocolHolder {
+class ServerStatusMixin implements ModProtocolHolder {
 	@Unique
 	@Nullable
 	private List<RemoteModProtocol> modProtocol;
@@ -72,7 +72,7 @@ public class ServerStatusMixin implements ModProtocolHolder {
 				if (decoded.isSuccess()) {
 					ModProtocolHolder holder = ModProtocolHolder.of(decoded.getOrThrow().getFirst());
 
-					DataResult<T> versions = ops.get(input, "fabric:mod_protocol_v1/versions");
+					DataResult<T> versions = ops.get(input, "fabric:mod_protocol/versions/v1");
 
 					if (versions.isSuccess()) {
 						DataResult<Pair<List<RemoteModProtocol>, T>> result = RemoteModProtocol.COMPRESSED_LIST_CODEC.decode(ops, versions.getOrThrow());
@@ -82,7 +82,7 @@ public class ServerStatusMixin implements ModProtocolHolder {
 						}
 					}
 
-					DataResult<Boolean> alwaysCompatible = ops.get(input, "fabric:mod_protocol_v1/always_compatible").flatMap(ops::getBooleanValue);
+					DataResult<Boolean> alwaysCompatible = ops.get(input, "fabric:mod_protocol/always_compatible/v1").flatMap(ops::getBooleanValue);
 
 					if (alwaysCompatible.isSuccess()) {
 						holder.fabric$setAlwaysCompatible(alwaysCompatible.getOrThrow());
@@ -102,11 +102,11 @@ public class ServerStatusMixin implements ModProtocolHolder {
 					DataResult<T> protocol = RemoteModProtocol.COMPRESSED_LIST_CODEC.encodeStart(ops, holder.fabric$getModProtocol());
 
 					if (protocol.isSuccess()) {
-						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol_v1/versions"), protocol.getOrThrow());
+						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol/versions/v1"), protocol.getOrThrow());
 					}
 
 					if (holder.fabric$getAlwaysCompatible()) {
-						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol_v1/always_compatible"), ops.createBoolean(true));
+						encode = ops.mergeToMap(encode.getOrThrow(), ops.createString("fabric:mod_protocol/always_compatible/v1"), ops.createBoolean(true));
 					}
 				}
 

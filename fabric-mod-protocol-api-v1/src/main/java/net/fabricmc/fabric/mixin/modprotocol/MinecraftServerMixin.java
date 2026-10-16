@@ -27,9 +27,9 @@ import net.fabricmc.fabric.impl.modprotocol.ModProtocolHolder;
 import net.fabricmc.fabric.impl.modprotocol.ModProtocolManager;
 
 @Mixin(MinecraftServer.class)
-public class MinecraftServerMixin {
+class MinecraftServerMixin {
 	@ModifyReturnValue(method = "buildServerStatus", at = @At("RETURN"))
-	private ServerStatus addModProtocol(ServerStatus original) {
+	private ServerStatus addModProtocolToServerStatus(ServerStatus original) {
 		if (!ModProtocolManager.SYNCED_PROTOCOLS.isEmpty()) {
 			ModProtocolHolder.of(original).fabric$setModProtocol(ModProtocolManager.SYNCED_PROTOCOLS);
 		}

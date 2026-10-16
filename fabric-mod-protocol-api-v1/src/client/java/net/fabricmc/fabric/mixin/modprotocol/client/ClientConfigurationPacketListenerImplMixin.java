@@ -38,7 +38,7 @@ import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 import net.fabricmc.fabric.impl.modprotocol.client.ClientModProtocolInit;
 
 @Mixin(ClientConfigurationPacketListenerImpl.class)
-public abstract class ClientConfigurationPacketListenerImplMixin extends ClientCommonPacketListenerImpl {
+abstract class ClientConfigurationPacketListenerImplMixin extends ClientCommonPacketListenerImpl {
 	protected ClientConfigurationPacketListenerImplMixin(Minecraft minecraft, Connection connection, CommonListenerCookie cookie) {
 		super(minecraft, connection, cookie);
 	}

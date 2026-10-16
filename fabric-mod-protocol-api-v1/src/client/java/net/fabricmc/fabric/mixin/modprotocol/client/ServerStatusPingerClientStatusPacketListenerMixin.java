@@ -35,7 +35,7 @@ import net.fabricmc.fabric.impl.modprotocol.RemoteModProtocol;
 import net.fabricmc.fabric.impl.modprotocol.client.FabricServerData;
 
 @Mixin(targets = "net/minecraft/client/multiplayer/ServerStatusPinger$1")
-public class ServerStatusPingerClientStatusPacketListenerMixin {
+class ServerStatusPingerClientStatusPacketListenerMixin {
 	@Shadow
 	@Final
 	ServerData val$data;

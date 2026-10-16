@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
@@ -149,27 +148,27 @@ public final class ModProtocolManager {
 	}
 
 	public static ValidationResult validateClient(List<RemoteModProtocol> received) {
+		return validate(LOCAL_MOD_PROTOCOLS_BY_ID, received, REQUIRED_ON_SERVER);
+	}
+
+	public static ValidationResult validate(Map<Identifier, ModProtocolImpl> localById, List<RemoteModProtocol> received, List<RemoteModProtocol> requiredRemote) {
 		var receivedById = new HashMap<Identifier, RemoteModProtocol>(received.size());
 
 		for (RemoteModProtocol protocol : received) {
 			receivedById.put(protocol.id(), protocol);
 		}
 
-		return validate(LOCAL_MOD_PROTOCOLS_BY_ID, receivedById, REQUIRED_ON_SERVER);
-	}
-
-	public static ValidationResult validate(Map<Identifier, ModProtocolImpl> localById, Map<Identifier, RemoteModProtocol> received, List<RemoteModProtocol> requiredRemote) {
 		var supported = new HashMap<Identifier, String>();
 		var alreadyFailed = new HashSet<Identifier>();
 		var missingLocal = new ArrayList<RemoteModProtocol>();
 		var missingRemote = new ArrayList<RemoteModProtocol>();
 
-		for (RemoteModProtocol modProtocol : received.values()) {
+		for (RemoteModProtocol modProtocol : received) {
 			ModProtocolImpl local = localById.get(modProtocol.id());
 
 			if (local != null && modProtocol.matches(local.version())) {
 				supported.put(modProtocol.id(), local.version());
-			} else if (modProtocol.require().isPresent()) {
+			} else if (modProtocol.hasRequirement()) {
 				missingLocal.add(modProtocol);
 				alreadyFailed.add(modProtocol.id());
 			}
@@ -180,12 +179,12 @@ public final class ModProtocolManager {
 				continue;
 			}
 
-			RemoteModProtocol remote = received.get(modProtocol.id());
+			RemoteModProtocol remote = receivedById.get(modProtocol.id());
 
 			if (remote == null) {
-				missingRemote.add(new RemoteModProtocol(modProtocol.id(), modProtocol.name(), "", Optional.empty()));
+				missingRemote.add(new RemoteModProtocol(modProtocol.id(), modProtocol.name(), "", ""));
 			} else if (!modProtocol.matches(remote.version())) {
-				missingRemote.add(new RemoteModProtocol(modProtocol.id(), modProtocol.name(), remote.version(), Optional.empty()));
+				missingRemote.add(new RemoteModProtocol(modProtocol.id(), modProtocol.name(), remote.version(), ""));
 			}
 		}
 
@@ -213,7 +212,7 @@ public final class ModProtocolManager {
 		RemoteModProtocol clientboundProtocol = protocol.asClientbound();
 		SYNCED_PROTOCOLS.add(clientboundProtocol);
 
-		if (clientboundProtocol.require().isPresent()) {
+		if (clientboundProtocol.hasRequirement()) {
 			REQUIRED_ON_CLIENT.add(clientboundProtocol);
 		}
 
