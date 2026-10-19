@@ -16,7 +16,6 @@
 
 package net.fabricmc.fabric.impl.modprotocol;
 
-import java.util.Optional;
 import java.util.function.BiConsumer;
 
 import net.minecraft.resources.Identifier;
@@ -47,7 +46,7 @@ public class ModProtocolLocator {
 				consumer.accept(container, decodeFullDefinition(entry, meta, true));
 			}
 		} else if (definition.getType() == CustomValue.CvType.STRING) {
-			Optional<String> requirement = Optional.of(definition.getAsString());
+			String requirement = definition.getAsString();
 			consumer.accept(container, new ModProtocolImpl(Identifier.fromNamespaceAndPath("mod", meta.getId()), meta.getName(), meta.getVersion().getFriendlyString(), requirement, requirement));
 		} else {
 			consumer.accept(container, decodeFullDefinition(definition, meta, false));
@@ -63,8 +62,8 @@ public class ModProtocolLocator {
 		Identifier id;
 		String name;
 		String version;
-		Optional<String> requiredClient = Optional.empty();
-		Optional<String> requiredServer = Optional.empty();
+		String requiredClient = "";
+		String requiredServer = "";
 
 		CustomValue idField = object.get("id");
 		CustomValue nameField = object.get("name");
@@ -98,10 +97,10 @@ public class ModProtocolLocator {
 		}
 
 		if (requiredField != null && requiredField.getType() == CustomValue.CvType.STRING) {
-			Optional<String> value = Optional.of(requiredField.getAsString());
+			String value = requiredField.getAsString();
 
 			try {
-				VersionPredicateParser.parse(value.get());
+				VersionPredicateParser.parse(value);
 			} catch (Throwable e) {
 				throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!", e);
 			}
@@ -113,10 +112,10 @@ public class ModProtocolLocator {
 		}
 
 		if (requiredClientField != null && requiredClientField.getType() == CustomValue.CvType.STRING) {
-			requiredClient = Optional.of(requiredClientField.getAsString());
+			requiredClient = requiredClientField.getAsString();
 
 			try {
-				VersionPredicateParser.parse(requiredClient.get());
+				VersionPredicateParser.parse(requiredClient);
 			} catch (Throwable e) {
 				throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!", e);
 			}
@@ -125,10 +124,10 @@ public class ModProtocolLocator {
 		}
 
 		if (requiredServerField != null && requiredServerField.getType() == CustomValue.CvType.STRING) {
-			requiredServer = Optional.of(requiredServerField.getAsString());
+			requiredServer = requiredServerField.getAsString();
 
 			try {
-				VersionPredicateParser.parse(requiredServer.get());
+				VersionPredicateParser.parse(requiredServer);
 			} catch (Throwable e) {
 				throw new RuntimeException("Mod Protocol entry provided by '" + meta.getId() + "' is not valid!", e);
 			}

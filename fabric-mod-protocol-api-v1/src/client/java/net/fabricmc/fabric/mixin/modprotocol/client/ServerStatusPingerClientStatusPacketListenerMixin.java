@@ -50,7 +50,7 @@ class ServerStatusPingerClientStatusPacketListenerMixin {
 		if (result.isSuccess() || !holder.fabric$getAlwaysCompatible()) {
 			((FabricServerData) this.val$data).fabric$setModProtocolsState(protocols, result);
 		} else {
-			((FabricServerData) this.val$data).fabric$setModProtocolsState(protocols, new ModProtocolManager.ValidationResult(result.supportedProtocols(), List.of(), List.of(), false));
+			((FabricServerData) this.val$data).fabric$setModProtocolsState(protocols, new ModProtocolManager.ValidationResult(result.supportedLocal(), result.supportedRemote(), List.of(), List.of(), false));
 		}
 	}
 }

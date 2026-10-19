@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ public class ModProtocolTests {
 	@BeforeAll
 	static void beforeAll() {
 		for (int i = 0; i < 200; i++) {
-			ModProtocolRegistry.register(ModProtocolIds.mod("test_mod_id_" + i), "Tested Mod v" + i, "1.2.3", Optional.of(">=0.0.0"));
+			ModProtocolRegistry.register(ModProtocolIds.mod("test_mod_id_" + i), "Tested Mod v" + i, "1.2.3", ">=0.0.0");
 		}
 	}
 

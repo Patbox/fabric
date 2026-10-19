@@ -54,9 +54,9 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 			ModProtocolManager.ValidationResult validate = ModProtocolManager.validateClient(payload.entries());
 
 			if (validate.isSuccess()) {
-				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, validate.supportedProtocols());
+				context.packetContext().set(ModProtocolManager.REMOTE_MOD_VERSIONS_KEY, validate.supportedRemote());
 				context.packetContext().set(VALIDATION_RESULT_KEY, null);
-				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(validate.supportedProtocols(), List.of()));
+				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(validate.supportedLocal(), List.of()));
 				return;
 			}
 
@@ -66,8 +66,8 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 				b.append("Missing entries:").append('\n');
 				ModProtocolManager.appendComponentEntries(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID, -1, text -> b.append(" - ").append(text.getString()), false);
 
-				context.responseSender().disconnect(ModProtocolManager.getMismatchedVersionsMessage(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID));
 				context.packetContext().set(VALIDATION_RESULT_KEY, validate);
+				context.responseSender().disconnect(ModProtocolManager.getMismatchedVersionsMessage(validate.missing(), ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID));
 				ModProtocolInit.LOGGER.warn(b.toString());
 			} else {
 				List<Identifier> missingServer = new ArrayList<>();
@@ -77,7 +77,7 @@ public final class ClientModProtocolInit implements ClientModInitializer {
 					missingServer.add(id);
 				}
 
-				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(validate.supportedProtocols(), missingServer));
+				context.responseSender().sendPacket(new ServerboundModProtocolResponsePayload(validate.supportedLocal(), missingServer));
 				context.packetContext().set(VALIDATION_RESULT_KEY, validate);
 			}
 		});

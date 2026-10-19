@@ -16,24 +16,21 @@
 
 package net.fabricmc.fabric.impl.modprotocol;
 
-import java.util.Optional;
-
 import net.minecraft.resources.Identifier;
 
 import net.fabricmc.fabric.api.modprotocol.v1.ModProtocol;
 
-public record ModProtocolImpl(Identifier id, String name, String version,
-							Optional<String> requireOnClient,
-							Optional<String> requireOnServer) implements ModProtocol {
+public record ModProtocolImpl(Identifier id, String name, String version, String requireOnClient,
+							String requireOnServer) implements ModProtocol {
 	public boolean hasAnyRequirement() {
-		return this.requireOnClient.isPresent() || this.requireOnServer.isPresent();
+		return !this.requireOnClient.isEmpty() || !this.requireOnServer.isEmpty();
 	}
 
 	public RemoteModProtocol asClientbound() {
-		return new RemoteModProtocol(this.id, this.name, this.version, this.requireOnClient.orElse(""));
+		return new RemoteModProtocol(this.id, this.name, this.version, this.requireOnClient);
 	}
 
 	public RemoteModProtocol asServerbound() {
-		return new RemoteModProtocol(this.id, this.name, this.version, this.requireOnServer.orElse(""));
+		return new RemoteModProtocol(this.id, this.name, this.version, this.requireOnServer);
 	}
 }

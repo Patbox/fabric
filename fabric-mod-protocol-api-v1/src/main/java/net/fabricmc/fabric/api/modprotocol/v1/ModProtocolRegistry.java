@@ -18,7 +18,6 @@ package net.fabricmc.fabric.api.modprotocol.v1;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 
@@ -58,11 +57,11 @@ public final class ModProtocolRegistry {
 	 * @param identifier the identifier of protocol
 	 * @param name display name in protocol, shown if it's missing
 	 * @param version display version of the protocol, shown if it's missing
-	 * @param requireOnClient defines a predicate to check version requirement on client
-	 * @param requireOnServer defines a predicate to check version requirement on server
+	 * @param requireOnClient defines a predicate to check version requirement on client. Empty string for no requirement
+	 * @param requireOnServer defines a predicate to check version requirement on server. Empty string for no requirement
 	 * @return registered Mod Protocol
 	 */
-	public static ModProtocol register(Identifier identifier, String name, String version, Optional<String> requireOnClient, Optional<String> requireOnServer) {
+	public static ModProtocol register(Identifier identifier, String name, String version, String requireOnClient, String requireOnServer) {
 		return ModProtocolManager.add(null, new ModProtocolImpl(identifier, name, version, requireOnClient, requireOnServer));
 	}
 
@@ -72,10 +71,10 @@ public final class ModProtocolRegistry {
 	 * @param identifier the identifier of protocol
 	 * @param name display name in protocol, shown if it's missing
 	 * @param version display version of the protocol, shown if it's missing
-	 * @param require defines a predicate to check version requirement
+	 * @param require defines a predicate to check version requirement. Empty string for no requirement
 	 * @return registered Mod Protocol
 	 */
-	public static ModProtocol register(Identifier identifier, String name, String version, Optional<String> require) {
+	public static ModProtocol register(Identifier identifier, String name, String version, String require) {
 		return ModProtocolManager.add(null, new ModProtocolImpl(identifier, name, version, require, require));
 	}
 

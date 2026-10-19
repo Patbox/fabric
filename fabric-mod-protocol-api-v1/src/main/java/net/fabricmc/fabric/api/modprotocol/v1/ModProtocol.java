@@ -16,8 +16,6 @@
 
 package net.fabricmc.fabric.api.modprotocol.v1;
 
-import java.util.Optional;
-
 import org.jetbrains.annotations.ApiStatus;
 
 import net.minecraft.resources.Identifier;
@@ -45,10 +43,10 @@ public interface ModProtocol {
 	/**
 	 * @return A version predicate for client-side version requirement
 	 */
-	Optional<String> requireOnClient();
+	String requireOnClient();
 
 	/**
 	 * @return A version predicate for server-side version requirement
 	 */
-	Optional<String> requireOnServer();
+	String requireOnServer();
 }

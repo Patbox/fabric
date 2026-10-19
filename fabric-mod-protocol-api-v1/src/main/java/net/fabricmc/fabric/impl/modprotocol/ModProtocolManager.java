@@ -158,7 +158,8 @@ public final class ModProtocolManager {
 			receivedById.put(protocol.id(), protocol);
 		}
 
-		var supported = new HashMap<Identifier, String>();
+		var supportedLocal = new HashMap<Identifier, String>();
+		var supportedRemote = new HashMap<Identifier, String>();
 		var alreadyFailed = new HashSet<Identifier>();
 		var missingLocal = new ArrayList<RemoteModProtocol>();
 		var missingRemote = new ArrayList<RemoteModProtocol>();
@@ -167,7 +168,7 @@ public final class ModProtocolManager {
 			ModProtocolImpl local = localById.get(modProtocol.id());
 
 			if (local != null && modProtocol.matches(local.version())) {
-				supported.put(modProtocol.id(), local.version());
+				supportedLocal.put(modProtocol.id(), local.version());
 			} else if (modProtocol.hasRequirement()) {
 				missingLocal.add(modProtocol);
 				alreadyFailed.add(modProtocol.id());
@@ -185,10 +186,12 @@ public final class ModProtocolManager {
 				missingRemote.add(new RemoteModProtocol(modProtocol.id(), modProtocol.name(), "", ""));
 			} else if (!modProtocol.matches(remote.version())) {
 				missingRemote.add(new RemoteModProtocol(modProtocol.id(), modProtocol.name(), remote.version(), ""));
+			} else {
+				supportedRemote.put(modProtocol.id(), remote.version());
 			}
 		}
 
-		return new ValidationResult(supported, missingLocal, missingRemote, false);
+		return new ValidationResult(supportedLocal, supportedRemote, missingLocal, missingRemote, false);
 	}
 
 	public static void collectModProtocols() {
@@ -196,14 +199,16 @@ public final class ModProtocolManager {
 	}
 
 	public static ModProtocolImpl add(@Nullable ModContainer container, ModProtocolImpl protocol) {
+		if (ModProtocolInit.frozen) {
+			throw new IllegalStateException("Can't register new protocols after freeze!");
+		}
+
 		if (LOCAL_MOD_PROTOCOLS_BY_ID.containsKey(protocol.id())) {
 			if (container != null) {
-				ModProtocolInit.LOGGER.warn("Found duplicate protocol id '{}' provided by mod '{}'", protocol.id(), container.getMetadata().getId());
+				throw new IllegalStateException("Found duplicate protocol id " + protocol.id() + "' provided by mod '" + container.getMetadata().getId() + "'");
 			} else {
-				ModProtocolInit.LOGGER.warn("Found duplicate protocol id '{}' registered by a mod!'", protocol.id(), new RuntimeException());
+				throw new IllegalStateException("Found duplicate protocol id " + protocol.id() + "' provided by a mod!");
 			}
-
-			return LOCAL_MOD_PROTOCOLS_BY_ID.get(protocol.id());
 		}
 
 		LOCAL_MOD_PROTOCOLS_BY_ID.put(protocol.id(), protocol);
@@ -216,7 +221,7 @@ public final class ModProtocolManager {
 			REQUIRED_ON_CLIENT.add(clientboundProtocol);
 		}
 
-		if (protocol.requireOnServer().isPresent()) {
+		if (!protocol.requireOnServer().isEmpty()) {
 			REQUIRED_ON_SERVER.add(protocol.asServerbound());
 		}
 
@@ -265,7 +270,7 @@ public final class ModProtocolManager {
 		}
 	}
 
-	public record ValidationResult(Map<Identifier, String> supportedProtocols, List<RemoteModProtocol> missingLocal, List<RemoteModProtocol> missingRemote, boolean forceNoRemote) {
+	public record ValidationResult(Map<Identifier, String> supportedLocal, Map<Identifier, String> supportedRemote, List<RemoteModProtocol> missingLocal, List<RemoteModProtocol> missingRemote, boolean forceNoRemote) {
 		public boolean isSuccess() {
 			return missingLocal.isEmpty() && missingRemote.isEmpty();
 		}

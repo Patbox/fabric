@@ -34,7 +34,7 @@
  *     		on both client and server to match provided version predicate. The predicate itself uses the same format as dependency declarations.</p>
  *     		</dd>
  *     		<dt>"fabric:mod_protocol_v1": {
- *     		 "id: "custom:id",
+ *     		 "id": "custom:id",
  *     		 "name": "Mod Name",
  *     		 "version": "1.2.3",
  *     		 "require": "1.2.x",
@@ -52,7 +52,7 @@
  *          <p>"require_server" controls the required versions for the servers, defaults to allowing all connections</p>
  *       	</dd>
  *       	<dt>"fabric:mod_protocol_v1": [{
- *       		 "id: "custom:id",
+ *       		 "id": "custom:id",
  *       		 "name": "Mod Name",
  *       		 "version": "1.2.3",
  *       		 "require": "1.2.x",

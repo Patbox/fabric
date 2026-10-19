@@ -57,7 +57,7 @@ abstract class ClientConfigurationPacketListenerImplMixin extends ClientCommonPa
 				return;
 			}
 
-			this.getPacketContext().set(ClientModProtocolInit.VALIDATION_RESULT_KEY, new ModProtocolManager.ValidationResult(Map.of(), List.of(), ModProtocolManager.REQUIRED_ON_SERVER, true));
+			this.getPacketContext().set(ClientModProtocolInit.VALIDATION_RESULT_KEY, new ModProtocolManager.ValidationResult(Map.of(), Map.of(), List.of(), ModProtocolManager.REQUIRED_ON_SERVER, true));
 			this.minecraft.execute(() -> this.connection.disconnect(ModProtocolManager.getIncompatibleServerMessage(this.serverBrand, ModProtocolManager.REQUIRED_ON_SERVER, ModProtocolManager.LOCAL_MOD_PROTOCOLS_BY_ID)));
 			ci.cancel();
 		}

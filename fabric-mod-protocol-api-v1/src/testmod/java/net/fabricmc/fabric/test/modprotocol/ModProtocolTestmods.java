@@ -17,7 +17,6 @@
 package net.fabricmc.fabric.test.modprotocol;
 
 import java.util.Collection;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,16 +46,16 @@ public final class ModProtocolTestmods implements ModInitializer {
 
 		boolean altVersion = false;
 
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification"), "Hello there", altVersion ? "1.12.4" : "1.12.2", Optional.of("~1.12"), Optional.empty());
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification2"), "Test2", "1.0", Optional.empty(), Optional.of("1.0"));
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification3"), "Test3", "2.0", Optional.of("*"));
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification4"), "Test4", altVersion ? "2.1.3" : "2.0", Optional.of(altVersion ? "2.1.x" : "2.0.x"));
-		// ModProtocolRegistry.register(ModProtocolIds.special("test_modification5"), "Test5", "1.0", Optional.empty());
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification6"), "Test6", altVersion ? "4.5" : "1.0", Optional.of(altVersion ? "4.x" : ">=1.0 <3.0"));
-		ModProtocolRegistry.register(ModProtocolIds.special("test_modification7"), "Test7", "1.0", Optional.of(">=0.0"));
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification"), "Hello there", altVersion ? "1.12.4" : "1.12.2", "~1.12", "");
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification2"), "Test2", "1.0", "", "1.0");
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification3"), "Test3", "2.0", "*");
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification4"), "Test4", altVersion ? "2.1.3" : "2.0", altVersion ? "2.1.x" : "2.0.x");
+		// ModProtocolRegistry.register(ModProtocolIds.special("test_modification5"), "Test5", "1.0", "");
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification6"), "Test6", altVersion ? "4.5" : "1.0", altVersion ? "4.x" : ">=1.0 <3.0");
+		ModProtocolRegistry.register(ModProtocolIds.special("test_modification7"), "Test7", "1.0", ">=0.0");
 
 		for (int i = 0; i < 200; i++) {
-			ModProtocolRegistry.register(ModProtocolIds.feature("fake_mod_id_" + i), "Fabulous Mod v" + i, "1.2.3", Optional.of(">=0.0.0"));
+			ModProtocolRegistry.register(ModProtocolIds.feature("fake_mod_id_" + i), "Fabulous Mod v" + i, "1.2.3", ">=0.0.0");
 		}
 
 		CustomValue testificate = modContainer.getMetadata().getCustomValue("test_fabric:mod_protocol");
