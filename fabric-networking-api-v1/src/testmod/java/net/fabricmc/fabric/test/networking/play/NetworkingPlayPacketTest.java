@@ -111,7 +111,7 @@ public final class NetworkingPlayPacketTest implements ModInitializer {
 		NetworkingTestmods.LOGGER.info("Hello from networking user!");
 
 		PayloadTypeRegistry.clientboundPlay().register(OverlayPacket.TYPE, OverlayPacket.CODEC);
-		PayloadTypeRegistry.serverboundPlay().register(CreativeOnlyPayload.TYPE, CreativeOnlyPayload.CODEC, PayloadTypeRegistry.Predicates.HAS_INFINITE_MATERIALS);
+		PayloadTypeRegistry.serverboundPlay().register(CreativeOnlyPayload.TYPE, CreativeOnlyPayload.CODEC, PayloadTypeRegistry.Predicates.SERVERBOUND_HAS_INFINITE_MATERIALS);
 
 		ServerPlayNetworking.registerGlobalReceiver(CreativeOnlyPayload.TYPE, (payload, context) -> {
 			context.player().sendSystemMessage(Component.literal("Received creative only packet!"));

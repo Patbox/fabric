@@ -90,11 +90,10 @@ public class PayloadTypeRegistryImpl<B extends FriendlyByteBuf> implements Paylo
 
 	@Override
 	public <T extends CustomPacketPayload> CustomPacketPayload.TypeAndCodec<? super B, T> register(CustomPacketPayload.Type<T> type, StreamCodec<? super B, T> codec, Predicate<PacketContext> decodePredicate) {
-		Objects.requireNonNull(codec, "decodePredicate");
+		Objects.requireNonNull(decodePredicate, "decodePredicate");
+
 		CustomPacketPayload.TypeAndCodec<? super B, T> typeAndCodec = register(type, codec);
-
 		this.allowDecodePredicate.put(type.id(), decodePredicate);
-
 		return typeAndCodec;
 	}
 
@@ -111,11 +110,10 @@ public class PayloadTypeRegistryImpl<B extends FriendlyByteBuf> implements Paylo
 
 	@Override
 	public <T extends CustomPacketPayload> CustomPacketPayload.TypeAndCodec<? super B, T> registerLarge(CustomPacketPayload.Type<T> type, StreamCodec<? super B, T> codec, int maxPacketSize, Predicate<PacketContext> decodePredicate) {
-		Objects.requireNonNull(codec, "decodePredicate");
+		Objects.requireNonNull(decodePredicate, "decodePredicate");
+
 		CustomPacketPayload.TypeAndCodec<? super B, T> typeAndCodec = registerLarge(type, codec, maxPacketSize);
-
 		this.allowDecodePredicate.put(type.id(), decodePredicate);
-
 		return typeAndCodec;
 	}
 
@@ -130,11 +128,10 @@ public class PayloadTypeRegistryImpl<B extends FriendlyByteBuf> implements Paylo
 
 	@Override
 	public <T extends CustomPacketPayload> CustomPacketPayload.TypeAndCodec<? super B, T> registerLarge(CustomPacketPayload.Type<T> type, StreamCodec<? super B, T> codec, IntSupplier maxPacketSizeSupplier, Predicate<PacketContext> decodePredicate) {
-		Objects.requireNonNull(codec, "decodePredicate");
+		Objects.requireNonNull(decodePredicate, "decodePredicate");
+
 		CustomPacketPayload.TypeAndCodec<? super B, T> typeAndCodec = registerLarge(type, codec, maxPacketSizeSupplier);
-
 		this.allowDecodePredicate.put(type.id(), decodePredicate);
-
 		return typeAndCodec;
 	}
 

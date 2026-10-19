@@ -56,7 +56,7 @@ public interface PayloadTypeRegistry<B extends FriendlyByteBuf> {
 	 *
 	 * @param type  the payload type
 	 * @param codec the codec for the payload type
-	 * @param decodePredicate a predicate indicating if this packet can be decoded or should be skipped
+	 * @param decodePredicate a predicate indicating if this packet can be decoded or should be skipped. It is checked on netty thread, so accessing most world and player data directly is not safe to do
 	 * @param <T>   the payload class
 	 * @return the registered payload type
 	 */
@@ -98,7 +98,7 @@ public interface PayloadTypeRegistry<B extends FriendlyByteBuf> {
 	 * @param codec         the codec for the payload type
 	 * @param <T>           the payload class
 	 * @param maxPacketSize the maximum size of payload packet
-	 * @param decodePredicate a predicate indicating if this packet can be decoded or should be skipped
+	 * @param decodePredicate a predicate indicating if this packet can be decoded or should be skipped. It is checked on netty thread, so accessing most world and player data directly is not safe to do
 	 * @return the registered payload type
 	 */
 	<T extends CustomPacketPayload> CustomPacketPayload.TypeAndCodec<? super B, T> registerLarge(CustomPacketPayload.Type<T> type, StreamCodec<? super B, T> codec, int maxPacketSize, Predicate<PacketContext> decodePredicate);
@@ -146,7 +146,7 @@ public interface PayloadTypeRegistry<B extends FriendlyByteBuf> {
 	 * @param type		    the payload type
 	 * @param codec         the codec for the payload type
 	 * @param maxPacketSizeSupplier the function that returns the max size of payload packet
-	 * @param decodePredicate a predicate indicating if this packet can be decoded or should be skipped
+	 * @param decodePredicate a predicate indicating if this packet can be decoded or should be skipped. It is checked on netty thread, so accessing most world and player data directly is not safe to do
 	 * @param <T>           the payload type
 	 * @return the registered payload type
 	 */
@@ -186,10 +186,10 @@ public interface PayloadTypeRegistry<B extends FriendlyByteBuf> {
 	final class Predicates {
 		private Predicates() { }
 
-		/// Checks if player has infinite materials (or in simple terms is in Creative Mode)
-		public static final Predicate<PacketContext> HAS_INFINITE_MATERIALS = ctx -> ctx.orElseThrow(PacketContext.CONNECTION).getPacketListener() instanceof GameProtocols.Context context && context.hasInfiniteMaterials();
+		/// Checks if player has infinite materials (or in simple terms is in Creative Mode). Serverbound only check!
+		public static final Predicate<PacketContext> SERVERBOUND_HAS_INFINITE_MATERIALS = ctx -> ctx.orElseThrow(PacketContext.CONNECTION).getPacketListener() instanceof GameProtocols.Context context && context.hasInfiniteMaterials();
 
-		/// Checks if player can use command blocks
-		public static final Predicate<PacketContext> CAN_USE_COMMAND_BLOCKS = ctx -> ctx.orElseThrow(PacketContext.CONNECTION).getPacketListener() instanceof GameProtocols.Context context && context.canUseCommandBlocks();
+		/// Checks if player can use command blocks. Serverbound only check!
+		public static final Predicate<PacketContext> SERVERBOUND_CAN_USE_COMMAND_BLOCKS = ctx -> ctx.orElseThrow(PacketContext.CONNECTION).getPacketListener() instanceof GameProtocols.Context context && context.canUseCommandBlocks();
 	}
 }

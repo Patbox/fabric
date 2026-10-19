@@ -50,7 +50,7 @@ public class NetworkingSplitterTest implements ModInitializer {
 		// Register the payload on both sides for play and configuration
 		PayloadTypeRegistry.clientboundPlay().registerLarge(LargePayload.TYPE, LargePayload.CODEC, DATA_SIZE + 14);
 		PayloadTypeRegistry.serverboundPlay().registerLarge(LargePayload.TYPE, LargePayload.CODEC, () -> DATA_SIZE + 14);
-		PayloadTypeRegistry.serverboundPlay().registerLarge(LargeCreativeOnlyPayload.TYPE, LargeCreativeOnlyPayload.CODEC, DATA_SIZE + 14, PayloadTypeRegistry.Predicates.HAS_INFINITE_MATERIALS);
+		PayloadTypeRegistry.serverboundPlay().registerLarge(LargeCreativeOnlyPayload.TYPE, LargeCreativeOnlyPayload.CODEC, DATA_SIZE + 14, PayloadTypeRegistry.Predicates.SERVERBOUND_HAS_INFINITE_MATERIALS);
 
 		// When the client joins, send a packet expecting it to be validated and echoed back
 		ServerPlayConnectionEvents.JOIN.register((listener, sender, server) -> sender.sendPacket(new LargePayload(0, RANDOM_DATA[0])));

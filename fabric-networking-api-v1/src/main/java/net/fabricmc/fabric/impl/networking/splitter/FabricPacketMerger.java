@@ -161,7 +161,7 @@ public class FabricPacketMerger extends MessageToMessageDecoder<Packet<?>> {
 	private static class MergerNoOp implements Merger {
 		private final int finalSize;
 		private final Identifier packetId;
-		private int accumulatedSize;
+		private long accumulatedSize;
 
 		MergerNoOp(Identifier identifier, int finalSize) {
 			this.packetId = identifier;
@@ -170,7 +170,7 @@ public class FabricPacketMerger extends MessageToMessageDecoder<Packet<?>> {
 
 		@Override
 		public boolean add(ChannelHandlerContext channelHandlerContext, FabricSplitPacketPayload payload, List<Object> objects) throws Exception {
-			int newSize = this.accumulatedSize + payload.byteBuf().readableBytes();
+			long newSize = this.accumulatedSize + payload.byteBuf().readableBytes();
 
 			if (this.finalSize < newSize) {
 				throw new DecoderException("Received too much data for packet '" + this.packetId + "'! Expected " + this.finalSize + " bytes, received " + newSize + " bytes!");
@@ -209,7 +209,7 @@ public class FabricPacketMerger extends MessageToMessageDecoder<Packet<?>> {
 
 		@Override
 		public boolean add(ChannelHandlerContext channelHandlerContext, FabricSplitPacketPayload payload, List<Object> objects) throws Exception {
-			int newSize = this.byteBuf.readableBytes() + payload.byteBuf().readableBytes();
+			long newSize = (long) this.byteBuf.readableBytes() + payload.byteBuf().readableBytes();
 
 			if (this.finalSize < newSize) {
 				throw new DecoderException("Received too much data for packet '" + this.packetId + "'! Expected " + this.finalSize + " bytes, received " + newSize + " bytes!");
